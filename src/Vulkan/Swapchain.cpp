@@ -26,6 +26,7 @@ Swapchain::Swapchain(const std::shared_ptr<VulkanContext>& ctx, SDL_Window* wind
     createSwapchain();
     createImageViews();
     createDrawImage();
+    createDepthImage();
 }
 
 Swapchain::~Swapchain()
@@ -54,6 +55,7 @@ VkExtent2D Swapchain::GetExtent() const { return m_extent; }
 bool Swapchain::IsResized() const { return m_resized; }
 VkImage Swapchain::GetImage(uint32_t idx) const { return m_images[idx]; }
 Image Swapchain::GetDrawImage() const { return m_drawImage; }
+Image Swapchain::GetDepthImage() const { return m_depthImage; }
 VkImageView Swapchain::GetImageView(uint32_t idx) const { return m_imageViews[idx]; }
 SwapChainSupportDetails Swapchain::GetSwapchainSupport() const { return m_swapchainSupport; }
 
@@ -126,8 +128,8 @@ void Swapchain::createImageViews()
 void Swapchain::createDrawImage()
 {
     VkExtent3D drawImageExtent = {m_extent.width, m_extent.height, 1};
-    m_drawImage.imageFormat = VK_FORMAT_R16G16B16A16_SFLOAT;
-    m_drawImage.imageExtent = drawImageExtent;
+    m_drawImage.format = VK_FORMAT_R16G16B16A16_SFLOAT;
+    m_drawImage.extent = drawImageExtent;
 
     VkImageUsageFlags drawImageUsages {
         VK_IMAGE_USAGE_TRANSFER_SRC_BIT |
@@ -136,19 +138,44 @@ void Swapchain::createDrawImage()
         VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT
     };
 
-    VkImageCreateInfo rimg_info = VkInit::image_create_info(m_drawImage.imageFormat, drawImageUsages, drawImageExtent);
-    VmaAllocationCreateInfo rimg_allocinfo {
+    VkImageCreateInfo rimgInfo = VkInit::image_create_info(m_drawImage.format, drawImageUsages, drawImageExtent);
+    VmaAllocationCreateInfo rimgAllocInfo {
         .usage = VMA_MEMORY_USAGE_GPU_ONLY,
         .requiredFlags = static_cast<VkMemoryPropertyFlags>(VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT)
     };
 
-    vmaCreateImage(m_allocator, &rimg_info, &rimg_allocinfo, &m_drawImage.image, &m_drawImage.allocation, nullptr);
-    VkImageViewCreateInfo rview_info = VkInit::imageview_create_info(m_drawImage.imageFormat, m_drawImage.image, VK_IMAGE_ASPECT_COLOR_BIT);
-    VK_CHECK(vkCreateImageView(m_ctx->GetDevice(), &rview_info, nullptr, &m_drawImage.imageView));
+    vmaCreateImage(m_allocator, &rimgInfo, &rimgAllocInfo, &m_drawImage.image, &m_drawImage.allocation, nullptr);
+    VkImageViewCreateInfo rview_info = VkInit::imageview_create_info(m_drawImage.format, m_drawImage.image, VK_IMAGE_ASPECT_COLOR_BIT);
+    VK_CHECK(vkCreateImageView(m_ctx->GetDevice(), &rview_info, nullptr, &m_drawImage.view));
 
     m_deletionQueue.PushFunction([=]() {
-        vkDestroyImageView(m_ctx->GetDevice(), m_drawImage.imageView, nullptr);
+        vkDestroyImageView(m_ctx->GetDevice(), m_drawImage.view, nullptr);
         vmaDestroyImage(m_allocator, m_drawImage.image, m_drawImage.allocation);
+    });
+}
+
+void Swapchain::createDepthImage()
+{
+    m_depthImage.format = VK_FORMAT_D32_SFLOAT;
+    m_depthImage.extent = m_drawImage.extent;
+    VkImageUsageFlags depthImageUsages{};
+    depthImageUsages |= VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
+
+    VkImageCreateInfo dimgInfo = VkInit::image_create_info(m_depthImage.format, depthImageUsages, m_drawImage.extent);
+    VmaAllocationCreateInfo dimgAllocInfo {
+        .usage = VMA_MEMORY_USAGE_GPU_ONLY,
+        .requiredFlags = static_cast<VkMemoryPropertyFlags>(VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT)
+    };
+    vmaCreateImage(m_allocator, &dimgInfo, &dimgAllocInfo, &m_depthImage.image, &m_depthImage.allocation, nullptr);
+
+    //build an image-view for the draw image to use for rendering
+    VkImageViewCreateInfo dview_info = VkInit::imageview_create_info(m_depthImage.format, m_depthImage.image, VK_IMAGE_ASPECT_DEPTH_BIT);
+
+    VK_CHECK(vkCreateImageView(m_ctx->GetDevice(), &dview_info, nullptr, &m_depthImage.view));
+
+    m_deletionQueue.PushFunction([=]() {
+        vkDestroyImageView(m_ctx->GetDevice(), m_depthImage.view, nullptr);
+        vmaDestroyImage(m_allocator, m_depthImage.image, m_depthImage.allocation);
     });
 }
 

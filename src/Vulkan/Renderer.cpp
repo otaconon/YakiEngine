@@ -12,6 +12,12 @@
 #define VMA_IMPLEMENTATION
 #include <vk_mem_alloc.h>
 
+#include <fastgltf/glm_element_traits.hpp>
+#include <fastgltf/util.hpp>
+#include <fastgltf/types.hpp>
+#include <fastgltf/base64.hpp>
+#include <fastgltf/core.hpp>
+
 #include "ImGuiStyles.h"
 #include "VkInit.h"
 #include "../Ecs.h"
@@ -43,13 +49,13 @@ Renderer::Renderer(SDL_Window* window, const std::shared_ptr<VulkanContext>& ctx
 	if (!VkUtil::load_shader_module("../shaders/fragment/first_triangle.frag.spv", m_ctx->GetDevice(), &fragmentShader))
 		std::println("Error when building the triangle fragment shader module");
 	else
-		std::println("Triangle fragment shader succesfully loaded");
+		std::println("Triangle fragment shader successfully loaded");
 
 	VkShaderModule vertexShader;
 	if (!VkUtil::load_shader_module("../shaders/vertex/first_triangle.vert.spv", m_ctx->GetDevice(), &vertexShader))
 		std::println("Error when building the triangle vertex shader module");
 	else
-		std::println("Triangle vertex shader succesfully loaded");
+		std::println("Triangle vertex shader successfully loaded");
 
 	VkPushConstantRange bufferRange {
 		.stageFlags = VK_SHADER_STAGE_VERTEX_BIT,
@@ -68,10 +74,13 @@ Renderer::Renderer(SDL_Window* window, const std::shared_ptr<VulkanContext>& ctx
 	m_graphicsPipeline.SetPolygonMode(VK_POLYGON_MODE_FILL);
 	m_graphicsPipeline.SetCullMode(VK_CULL_MODE_BACK_BIT, VK_FRONT_FACE_COUNTER_CLOCKWISE);
 	m_graphicsPipeline.SetMultisamplingNone();
+	m_graphicsPipeline.SetColorAttachmentFormat(m_swapchain.GetDrawImage().format);
+	m_graphicsPipeline.SetDepthFormat(m_swapchain.GetDepthImage().format);
+
+	m_graphicsPipeline.EnableDepthTest();
+
 	m_graphicsPipeline.DisableBlending();
 	m_graphicsPipeline.DisableDepthTest();
-	m_graphicsPipeline.SetColorAttachmentFormat(m_swapchain.GetDrawImage().imageFormat);
-	m_graphicsPipeline.SetDepthFormat(VK_FORMAT_UNDEFINED);
 
 	m_graphicsPipeline.CreateGraphicsPipeline();
 
@@ -138,7 +147,7 @@ void Renderer::initImgui()
 		.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
 		.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT,
 		.maxSets = 1000,
-		.poolSizeCount = (uint32_t)std::size(pool_sizes),
+		.poolSizeCount = static_cast<uint32_t>(std::size(pool_sizes)),
 		.pPoolSizes = pool_sizes,
 	};
 
@@ -219,6 +228,7 @@ void Renderer::recordCommandBuffer(VkCommandBuffer cmd, uint32_t imageIndex, std
 
 	// Record draw commands
 	VkUtil::transition_image(cmd, m_swapchain.GetDrawImage().image, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_GENERAL);
+	VkUtil::transition_image(cmd, m_swapchain.GetDepthImage().image, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL);
 
 	VkImageSubresourceRange clearRange = VkInit::image_subresource_range(VK_IMAGE_ASPECT_COLOR_BIT);
 	vkCmdClearColorImage(cmd, m_swapchain.GetDrawImage().image, VK_IMAGE_LAYOUT_GENERAL, &clearValues[0].color, 1, &clearRange);
@@ -226,7 +236,7 @@ void Renderer::recordCommandBuffer(VkCommandBuffer cmd, uint32_t imageIndex, std
 
 	VkUtil::transition_image(cmd, m_swapchain.GetDrawImage().image, VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
 	VkUtil::transition_image(cmd, m_swapchain.GetImage(imageIndex), VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-	VkExtent2D drawExtent = {m_swapchain.GetDrawImage().imageExtent.width, m_swapchain.GetDrawImage().imageExtent.height};
+	VkExtent2D drawExtent = {m_swapchain.GetDrawImage().extent.width, m_swapchain.GetDrawImage().extent.height};
 	VkUtil::copy_image_to_image(cmd, m_swapchain.GetDrawImage().image, m_swapchain.GetImage(imageIndex), drawExtent, m_swapchain.GetExtent());
 
 	// Imgui
@@ -278,7 +288,7 @@ void Renderer::endSingleTimeCommands(VkCommandPool& commandPool, VkCommandBuffer
 
 void Renderer::drawImgui(VkCommandBuffer cmd, VkImageView targetImageView)
 {
-	VkRenderingAttachmentInfo colorAttachment = VkInit::attachment_info(targetImageView, nullptr, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+	VkRenderingAttachmentInfo colorAttachment = VkInit::color_attachment_info(targetImageView, nullptr, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 	VkRenderingInfo renderInfo = VkInit::rendering_info(m_swapchain.GetExtent(), &colorAttachment, nullptr);
 
 	vkCmdBeginRendering(cmd, &renderInfo);
@@ -290,10 +300,11 @@ void Renderer::drawImgui(VkCommandBuffer cmd, VkImageView targetImageView)
 
 void Renderer::drawObjects(VkCommandBuffer cmd, std::vector<Drawable>& drawables)
 {
-	VkRenderingAttachmentInfo colorAttachment = VkInit::attachment_info(m_swapchain.GetDrawImage().imageView, nullptr, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+	VkRenderingAttachmentInfo colorAttachment = VkInit::color_attachment_info(m_swapchain.GetDrawImage().view, nullptr, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+	VkRenderingAttachmentInfo depthAttachment = VkInit::depth_attachment_info(m_swapchain.GetDepthImage().view, VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL);
 
-	VkExtent2D drawExtent = {m_swapchain.GetDrawImage().imageExtent.width, m_swapchain.GetDrawImage().imageExtent.height};
-	VkRenderingInfo renderInfo = VkInit::rendering_info(drawExtent, &colorAttachment, nullptr);
+	VkExtent2D drawExtent = {m_swapchain.GetDrawImage().extent.width, m_swapchain.GetDrawImage().extent.height};
+	VkRenderingInfo renderInfo = VkInit::rendering_info(drawExtent, &colorAttachment, &depthAttachment);
 	vkCmdBeginRendering(cmd, &renderInfo);
 
 	vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, m_graphicsPipeline.GetGraphicsPipeline());
@@ -311,7 +322,7 @@ void Renderer::drawObjects(VkCommandBuffer cmd, std::vector<Drawable>& drawables
 
 	VkRect2D scissor {
 		.offset = {0, 0},
-		.extent = {m_swapchain.GetDrawImage().imageExtent.width, m_swapchain.GetDrawImage().imageExtent.height}
+		.extent = {m_swapchain.GetDrawImage().extent.width, m_swapchain.GetDrawImage().extent.height}
 	};
 
 	vkCmdSetScissor(cmd, 0, 1, &scissor);
@@ -321,7 +332,7 @@ void Renderer::drawObjects(VkCommandBuffer cmd, std::vector<Drawable>& drawables
 		.model = drawables[0].ubo.model,
 		.view = drawables[0].ubo.view,
 		.proj = drawables[0].ubo.proj,
-		.vertexBuffer = drawables[0].mesh->vertexBufferAddress,
+		.vertexBuffer = drawables[0].mesh->vertexBufferAddress
 	};
 
 	VkBuffer vertexBuffers[] = {drawables[0].mesh->vertexBuffer.buffer};
@@ -365,8 +376,8 @@ void Renderer::immediateSubmit(std::function<void(VkCommandBuffer cmd)>&& functi
 	function(cmd);
 	VK_CHECK(vkEndCommandBuffer(cmd));
 
-	VkCommandBufferSubmitInfo cmdinfo = VkInit::command_buffer_submit_info(cmd);
-	VkSubmitInfo2 submit = VkInit::submit_info(&cmdinfo, nullptr, nullptr);
+	VkCommandBufferSubmitInfo cmdInfo = VkInit::command_buffer_submit_info(cmd);
+	VkSubmitInfo2 submit = VkInit::submit_info(&cmdInfo, nullptr, nullptr);
 
 	VK_CHECK(vkQueueSubmit2(m_ctx->GetGraphicsQueue(), 1, &submit, m_immFence));
 	VK_CHECK(vkWaitForFences(m_ctx->GetDevice(), 1, &m_immFence, true, 9999999999));
@@ -401,12 +412,12 @@ void Renderer::DrawFrame(std::vector<Drawable>& drawables)
 	VkCommandBuffer cmd = getCurrentFrame().commandBuffer;
 	recordCommandBuffer(cmd, imageIndex, drawables);
 
-	VkCommandBufferSubmitInfo cmdinfo = VkInit::command_buffer_submit_info(cmd);
+	VkCommandBufferSubmitInfo cmdInfo = VkInit::command_buffer_submit_info(cmd);
 
 	VkSemaphoreSubmitInfo waitInfo = VkInit::semaphore_submit_info(VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT_KHR,getCurrentFrame().swapchainSemaphore);
 	VkSemaphoreSubmitInfo signalInfo = VkInit::semaphore_submit_info(VK_PIPELINE_STAGE_2_ALL_GRAPHICS_BIT, getCurrentFrame().renderSemaphore);
 
-	VkSubmitInfo2 submit = VkInit::submit_info(&cmdinfo,&signalInfo,&waitInfo);
+	VkSubmitInfo2 submit = VkInit::submit_info(&cmdInfo,&signalInfo,&waitInfo);
 
 	VK_CHECK(vkQueueSubmit2(m_ctx->GetGraphicsQueue(), 1, &submit, getCurrentFrame().renderFence));
 
@@ -442,7 +453,7 @@ std::shared_ptr<GPUMeshBuffers> Renderer::UploadMesh(const std::span<uint32_t> i
 	Buffer vertexBuffer(m_allocator, vertexBufferSize, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT, VMA_MEMORY_USAGE_GPU_ONLY);
 	Buffer indexBuffer(m_allocator, indexBufferSize,  VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT, VMA_MEMORY_USAGE_GPU_ONLY);
 
-	VkBufferDeviceAddressInfo deviceAdressInfo {
+	VkBufferDeviceAddressInfo deviceAddressInfo {
 		.sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO,
 		.buffer = vertexBuffer.buffer
 	};
@@ -450,7 +461,7 @@ std::shared_ptr<GPUMeshBuffers> Renderer::UploadMesh(const std::span<uint32_t> i
 	std::shared_ptr<GPUMeshBuffers> newSurface = std::make_shared<GPUMeshBuffers> (
 		std::move(vertexBuffer),
 		std::move(indexBuffer),
-		vkGetBufferDeviceAddress(m_ctx->GetDevice(), &deviceAdressInfo)
+		vkGetBufferDeviceAddress(m_ctx->GetDevice(), &deviceAddressInfo)
 		);
 
 	Buffer staging(m_allocator, vertexBufferSize + indexBufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VMA_MEMORY_USAGE_CPU_ONLY);
@@ -479,4 +490,118 @@ std::shared_ptr<GPUMeshBuffers> Renderer::UploadMesh(const std::span<uint32_t> i
 	});
 
 	return newSurface;
+}
+
+std::optional<std::vector<std::shared_ptr<Mesh>>> Renderer::LoadGltfMeshes(const std::filesystem::path& filePath)
+{
+	if (!std::filesystem::exists(filePath))
+	{
+		std::print("Failed to load mesh, path doesn't exist: {}", std::filesystem::absolute(filePath).string());
+		return {};
+	}
+
+	fastgltf::GltfDataBuffer data;
+	data.FromPath(filePath);
+
+	constexpr auto gltfOptions = fastgltf::Options::LoadExternalBuffers;
+
+	fastgltf::Asset gltf;
+	fastgltf::Parser parser {};
+	auto load = parser.loadGltfBinary(data, filePath.parent_path(), gltfOptions);
+	if (load) {
+		gltf = std::move(load.get());
+	} else {
+		std::print("Failed to load glTF: {} \n", fastgltf::to_underlying(load.error()));
+		return {};
+	}
+
+	std::vector<std::shared_ptr<Mesh>> meshes;
+    std::vector<uint32_t> indices;
+    std::vector<Vertex> vertices;
+    for (fastgltf::Mesh& mesh : gltf.meshes) {
+        Mesh newMesh;
+        newMesh.name = mesh.name;
+
+        indices.clear();
+        vertices.clear();
+
+        for (auto&& p : mesh.primitives) {
+            GeoSurface newSurface{};
+            newSurface.startIndex = static_cast<uint32_t>(indices.size());
+            newSurface.count = static_cast<uint32_t>(gltf.accessors[p.indicesAccessor.value()].count);
+
+            size_t initial_vtx = vertices.size();
+
+            {
+                fastgltf::Accessor& indexAccessor = gltf.accessors[p.indicesAccessor.value()];
+                indices.reserve(indices.size() + indexAccessor.count);
+
+                fastgltf::iterateAccessor<std::uint32_t>(gltf, indexAccessor,
+                    [&](std::uint32_t idx) {
+                        indices.push_back(idx + initial_vtx);
+                    });
+            }
+
+            {
+                fastgltf::Accessor& posAccessor = gltf.accessors[p.findAttribute("POSITION")->accessorIndex];
+                vertices.resize(vertices.size() + posAccessor.count);
+
+                fastgltf::iterateAccessorWithIndex<glm::vec3>(gltf, posAccessor,
+                    [&](glm::vec3 v, size_t index) {
+                        Vertex newVertex;
+                        newVertex.position = v;
+                        newVertex.normal = { 1, 0, 0 };
+                        newVertex.color = glm::vec4 { 1.f };
+                        newVertex.uv.x = 0;
+                        newVertex.uv.y = 0;
+                        vertices[initial_vtx + index] = newVertex;
+                    });
+            }
+
+            // load vertex normals
+            auto normals = p.findAttribute("NORMAL");
+            if (normals != p.attributes.end()) {
+
+                fastgltf::iterateAccessorWithIndex<glm::vec3>(gltf, gltf.accessors[normals->accessorIndex],
+                    [&](glm::vec3 v, size_t index) {
+                        vertices[initial_vtx + index].normal = v;
+                    });
+            }
+
+            // load UVs
+            auto uv = p.findAttribute("TEXCOORD_0");
+            if (uv != p.attributes.end()) {
+
+                fastgltf::iterateAccessorWithIndex<glm::vec2>(gltf, gltf.accessors[normals->accessorIndex],
+                    [&](glm::vec2 v, size_t index) {
+                        vertices[initial_vtx + index].uv.x = v.x;
+                        vertices[initial_vtx + index].uv.y = v.y;
+                    });
+            }
+
+            // load vertex colors
+            auto colors = p.findAttribute("COLOR_0");
+            if (colors != p.attributes.end()) {
+
+                fastgltf::iterateAccessorWithIndex<glm::vec4>(gltf, gltf.accessors[colors->accessorIndex],
+                    [&](glm::vec4 v, size_t index) {
+                        vertices[initial_vtx + index].color = v;
+                    });
+            }
+            newMesh.surfaces.push_back(newSurface);
+        }
+
+        // display the vertex normals
+        constexpr bool OverrideColors = true;
+        if (OverrideColors) {
+            for (Vertex& vtx : vertices) {
+                vtx.color = glm::vec4(vtx.normal, 1.f);
+            }
+        }
+
+    	newMesh.meshBuffers = UploadMesh(indices, vertices);
+        meshes.emplace_back(std::make_shared<Mesh>(std::move(newMesh)));
+    }
+
+    return meshes;
 }

@@ -12,8 +12,9 @@ find_package(SDL3 CONFIG REQUIRED)
 find_package(Stb REQUIRED)
 find_package(imgui CONFIG REQUIRED)
 find_package(VulkanMemoryAllocator CONFIG REQUIRED)
+find_package(fastgltf CONFIG REQUIRED)
 
-target_link_libraries(YakiEngine PRIVATE HECS::HECS Vulkan::Headers GPUOpen::VulkanMemoryAllocator Freetype::Freetype SDL3::SDL3 glm::glm Vulkan::Vulkan imgui::imgui)
+target_link_libraries(YakiEngine PRIVATE HECS::HECS Vulkan::Headers GPUOpen::VulkanMemoryAllocator Freetype::Freetype SDL3::SDL3 glm::glm Vulkan::Vulkan imgui::imgui fastgltf::fastgltf)
 target_include_directories(YakiEngine PRIVATE ${Stb_INCLUDE_DIR})
 
 add_custom_target(compile_shader

@@ -144,7 +144,7 @@ VkSubmitInfo2 VkInit::submit_info(VkCommandBufferSubmitInfo* cmd, VkSemaphoreSub
     return info;
 }
 
-VkRenderingAttachmentInfo VkInit::attachment_info(VkImageView view, VkClearValue* clear, VkImageLayout layout)
+VkRenderingAttachmentInfo VkInit::color_attachment_info(VkImageView view, VkClearValue* clear, VkImageLayout layout)
 {
     VkRenderingAttachmentInfo colorAttachment {
         .sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO,
@@ -160,6 +160,21 @@ VkRenderingAttachmentInfo VkInit::attachment_info(VkImageView view, VkClearValue
     }
 
     return colorAttachment;
+}
+
+VkRenderingAttachmentInfo VkInit::depth_attachment_info(VkImageView view, VkImageLayout layout)
+{
+    VkRenderingAttachmentInfo depthAttachment {
+        .sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO,
+        .pNext = nullptr,
+        .imageView = view,
+        .imageLayout = layout,
+        .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
+        .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
+    };
+    depthAttachment.clearValue.depthStencil.depth = 0.f;
+
+    return depthAttachment;
 }
 
 VkRenderingInfo VkInit::rendering_info(VkExtent2D renderExtent, VkRenderingAttachmentInfo* colorAttachment, VkRenderingAttachmentInfo* depthAttachment)

@@ -14,7 +14,8 @@ GraphicsPipeline::GraphicsPipeline(const std::shared_ptr<VulkanContext>& ctx, Sw
     m_inputAssembly{.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO},
     m_rasterizer{.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO},
     m_multisampling{.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO},
-    m_renderInfo{.sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO}
+    m_renderInfo{.sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO},
+    m_depthStencil{.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO}
 {
     initDescriptors(swapchain);
 }
@@ -112,7 +113,7 @@ void GraphicsPipeline::initDescriptors(Swapchain& swapchain)
     m_drawImageDescriptors = m_descriptorAllocator.allocate(m_ctx->GetDevice(),m_drawImageDescriptorLayout);
 
     VkDescriptorImageInfo imgInfo {
-        .imageView = swapchain.GetDrawImage().imageView,
+        .imageView = swapchain.GetDrawImage().view,
         .imageLayout = VK_IMAGE_LAYOUT_GENERAL,
     };
 
@@ -183,14 +184,15 @@ void GraphicsPipeline::SetDepthFormat(VkFormat format)
 
 void GraphicsPipeline::EnableDepthTest()
 {
-   m_depthStencil.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
-   m_depthStencil.depthTestEnable = VK_TRUE;
-   m_depthStencil.depthWriteEnable = VK_TRUE;
-   m_depthStencil.depthCompareOp = VK_COMPARE_OP_LESS;
-   m_depthStencil.depthBoundsTestEnable = VK_FALSE;
-   m_depthStencil.minDepthBounds = 0.0f;
-   m_depthStencil.maxDepthBounds = 1.0f;
-   m_depthStencil.stencilTestEnable = VK_FALSE;
+    m_depthStencil.depthTestEnable = VK_TRUE;
+    m_depthStencil.depthWriteEnable = VK_TRUE;
+    m_depthStencil.depthCompareOp = VK_COMPARE_OP_LESS;
+    m_depthStencil.depthBoundsTestEnable = VK_FALSE;
+    m_depthStencil.stencilTestEnable = VK_FALSE;
+    m_depthStencil.front = {};
+    m_depthStencil.back = {};
+    m_depthStencil.minDepthBounds = 0.f;
+    m_depthStencil.maxDepthBounds = 1.f;
 }
 
 void GraphicsPipeline::DisableBlending()

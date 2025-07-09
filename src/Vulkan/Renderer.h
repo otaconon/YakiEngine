@@ -18,7 +18,7 @@ public:
     void DrawFrame(std::vector<Drawable>& drawables);
     [[nodiscard]] Drawable CreateDrawable(std::vector<Vertex>& vertices, std::vector<uint32_t>& indices) const;
     [[nodiscard]] std::shared_ptr<GPUMeshBuffers> UploadMesh(const std::span<uint32_t> indices, const std::span<Vertex> vertices);
-
+    [[nodiscard]] std::optional<std::vector<std::shared_ptr<Mesh>>> LoadGltfMeshes(const std::filesystem::path& filePath);
 private:
     SDL_Window* m_window;
 

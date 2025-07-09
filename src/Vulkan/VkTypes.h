@@ -41,25 +41,35 @@ struct FrameData
 struct Image
 {
     VkImage image;
-    VkImageView imageView;
+    VkImageView view;
     VmaAllocation allocation;
-    VkExtent3D imageExtent;
-    VkFormat imageFormat;
+    VkExtent3D extent;
+    VkFormat format;
 };
 
 struct Vertex
 {
-    glm::vec3 pos;
+    glm::vec3 position;
     float _pad0;
-    glm::vec3 color;
+    glm::vec3 normal;
     float _pad1;
-    glm::vec2 texCoord;
-    float _pad2[2];
+    glm::vec3 color;
+    float _pad2;
+    glm::vec2 uv;
+    float _pad3[2];
 
-    Vertex(const glm::vec3& p, const glm::vec3& c, const glm::vec2& t)
-        : pos(p), _pad0(0.0f),
-          color(c), _pad1(0.0f),
-          texCoord(t), _pad2{0.0f, 0.0f}
+    Vertex()
+        : position{}, _pad0{},
+        normal{}, _pad2{},
+        color{}, _pad1{},
+        uv{}, _pad3{}
+    {}
+
+    Vertex(const glm::vec3& p, const glm::vec3 n, const glm::vec3& c, const glm::vec2& t)
+        : position{p}, _pad0{0.f},
+        normal{n}, _pad1{0.f},
+        color{c}, _pad2{0.f},
+        uv{t}, _pad3{0.0f, 0.0f}
     {}
 
     static VkVertexInputBindingDescription getBindingDescription() {
@@ -70,27 +80,37 @@ struct Vertex
         return bindingDescription;
     }
 
-    static std::array<VkVertexInputAttributeDescription, 3> getAttributeDescriptions() {
-        std::array<VkVertexInputAttributeDescription, 3> attributeDescriptions{};
-        attributeDescriptions[0].binding = 0;
-        attributeDescriptions[0].location = 0;
-        attributeDescriptions[0].format = VK_FORMAT_R32G32B32_SFLOAT;
-        attributeDescriptions[0].offset = offsetof(Vertex, pos);
-        attributeDescriptions[1].binding = 0;
-        attributeDescriptions[1].location = 1;
-        attributeDescriptions[1].format = VK_FORMAT_R32G32B32_SFLOAT;
-        attributeDescriptions[1].offset = offsetof(Vertex, color);
-        attributeDescriptions[2].binding = 0;
-        attributeDescriptions[2].location = 2;
-        attributeDescriptions[2].format = VK_FORMAT_R32G32_SFLOAT;
-        attributeDescriptions[2].offset = offsetof(Vertex, texCoord);
+    static std::array<VkVertexInputAttributeDescription, 4> getAttributeDescriptions() {
+        std::array<VkVertexInputAttributeDescription, 4> attributeDescriptions{};
+        attributeDescriptions[0] = {
+            .location = 0,
+            .binding = 0,
+            .format = VK_FORMAT_R32G32B32_SFLOAT,
+            .offset = offsetof(Vertex, position)
+        };
+        attributeDescriptions[1] = {
+            .location = 1,
+            .binding = 0,
+            .format = VK_FORMAT_R32G32B32_SFLOAT,
+            .offset = offsetof(Vertex, normal)
+        };
+        attributeDescriptions[2] = {
+            .location = 2,
+            .binding = 0,
+            .format = VK_FORMAT_R32G32B32_SFLOAT,
+            .offset = offsetof(Vertex, color)
+        };
+        attributeDescriptions[3] = {
+            .location = 3,
+            .binding = 0,
+            .format = VK_FORMAT_R32G32B32_SFLOAT,
+            .offset = offsetof(Vertex, uv)
+        };
 
         return attributeDescriptions;
     }
 };
-
-static_assert(sizeof(Vertex) == 48);
-
+static_assert(sizeof(Vertex) == 64);
 
 struct GPUMeshBuffers
 {
@@ -104,6 +124,18 @@ struct GPUDrawPushConstants {
     glm::mat4 view;
     glm::mat4 proj;
     VkDeviceAddress vertexBuffer;
+};
+
+struct GeoSurface {
+    uint32_t startIndex;
+    uint32_t count;
+};
+
+struct Mesh {
+    std::string name;
+
+    std::vector<GeoSurface> surfaces;
+    std::shared_ptr<GPUMeshBuffers> meshBuffers;
 };
 
 struct DescriptorLayoutBuilder

@@ -19,6 +19,7 @@ public:
 	[[nodiscard]] bool IsResized() const;
 	[[nodiscard]] VkImage GetImage(uint32_t idx) const;
 	[[nodiscard]] Image GetDrawImage() const;
+	[[nodiscard]] Image GetDepthImage() const;
 	[[nodiscard]] VkImageView GetImageView(uint32_t idx) const;
 	[[nodiscard]] SwapChainSupportDetails GetSwapchainSupport() const;
 
@@ -37,6 +38,7 @@ private:
 	SwapChainSupportDetails m_swapchainSupport;
 
     Image m_drawImage;
+	Image m_depthImage;
     std::vector<VkImage> m_images;
     std::vector<VkImageView> m_imageViews;
 
@@ -51,6 +53,7 @@ private:
 	void createSwapchain();
 	void createImageViews();
 	void createDrawImage();
+	void createDepthImage();
 	VkImageView createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags);
 
 	void cleanupSwapchain();

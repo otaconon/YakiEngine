@@ -15,7 +15,6 @@
 #include <fastgltf/glm_element_traits.hpp>
 #include <fastgltf/util.hpp>
 #include <fastgltf/types.hpp>
-#include <fastgltf/base64.hpp>
 #include <fastgltf/core.hpp>
 
 #include "ImGuiStyles.h"
@@ -29,10 +28,6 @@ Renderer::Renderer(SDL_Window* window, const std::shared_ptr<VulkanContext>& ctx
 	m_graphicsPipeline(ctx, m_swapchain),
     m_currentFrame(0)
 {
-	initCommands();
-	initSyncObjects();
-	initImgui();
-
 	VmaAllocatorCreateInfo allocatorInfo {
 		.flags = VMA_ALLOCATOR_CREATE_BUFFER_DEVICE_ADDRESS_BIT,
 		.physicalDevice = m_ctx->GetPhysicalDevice(),
@@ -45,56 +40,15 @@ Renderer::Renderer(SDL_Window* window, const std::shared_ptr<VulkanContext>& ctx
 		vmaDestroyAllocator(m_allocator);
 	});
 
-	VkShaderModule fragmentShader;
-	if (!VkUtil::load_shader_module("../shaders/fragment/first_triangle.frag.spv", m_ctx->GetDevice(), &fragmentShader))
-		std::println("Error when building the triangle fragment shader module");
-	else
-		std::println("Triangle fragment shader successfully loaded");
-
-	VkShaderModule vertexShader;
-	if (!VkUtil::load_shader_module("../shaders/vertex/first_triangle.vert.spv", m_ctx->GetDevice(), &vertexShader))
-		std::println("Error when building the triangle vertex shader module");
-	else
-		std::println("Triangle vertex shader successfully loaded");
-
-	VkPushConstantRange bufferRange {
-		.stageFlags = VK_SHADER_STAGE_VERTEX_BIT,
-		.offset = 0,
-		.size = sizeof(GPUDrawPushConstants),
-	};
-
-	VkPipelineLayoutCreateInfo pipelineLayoutInfo = VkInit::pipeline_layout_create_info();
-	pipelineLayoutInfo.pPushConstantRanges = &bufferRange;
-	pipelineLayoutInfo.pushConstantRangeCount = 1;
-	VK_CHECK(vkCreatePipelineLayout(m_ctx->GetDevice(), &pipelineLayoutInfo, nullptr, &m_graphicsPipelineLayout));
-
-	m_graphicsPipeline.SetLayout(m_graphicsPipelineLayout);
-	m_graphicsPipeline.SetShaders(vertexShader, fragmentShader);
-	m_graphicsPipeline.SetInputTopology(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
-	m_graphicsPipeline.SetPolygonMode(VK_POLYGON_MODE_FILL);
-	m_graphicsPipeline.SetCullMode(VK_CULL_MODE_BACK_BIT, VK_FRONT_FACE_COUNTER_CLOCKWISE);
-	m_graphicsPipeline.SetMultisamplingNone();
-	m_graphicsPipeline.SetColorAttachmentFormat(m_swapchain.GetDrawImage().format);
-	m_graphicsPipeline.SetDepthFormat(m_swapchain.GetDepthImage().format);
-
-	m_graphicsPipeline.EnableDepthTest();
-
-	m_graphicsPipeline.DisableBlending();
-	m_graphicsPipeline.DisableDepthTest();
-
-	m_graphicsPipeline.CreateGraphicsPipeline();
-
-	vkDestroyShaderModule(m_ctx->GetDevice(), fragmentShader, nullptr);
-	vkDestroyShaderModule(m_ctx->GetDevice(), vertexShader, nullptr);
-
-	m_deletionQueue.PushFunction([&]() {
-		vkDestroyPipelineLayout(m_ctx->GetDevice(), m_graphicsPipelineLayout, nullptr);
-	});
+	initCommands();
+	initSyncObjects();
+	initImgui();
+	initGraphicsPipeline();
 }
 
 Renderer::~Renderer()
 {
-    const VkDevice device = m_ctx->GetDevice();
+    VkDevice device = m_ctx->GetDevice();
     vkDeviceWaitIdle(device);
 
     for (size_t i = 0; i < FRAME_OVERLAP; i++)
@@ -200,13 +154,60 @@ void Renderer::initSyncObjects()
 	m_deletionQueue.PushFunction([=]() { vkDestroyFence(m_ctx->GetDevice(), m_immFence, nullptr); });
 }
 
-void Renderer::recordCommandBuffer(VkCommandBuffer cmd, uint32_t imageIndex, std::vector<Drawable>& drawables)
+void Renderer::initGraphicsPipeline()
+{
+
+	VkPushConstantRange bufferRange {
+		.stageFlags = VK_SHADER_STAGE_VERTEX_BIT,
+		.offset = 0,
+		.size = sizeof(GPUDrawPushConstants),
+	};
+
+	VkPipelineLayoutCreateInfo pipelineLayoutInfo = VkInit::pipeline_layout_create_info();
+	pipelineLayoutInfo.pPushConstantRanges = &bufferRange;
+	pipelineLayoutInfo.pushConstantRangeCount = 1;
+	VK_CHECK(vkCreatePipelineLayout(m_ctx->GetDevice(), &pipelineLayoutInfo, nullptr, &m_graphicsPipelineLayout));
+
+	VkShaderModule fragmentShader;
+	if (!VkUtil::load_shader_module("../shaders/fragment/first_triangle.frag.spv", m_ctx->GetDevice(), &fragmentShader))
+		std::println("Error when building the triangle fragment shader module");
+	else
+		std::println("Triangle fragment shader successfully loaded");
+
+	VkShaderModule vertexShader;
+	if (!VkUtil::load_shader_module("../shaders/vertex/first_triangle.vert.spv", m_ctx->GetDevice(), &vertexShader))
+		std::println("Error when building the triangle vertex shader module");
+	else
+		std::println("Triangle vertex shader successfully loaded");
+
+	m_graphicsPipeline.SetLayout(m_graphicsPipelineLayout);
+	m_graphicsPipeline.SetInputTopology(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
+	m_graphicsPipeline.SetPolygonMode(VK_POLYGON_MODE_FILL);
+	m_graphicsPipeline.SetCullMode(VK_CULL_MODE_BACK_BIT, VK_FRONT_FACE_COUNTER_CLOCKWISE);
+	m_graphicsPipeline.SetMultisamplingNone();
+	m_graphicsPipeline.SetColorAttachmentFormat(m_swapchain.GetDrawImage().format);
+	m_graphicsPipeline.SetDepthFormat(m_swapchain.GetDepthImage().format);
+
+	m_graphicsPipeline.EnableDepthTest();
+
+	m_graphicsPipeline.DisableBlending();
+
+	m_graphicsPipeline.CreateGraphicsPipeline();
+
+	vkDestroyShaderModule(m_ctx->GetDevice(), fragmentShader, nullptr);
+	vkDestroyShaderModule(m_ctx->GetDevice(), vertexShader, nullptr);
+	m_deletionQueue.PushFunction([&]() {
+		vkDestroyPipelineLayout(m_ctx->GetDevice(), m_graphicsPipelineLayout, nullptr);
+	});
+}
+
+void Renderer::recordCommandBuffer(VkCommandBuffer cmd, uint32_t imageIndex, std::vector<Drawable>& drawables) const
 {
 	// Setup
 	VkCommandBufferBeginInfo cmdBeginInfo = VkInit::command_buffer_begin_info(VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
 	VK_CHECK(vkBeginCommandBuffer(cmd, &cmdBeginInfo));
 
-    std::array<VkClearValue, 2> clearValues;
+    std::array<VkClearValue, 2> clearValues{};
     clearValues[0].color = {{0.0f, 0.0f, 0.0f, 1.0f}};
     clearValues[1].depthStencil = {1.0f, 0};
 
@@ -236,7 +237,11 @@ void Renderer::recordCommandBuffer(VkCommandBuffer cmd, uint32_t imageIndex, std
 
 	VkUtil::transition_image(cmd, m_swapchain.GetDrawImage().image, VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
 	VkUtil::transition_image(cmd, m_swapchain.GetImage(imageIndex), VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-	VkExtent2D drawExtent = {m_swapchain.GetDrawImage().extent.width, m_swapchain.GetDrawImage().extent.height};
+
+	VkExtent2D drawExtent {
+		.width = static_cast<uint32_t>(std::min(m_swapchain.GetExtent().width, m_swapchain.GetDrawImage().extent.width) * m_swapchain.GetRenderScale()),
+		.height = static_cast<uint32_t>(std::min(m_swapchain.GetExtent().height, m_swapchain.GetDrawImage().extent.height) * m_swapchain.GetRenderScale())
+	};
 	VkUtil::copy_image_to_image(cmd, m_swapchain.GetDrawImage().image, m_swapchain.GetImage(imageIndex), drawExtent, m_swapchain.GetExtent());
 
 	// Imgui
@@ -248,7 +253,7 @@ void Renderer::recordCommandBuffer(VkCommandBuffer cmd, uint32_t imageIndex, std
 	VK_CHECK(vkEndCommandBuffer(cmd));
 }
 
-VkCommandBuffer Renderer::beginSingleTimeCommands(VkCommandPool& commandPool)
+VkCommandBuffer Renderer::beginSingleTimeCommands(VkCommandPool& commandPool) const
 {
 	VkCommandBufferAllocateInfo allocInfo {
 		.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
@@ -270,7 +275,7 @@ VkCommandBuffer Renderer::beginSingleTimeCommands(VkCommandPool& commandPool)
 	return commandBuffer;
 }
 
-void Renderer::endSingleTimeCommands(VkCommandPool& commandPool, VkCommandBuffer& commandBuffer)
+void Renderer::endSingleTimeCommands(VkCommandPool& commandPool, VkCommandBuffer& commandBuffer) const
 {
 	vkEndCommandBuffer(commandBuffer);
 
@@ -286,7 +291,7 @@ void Renderer::endSingleTimeCommands(VkCommandPool& commandPool, VkCommandBuffer
 	vkFreeCommandBuffers(m_ctx->GetDevice(), commandPool, 1, &commandBuffer);
 }
 
-void Renderer::drawImgui(VkCommandBuffer cmd, VkImageView targetImageView)
+void Renderer::drawImgui(VkCommandBuffer cmd, VkImageView targetImageView) const
 {
 	VkRenderingAttachmentInfo colorAttachment = VkInit::color_attachment_info(targetImageView, nullptr, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 	VkRenderingInfo renderInfo = VkInit::rendering_info(m_swapchain.GetExtent(), &colorAttachment, nullptr);
@@ -298,7 +303,7 @@ void Renderer::drawImgui(VkCommandBuffer cmd, VkImageView targetImageView)
 	vkCmdEndRendering(cmd);
 }
 
-void Renderer::drawObjects(VkCommandBuffer cmd, std::vector<Drawable>& drawables)
+void Renderer::drawObjects(VkCommandBuffer cmd, std::vector<Drawable>& drawables) const
 {
 	VkRenderingAttachmentInfo colorAttachment = VkInit::color_attachment_info(m_swapchain.GetDrawImage().view, nullptr, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 	VkRenderingAttachmentInfo depthAttachment = VkInit::depth_attachment_info(m_swapchain.GetDepthImage().view, VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL);
@@ -313,35 +318,28 @@ void Renderer::drawObjects(VkCommandBuffer cmd, std::vector<Drawable>& drawables
 		.x = 0,
 		.y = 0,
 		.width = static_cast<float>(drawExtent.width),
-		.height = static_cast<float>(drawExtent.width),
+		.height = static_cast<float>(drawExtent.height),
 		.minDepth = 0.f,
 		.maxDepth = 1.f,
 	};
-
 	vkCmdSetViewport(cmd, 0, 1, &viewport);
 
 	VkRect2D scissor {
 		.offset = {0, 0},
 		.extent = {m_swapchain.GetDrawImage().extent.width, m_swapchain.GetDrawImage().extent.height}
 	};
-
 	vkCmdSetScissor(cmd, 0, 1, &scissor);
-	vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, m_graphicsPipeline.GetGraphicsPipeline());
 
 	GPUDrawPushConstants push_constants {
 		.model = drawables[0].ubo.model,
 		.view = drawables[0].ubo.view,
 		.proj = drawables[0].ubo.proj,
-		.vertexBuffer = drawables[0].mesh->vertexBufferAddress
+		.vertexBuffer = drawables[0].mesh->meshBuffers->vertexBufferAddress
 	};
 
-	VkBuffer vertexBuffers[] = {drawables[0].mesh->vertexBuffer.buffer};
-	VkDeviceSize offsets[] = { 0 };
 	vkCmdPushConstants(cmd, m_graphicsPipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(GPUDrawPushConstants), &push_constants);
-	vkCmdBindVertexBuffers(cmd, 0, 1, vertexBuffers, offsets);
-	vkCmdBindIndexBuffer(cmd, drawables[0].mesh->indexBuffer.buffer, 0, VK_INDEX_TYPE_UINT32);
-	vkCmdDrawIndexed(cmd, static_cast<uint32_t>(drawables[0].indices.size()), 1, 0, 0, 0);
-
+	vkCmdBindIndexBuffer(cmd, drawables[0].mesh->meshBuffers->indexBuffer.buffer, 0, VK_INDEX_TYPE_UINT32);
+	vkCmdDrawIndexed(cmd, drawables[0].mesh->surfaces[0].count, 1, drawables[0].mesh->surfaces[0].startIndex, 0, 0);
 	vkCmdEndRendering(cmd);
 }
 
@@ -364,7 +362,7 @@ VkRenderingAttachmentInfo Renderer::attachmentInfo(VkImageView view, VkClearValu
 	return colorAttachment;
 }
 
-void Renderer::immediateSubmit(std::function<void(VkCommandBuffer cmd)>&& function)
+void Renderer::immediateSubmit(std::function<void(VkCommandBuffer cmd)>&& function) const
 {
 	VK_CHECK(vkResetFences(m_ctx->GetDevice(), 1, &m_immFence));
 	VK_CHECK(vkResetCommandBuffer(m_immCommandBuffer, 0));
@@ -390,11 +388,17 @@ void Renderer::DrawFrame(std::vector<Drawable>& drawables)
 
 	getCurrentFrame().deletionQueue.Flush();
 
+	if (m_swapchain.IsResized())
+	{
+		m_swapchain.RecreateSwapchain();
+		m_swapchain.SetResized(false);
+	}
+
     uint32_t imageIndex;
     VkResult result = vkAcquireNextImageKHR(m_ctx->GetDevice(), m_swapchain.GetSwapchain(), UINT64_MAX, getCurrentFrame().swapchainSemaphore, VK_NULL_HANDLE, &imageIndex);
     if (result == VK_ERROR_OUT_OF_DATE_KHR)
     {
-        m_swapchain.RecreateSwapchain();
+        m_swapchain.SetResized(true);
         return;
     }
     if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR)
@@ -433,19 +437,14 @@ void Renderer::DrawFrame(std::vector<Drawable>& drawables)
 
     result = vkQueuePresentKHR(m_ctx->GetPresentQueue(), &presentInfo);
     if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || m_swapchain.IsResized())
-    {
-        m_swapchain.SetResized(false);
-        m_swapchain.RecreateSwapchain();
-    }
+    	m_swapchain.SetResized(true);
     else if (result != VK_SUCCESS)
-    {
         throw std::runtime_error("failed to present swap chain image!");
-    }
 
     m_currentFrame = (m_currentFrame + 1) % FRAME_OVERLAP;
 }
 
-std::shared_ptr<GPUMeshBuffers> Renderer::UploadMesh(const std::span<uint32_t> indices, const std::span<Vertex> vertices)
+std::shared_ptr<GPUMeshBuffers> Renderer::UploadMesh(const std::span<uint32_t> indices, const std::span<Vertex> vertices) const
 {
 	const size_t vertexBufferSize = vertices.size() * sizeof(Vertex);
 	const size_t indexBufferSize = indices.size() * sizeof(uint32_t);
@@ -465,10 +464,12 @@ std::shared_ptr<GPUMeshBuffers> Renderer::UploadMesh(const std::span<uint32_t> i
 		);
 
 	Buffer staging(m_allocator, vertexBufferSize + indexBufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VMA_MEMORY_USAGE_CPU_ONLY);
-
 	void* data = staging.allocation->GetMappedData();
+	if (!data)
+		throw std::runtime_error("Failed to allocate staging buffer");
+
 	memcpy(data, vertices.data(), vertexBufferSize);
-	memcpy((char*)data + vertexBufferSize, indices.data(), indexBufferSize);
+	memcpy(static_cast<char*>(data) + vertexBufferSize, indices.data(), indexBufferSize);
 
 	// TODO: put on a background thread
 	immediateSubmit([&](VkCommandBuffer cmd) {
@@ -492,7 +493,7 @@ std::shared_ptr<GPUMeshBuffers> Renderer::UploadMesh(const std::span<uint32_t> i
 	return newSurface;
 }
 
-std::optional<std::vector<std::shared_ptr<Mesh>>> Renderer::LoadGltfMeshes(const std::filesystem::path& filePath)
+std::optional<std::vector<std::shared_ptr<Mesh>>> Renderer::LoadGltfMeshes(const std::filesystem::path& filePath) const
 {
 	if (!std::filesystem::exists(filePath))
 	{
@@ -500,14 +501,13 @@ std::optional<std::vector<std::shared_ptr<Mesh>>> Renderer::LoadGltfMeshes(const
 		return {};
 	}
 
-	fastgltf::GltfDataBuffer data;
-	data.FromPath(filePath);
+	auto data = fastgltf::MappedGltfFile::FromPath(filePath);
 
 	constexpr auto gltfOptions = fastgltf::Options::LoadExternalBuffers;
 
 	fastgltf::Asset gltf;
 	fastgltf::Parser parser {};
-	auto load = parser.loadGltfBinary(data, filePath.parent_path(), gltfOptions);
+	auto load = parser.loadGltfBinary(data.get(), filePath.parent_path(), gltfOptions);
 	if (load) {
 		gltf = std::move(load.get());
 	} else {
@@ -572,7 +572,7 @@ std::optional<std::vector<std::shared_ptr<Mesh>>> Renderer::LoadGltfMeshes(const
             auto uv = p.findAttribute("TEXCOORD_0");
             if (uv != p.attributes.end()) {
 
-                fastgltf::iterateAccessorWithIndex<glm::vec2>(gltf, gltf.accessors[normals->accessorIndex],
+                fastgltf::iterateAccessorWithIndex<glm::vec2>(gltf, gltf.accessors[uv->accessorIndex],
                     [&](glm::vec2 v, size_t index) {
                         vertices[initial_vtx + index].uv.x = v.x;
                         vertices[initial_vtx + index].uv.y = v.y;
@@ -591,9 +591,7 @@ std::optional<std::vector<std::shared_ptr<Mesh>>> Renderer::LoadGltfMeshes(const
             newMesh.surfaces.push_back(newSurface);
         }
 
-        // display the vertex normals
-        constexpr bool OverrideColors = true;
-        if (OverrideColors) {
+        if (constexpr bool OverrideColors = true) {
             for (Vertex& vtx : vertices) {
                 vtx.color = glm::vec4(vtx.normal, 1.f);
             }

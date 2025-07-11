@@ -58,14 +58,13 @@ struct Buffer
 
     ~Buffer()
     {
-        if (buffer != VK_NULL_HANDLE && allocation != nullptr && allocator != nullptr) {
+        if (buffer != VK_NULL_HANDLE && allocation != nullptr && allocator != nullptr)
             vmaDestroyBuffer(allocator, buffer, allocation);
-        }
     }
 
     VkBuffer buffer = VK_NULL_HANDLE;
-    VmaAllocator allocator = nullptr;
-    VmaAllocation allocation = nullptr;
+    VmaAllocator allocator;
+    VmaAllocation allocation;
     VmaAllocationInfo info{};
 };
 

@@ -44,7 +44,6 @@ std::vector<Vertex> vertices = {
                    {{-0.5f,-0.5f, 0.5f},{ 0.0f,-1.0f, 0.0f},{1,1,1},{0,1}}  // 23
 };
 
-
 std::vector<uint32_t> indices = {
     0,1,2,  2,3,0,       // +Z
     4,5,6,  6,7,4,       // –Z
@@ -54,9 +53,9 @@ std::vector<uint32_t> indices = {
     20,21,22, 22,23,20   // –Y
 };
 
-Drawable create_drawable(const std::shared_ptr<GPUMeshBuffers>& mesh, std::vector<Vertex>& vertices, std::vector<uint32_t>& indices)
+Drawable create_drawable(const std::shared_ptr<Mesh>& mesh)
 {
-	Drawable drawable{mesh, vertices, indices, {glm::mat4{1.f}, glm::mat4{}, glm::mat4{}}};
+	Drawable drawable{mesh, {}, {}, {glm::mat4{1.f}, glm::mat4{}, glm::mat4{}}};
 	return drawable;
 }
 
@@ -74,9 +73,11 @@ int main() {
 
 	ecs.AddSingletonComponent(InputEvents{});
 
-	Drawable drawable = create_drawable(renderer.UploadMesh(std::span(indices), std::span(vertices)), vertices, indices);
-	Hori::Entity poo = ecs.CreateEntity();
-	ecs.AddComponents(poo, std::move(drawable), Transform{{0.0f, 0.0f, 0.0f}, {0.f, 0.f, 0.f}, {5.f, 5.f, 5.f}}, BoxCollider{{0.5f, 0.5f, 0.5f}, true});
+	auto allMeshes = renderer.LoadGltfMeshes("../assets/meshes/basicmesh.glb").value();
+	std::shared_ptr<Mesh> monkeyMesh = allMeshes[2];
+	Drawable drawable = create_drawable(monkeyMesh);
+	Hori::Entity monkey = ecs.CreateEntity();
+	ecs.AddComponents(monkey, std::move(drawable), Transform{{0.0f, 0.0f, 0.0f}, {0.f, 0.f, 0.f}, {5.f, 5.f, 5.f}}, BoxCollider{{0.5f, 0.5f, 0.5f}, true});
 
 	Hori::Entity camera = ecs.CreateEntity();
 	Transform camTrans{{0.f, -10.f, -10.f}, glm::vec3{0.f}, glm::vec3{1.f}};

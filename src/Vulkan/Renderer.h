@@ -16,44 +16,47 @@ public:
     ~Renderer();
 
     void DrawFrame(std::vector<Drawable>& drawables);
+
     [[nodiscard]] Drawable CreateDrawable(std::vector<Vertex>& vertices, std::vector<uint32_t>& indices) const;
-    [[nodiscard]] std::shared_ptr<GPUMeshBuffers> UploadMesh(const std::span<uint32_t> indices, const std::span<Vertex> vertices);
-    [[nodiscard]] std::optional<std::vector<std::shared_ptr<Mesh>>> LoadGltfMeshes(const std::filesystem::path& filePath);
+    [[nodiscard]] std::shared_ptr<GPUMeshBuffers> UploadMesh(const std::span<uint32_t> indices, const std::span<Vertex> vertices) const;
+    [[nodiscard]] std::optional<std::vector<std::shared_ptr<Mesh>>> LoadGltfMeshes(const std::filesystem::path& filePath) const;
 private:
     SDL_Window* m_window;
 
 	std::shared_ptr<VulkanContext> m_ctx;
     Swapchain m_swapchain;
 
-    VmaAllocator m_allocator;
+    VmaAllocator m_allocator{};
     DeletionQueue m_deletionQueue;
 
-    VkPipelineLayout m_graphicsPipelineLayout;
+    VkPipelineLayout m_graphicsPipelineLayout{};
     GraphicsPipeline m_graphicsPipeline;
 
     std::array<FrameData, 2> m_frames;
     uint32_t m_currentFrame;
 
-    VkFence m_immFence;
-    VkCommandBuffer m_immCommandBuffer;
-    VkCommandPool m_immCommandPool;
+    VkFence m_immFence{};
+    VkCommandBuffer m_immCommandBuffer{};
+    VkCommandPool m_immCommandPool{};
 
 private:
     void initCommands();
     void initImgui();
     void initSyncObjects();
-    void recordCommandBuffer(VkCommandBuffer cmd, uint32_t imageIndex, std::vector<Drawable>& drawables);
+    void initGraphicsPipeline();
 
-    VkCommandBuffer beginSingleTimeCommands(VkCommandPool& commandPool);
-    void endSingleTimeCommands(VkCommandPool& commandPool, VkCommandBuffer& commandBuffer);
+    void recordCommandBuffer(VkCommandBuffer cmd, uint32_t imageIndex, std::vector<Drawable>& drawables) const;
 
-    void drawImgui(VkCommandBuffer cmd, VkImageView targetImageView);
-    void drawObjects(VkCommandBuffer cmd, std::vector<Drawable>& drawables);
+    VkCommandBuffer beginSingleTimeCommands(VkCommandPool& commandPool) const;
+    void endSingleTimeCommands(VkCommandPool& commandPool, VkCommandBuffer& commandBuffer) const;
+
+    void drawImgui(VkCommandBuffer cmd, VkImageView targetImageView) const;
+    void drawObjects(VkCommandBuffer cmd, std::vector<Drawable>& drawables) const;
 
     FrameData& getCurrentFrame();
 
-    VkRenderingAttachmentInfo attachmentInfo(VkImageView view, VkClearValue* clear, VkImageLayout layout = VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL);
+    static VkRenderingAttachmentInfo attachmentInfo(VkImageView view, VkClearValue* clear, VkImageLayout layout = VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL);
 
-    void immediateSubmit(std::function<void(VkCommandBuffer cmd)>&& function);
+    void immediateSubmit(std::function<void(VkCommandBuffer cmd)>&& function) const;
 
 };

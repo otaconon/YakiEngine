@@ -7,9 +7,10 @@
 #include <SDL3/SDL_events.h>
 
 Swapchain::Swapchain(const std::shared_ptr<VulkanContext>& ctx, SDL_Window* window)
-    : m_ctx(ctx),
-    m_window(window),
-    m_extent{}
+    : m_ctx{ctx},
+    m_window{window},
+    m_renderScale{1.f},
+    m_resized{false}
 {
     VmaAllocatorCreateInfo allocatorInfo {
         .flags = VMA_ALLOCATOR_CREATE_BUFFER_DEVICE_ADDRESS_BIT,
@@ -18,10 +19,6 @@ Swapchain::Swapchain(const std::shared_ptr<VulkanContext>& ctx, SDL_Window* wind
         .instance = m_ctx->GetInstance(),
     };
     vmaCreateAllocator(&allocatorInfo, &m_allocator);
-
-    m_deletionQueue.PushFunction([&]() {
-        vmaDestroyAllocator(m_allocator);
-    });
 
     createSwapchain();
     createImageViews();
@@ -32,6 +29,7 @@ Swapchain::Swapchain(const std::shared_ptr<VulkanContext>& ctx, SDL_Window* wind
 Swapchain::~Swapchain()
 {
     cleanupSwapchain();
+    vmaDestroyAllocator(m_allocator);
 }
 
 void Swapchain::RecreateSwapchain()
@@ -47,12 +45,14 @@ void Swapchain::RecreateSwapchain()
     createSwapchain();
     createImageViews();
     createDrawImage();
+    createDepthImage();
 }
 
 VkSwapchainKHR& Swapchain::GetSwapchain() { return m_swapchain; }
 VkFormat& Swapchain::GetImageFormat() { return m_format; }
 VkExtent2D Swapchain::GetExtent() const { return m_extent; }
 bool Swapchain::IsResized() const { return m_resized; }
+float Swapchain::GetRenderScale() const { return m_renderScale; }
 VkImage Swapchain::GetImage(uint32_t idx) const { return m_images[idx]; }
 Image Swapchain::GetDrawImage() const { return m_drawImage; }
 Image Swapchain::GetDepthImage() const { return m_depthImage; }
@@ -202,12 +202,10 @@ VkImageView Swapchain::createImageView(VkImage image, VkFormat format, VkImageAs
 
 void Swapchain::cleanupSwapchain()
 {
-    VkDevice device = m_ctx->GetDevice();
-
     for (auto& imageView : m_imageViews)
         vkDestroyImageView(m_ctx->GetDevice(), imageView, nullptr);
 
-    vkDestroySwapchainKHR(device, m_swapchain, nullptr);
+    vkDestroySwapchainKHR(m_ctx->GetDevice(), m_swapchain, nullptr);
     m_deletionQueue.Flush();
 }
 

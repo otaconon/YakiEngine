@@ -14,13 +14,14 @@ public:
 	void RecreateSwapchain();
 
 	[[nodiscard]] VkSwapchainKHR& GetSwapchain();
-	[[nodiscard]] VkFormat& GetImageFormat();
 	[[nodiscard]] VkExtent2D GetExtent() const;
-	[[nodiscard]] bool IsResized() const;
+	[[nodiscard]] VkFormat& GetImageFormat();
 	[[nodiscard]] VkImage GetImage(uint32_t idx) const;
 	[[nodiscard]] Image GetDrawImage() const;
 	[[nodiscard]] Image GetDepthImage() const;
 	[[nodiscard]] VkImageView GetImageView(uint32_t idx) const;
+	[[nodiscard]] bool IsResized() const;
+	[[nodiscard]] float GetRenderScale() const;
 	[[nodiscard]] SwapChainSupportDetails GetSwapchainSupport() const;
 
 	void SetResized(bool resized);
@@ -44,7 +45,8 @@ private:
 
     VkFormat m_format{};
     VkExtent2D m_extent;
-    bool m_resized = false;
+	float m_renderScale;
+    bool m_resized;
 
 	VmaAllocator m_allocator;
 	DeletionQueue m_deletionQueue;

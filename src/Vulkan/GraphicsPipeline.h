@@ -1,11 +1,9 @@
 #pragma once
 
 #include <vector>
-#include <glm/glm.hpp>
 #include <vulkan/vulkan_core.h>
 
 #include "../Components/Drawable.h"
-#include "Buffer.h"
 #include "Swapchain.h"
 #include "VulkanContext.h"
 
@@ -28,6 +26,8 @@ public:
     void SetDepthFormat(VkFormat format);
 
     void EnableDepthTest();
+    void EnableBlendingAdditive();
+    void EnableBlendingAlphablend();
 
     void DisableBlending();
     void DisableDepthTest();
@@ -39,20 +39,20 @@ private:
     std::shared_ptr<VulkanContext> m_ctx;
 
     VkPipeline m_graphicsPipeline{};
-    DescriptorAllocator m_descriptorAllocator;
+    DescriptorAllocator m_descriptorAllocator{};
 
     std::vector<VkPipelineShaderStageCreateInfo> m_shaderStages;
     VkPipelineInputAssemblyStateCreateInfo m_inputAssembly;
     VkPipelineRasterizationStateCreateInfo m_rasterizer;
-    VkPipelineColorBlendAttachmentState m_colorBlendAttachment;
     VkPipelineMultisampleStateCreateInfo m_multisampling;
-    VkPipelineLayout m_pipelineLayout;
     VkPipelineDepthStencilStateCreateInfo m_depthStencil;
     VkPipelineRenderingCreateInfo m_renderInfo;
-    VkFormat m_colorAttachmentFormat;
+    VkPipelineColorBlendAttachmentState m_colorBlendAttachment{};
+    VkFormat m_colorAttachmentFormat{};
+    VkPipelineLayout m_pipelineLayout{};
 
-    VkDescriptorSet m_drawImageDescriptors;
-    VkDescriptorSetLayout m_drawImageDescriptorLayout;
+    VkDescriptorSet m_drawImageDescriptors{};
+    VkDescriptorSetLayout m_drawImageDescriptorLayout{};
 
     DeletionQueue m_deletionQueue;
 

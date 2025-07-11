@@ -1,21 +1,17 @@
 #include "GraphicsPipeline.h"
 
 #include <stdexcept>
-#include <glm/ext/matrix_clip_space.hpp>
-#include <glm/ext/matrix_transform.hpp>
 
 #include "Swapchain.h"
-#include "../utils.h"
 #include "VulkanContext.h"
-#include "../Camera/Camera.h"
 
 GraphicsPipeline::GraphicsPipeline(const std::shared_ptr<VulkanContext>& ctx, Swapchain& swapchain)
     : m_ctx(ctx),
     m_inputAssembly{.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO},
     m_rasterizer{.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO},
     m_multisampling{.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO},
-    m_renderInfo{.sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO},
-    m_depthStencil{.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO}
+    m_depthStencil{.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO},
+    m_renderInfo{.sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO}
 {
     initDescriptors(swapchain);
 }
@@ -27,15 +23,8 @@ GraphicsPipeline::~GraphicsPipeline()
 
 void GraphicsPipeline::CreateGraphicsPipeline()
 {
-    auto bindingDescription = Vertex::getBindingDescription();
-    auto attributeDescriptions = Vertex::getAttributeDescriptions();
 
-    VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
-    vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-    vertexInputInfo.vertexBindingDescriptionCount = 1;
-    vertexInputInfo.vertexAttributeDescriptionCount = static_cast<uint32_t>(attributeDescriptions.size());
-    vertexInputInfo.pVertexBindingDescriptions = &bindingDescription;
-    vertexInputInfo.pVertexAttributeDescriptions = attributeDescriptions.data();
+    VkPipelineVertexInputStateCreateInfo vertexInputInfo { .sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO };
 
     VkPipelineViewportStateCreateInfo viewportState {
         .sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO,
@@ -86,7 +75,7 @@ void GraphicsPipeline::CreateGraphicsPipeline()
     if (vkCreateGraphicsPipelines(m_ctx->GetDevice(), VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &m_graphicsPipeline) != VK_SUCCESS)
         throw std::runtime_error("failed to create graphics pipeline!");
 
-    m_deletionQueue.PushFunction([&]() {
+    m_deletionQueue.PushFunction([&] {
         vkDestroyPipeline(m_ctx->GetDevice(), m_graphicsPipeline, nullptr);
     });
 }
@@ -129,7 +118,7 @@ void GraphicsPipeline::initDescriptors(Swapchain& swapchain)
 
     vkUpdateDescriptorSets(m_ctx->GetDevice(), 1, &drawImageWrite, 0, nullptr);
 
-    m_deletionQueue.PushFunction([&]() {
+    m_deletionQueue.PushFunction([&] {
         m_descriptorAllocator.DestroyPool(m_ctx->GetDevice());
         vkDestroyDescriptorSetLayout(m_ctx->GetDevice(), m_drawImageDescriptorLayout, nullptr);
     });
@@ -193,6 +182,30 @@ void GraphicsPipeline::EnableDepthTest()
     m_depthStencil.back = {};
     m_depthStencil.minDepthBounds = 0.f;
     m_depthStencil.maxDepthBounds = 1.f;
+}
+
+void GraphicsPipeline::EnableBlendingAdditive()
+{
+    m_colorBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+    m_colorBlendAttachment.blendEnable = VK_TRUE;
+    m_colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
+    m_colorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_ONE;
+    m_colorBlendAttachment.colorBlendOp = VK_BLEND_OP_ADD;
+    m_colorBlendAttachment.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
+    m_colorBlendAttachment.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
+    m_colorBlendAttachment.alphaBlendOp = VK_BLEND_OP_ADD;
+}
+
+void GraphicsPipeline::EnableBlendingAlphablend()
+{
+    m_colorBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+    m_colorBlendAttachment.blendEnable = VK_TRUE;
+    m_colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
+    m_colorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+    m_colorBlendAttachment.colorBlendOp = VK_BLEND_OP_ADD;
+    m_colorBlendAttachment.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
+    m_colorBlendAttachment.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
+    m_colorBlendAttachment.alphaBlendOp = VK_BLEND_OP_ADD;
 }
 
 void GraphicsPipeline::DisableBlending()

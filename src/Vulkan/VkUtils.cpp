@@ -1,8 +1,11 @@
 #include "VkUtils.h"
 
 #include <fstream>
+#include <print>
 
-SwapChainSupportDetails VkUtil::query_swapchain_support(const VkPhysicalDevice device, const VkSurfaceKHR surface) {
+#include "VkInit.h"
+
+SwapChainSupportDetails VkUtil::query_swapchain_support(VkPhysicalDevice device, VkSurfaceKHR surface) {
     SwapChainSupportDetails details;
 
     vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, surface, &details.capabilities);
@@ -106,7 +109,7 @@ void VkUtil::copy_image_to_image(VkCommandBuffer cmd, VkImage source, VkImage de
 }
 
 void VkUtil::transition_image(VkCommandBuffer cmd, VkImage image, VkImageLayout currentLayout, VkImageLayout newLayout) {
-    VkImageAspectFlags aspectMask = (newLayout == VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL) ? VK_IMAGE_ASPECT_DEPTH_BIT : VK_IMAGE_ASPECT_COLOR_BIT;
+    VkImageAspectFlags aspectMask = newLayout == VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL ? VK_IMAGE_ASPECT_DEPTH_BIT : VK_IMAGE_ASPECT_COLOR_BIT;
     VkImageMemoryBarrier2 imageBarrier {
         .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2,
         .pNext = nullptr,
@@ -166,4 +169,42 @@ bool VkUtil::load_shader_module(const std::filesystem::path& filePath, VkDevice 
     }
     *outShaderModule = shaderModule;
     return true;
+}
+
+
+VkSurfaceFormatKHR VkUtil::chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats)
+{
+    for (const auto& availableFormat : availableFormats)
+        if (availableFormat.format == VK_FORMAT_B8G8R8A8_SRGB && availableFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR)
+            return availableFormat;
+
+    return availableFormats[0];
+}
+
+VkPresentModeKHR VkUtil::chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes)
+{
+    for (const auto& availablePresentMode : availablePresentModes)
+        if (availablePresentMode == VK_PRESENT_MODE_MAILBOX_KHR)
+            return availablePresentMode;
+
+    return VK_PRESENT_MODE_FIFO_KHR;
+}
+
+VkExtent2D VkUtil::chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities, SDL_Window* window)
+{
+    if (capabilities.currentExtent.width != std::numeric_limits<uint32_t>::max())
+        return capabilities.currentExtent;
+
+    int width, height;
+    SDL_GetWindowSizeInPixels(window, &width, &height);
+
+    VkExtent2D actualExtent = {
+        static_cast<uint32_t>(width),
+        static_cast<uint32_t>(height)
+    };
+
+    actualExtent.width = std::clamp(actualExtent.width, capabilities.minImageExtent.width, capabilities.maxImageExtent.width);
+    actualExtent.height = std::clamp(actualExtent.height, capabilities.minImageExtent.height, capabilities.maxImageExtent.height);
+
+    return actualExtent;
 }

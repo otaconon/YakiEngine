@@ -1,20 +1,15 @@
 #pragma once
 #include <filesystem>
-#include <array>
 #include <optional>
-#include <print>
 
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #include <glm/glm.hpp>
 
-#include <stb_image.h>
-
 #include <iostream>
-#include <cstdlib>
+#include <SDL3/SDL_video.h>
 #include <vulkan/vulkan.h>
 #include <vulkan/vk_enum_string_helper.h>
-
-#include "VkInit.h"
+#include <print>
 
 #ifndef NDEBUG
 #define VK_CHECK(x)                                                     \
@@ -54,9 +49,13 @@ struct QueueFamilyIndices
 
 namespace VkUtil
 {
-    SwapChainSupportDetails query_swapchain_support(const VkPhysicalDevice device, const VkSurfaceKHR surface);
+    SwapChainSupportDetails query_swapchain_support(VkPhysicalDevice device, VkSurfaceKHR surface);
     QueueFamilyIndices find_queue_families(VkPhysicalDevice physicalDevice, VkSurfaceKHR surface);
     uint32_t find_memory_type(VkPhysicalDevice physicalDevice, uint32_t typeFilter, VkMemoryPropertyFlags properties);
+
+    VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
+    VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes);
+    VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities, SDL_Window* window);
 
     void copy_image_to_image(VkCommandBuffer cmd, VkImage source, VkImage destination, VkExtent2D srcSize, VkExtent2D dstSize);
     void transition_image(VkCommandBuffer cmd, VkImage image, VkImageLayout currentLayout, VkImageLayout newLayout);

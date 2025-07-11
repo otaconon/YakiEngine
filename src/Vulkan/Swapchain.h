@@ -38,17 +38,17 @@ private:
     VkSwapchainKHR m_swapchain{};
 	SwapChainSupportDetails m_swapchainSupport;
 
-    Image m_drawImage;
-	Image m_depthImage;
+    Image m_drawImage{};
+	Image m_depthImage{};
     std::vector<VkImage> m_images;
     std::vector<VkImageView> m_imageViews;
 
     VkFormat m_format{};
-    VkExtent2D m_extent;
+    VkExtent2D m_extent{};
 	float m_renderScale;
     bool m_resized;
 
-	VmaAllocator m_allocator;
+	VmaAllocator m_allocator{};
 	DeletionQueue m_deletionQueue;
 
 private:
@@ -56,11 +56,7 @@ private:
 	void createImageViews();
 	void createDrawImage();
 	void createDepthImage();
-	VkImageView createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags);
+	VkImageView createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags) const;
 
 	void cleanupSwapchain();
-
-	VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
-	VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes);
-	VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities, SDL_Window* window);
 };

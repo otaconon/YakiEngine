@@ -1,5 +1,6 @@
 #pragma once
 
+#include <array>
 #include <deque>
 #include <functional>
 #include <span>
@@ -60,8 +61,8 @@ struct Vertex
 
     Vertex()
         : position{}, _pad0{},
-        normal{}, _pad2{},
-        color{}, _pad1{},
+        normal{}, _pad1{},
+        color{}, _pad2{},
         uv{}, _pad3{}
     {}
 
@@ -191,10 +192,10 @@ struct DescriptorAllocator {
     void InitPool(VkDevice device, uint32_t maxSets, std::span<PoolSizeRatio> poolRatios)
     {
         std::vector<VkDescriptorPoolSize> poolSizes;
-        for (PoolSizeRatio ratio : poolRatios) {
+        for (auto [type, ratio] : poolRatios) {
             poolSizes.push_back(VkDescriptorPoolSize{
-                .type = ratio.type,
-                .descriptorCount = static_cast<uint32_t>(ratio.ratio * maxSets)
+                .type = type,
+                .descriptorCount = static_cast<uint32_t>(ratio * static_cast<float>(maxSets))
             });
         }
 
@@ -209,17 +210,17 @@ struct DescriptorAllocator {
         vkCreateDescriptorPool(device, &pool_info, nullptr, &pool);
     }
 
-    void ClearDescriptors(VkDevice device)
+    void ClearDescriptors(VkDevice device) const
     {
         vkResetDescriptorPool(device, pool, 0);
     }
 
-    void DestroyPool(VkDevice device)
+    void DestroyPool(VkDevice device) const
     {
         vkDestroyDescriptorPool(device,pool,nullptr);
     }
 
-    VkDescriptorSet allocate(VkDevice device, VkDescriptorSetLayout layout)
+    VkDescriptorSet allocate(VkDevice device, VkDescriptorSetLayout layout) const
     {
         VkDescriptorSetAllocateInfo allocInfo = {
             .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,

@@ -6,6 +6,9 @@
 #include <ranges>
 #include <SDL3/SDL_events.h>
 
+#include "VkInit.h"
+#include "VkUtils.h"
+
 Swapchain::Swapchain(const std::shared_ptr<VulkanContext>& ctx, SDL_Window* window)
     : m_ctx{ctx},
     m_window{window},
@@ -68,30 +71,31 @@ void Swapchain::createSwapchain()
 {
     m_swapchainSupport = VkUtil::query_swapchain_support(m_ctx->GetPhysicalDevice(), m_ctx->GetSurface());
 
-    auto [format, colorSpace] = chooseSwapSurfaceFormat(m_swapchainSupport.formats);
+    auto [format, colorSpace] = VkUtil::chooseSwapSurfaceFormat(m_swapchainSupport.formats);
     m_format = format;
 
-    VkPresentModeKHR presentMode = chooseSwapPresentMode(m_swapchainSupport.presentModes);
-    m_extent = chooseSwapExtent(m_swapchainSupport.capabilities, m_window);
+    VkPresentModeKHR presentMode = VkUtil::chooseSwapPresentMode(m_swapchainSupport.presentModes);
+    m_extent = VkUtil::chooseSwapExtent(m_swapchainSupport.capabilities, m_window);
 
     uint32_t imageCount = m_swapchainSupport.capabilities.minImageCount + 1;
     if (m_swapchainSupport.capabilities.maxImageCount > 0 && imageCount > m_swapchainSupport.capabilities.maxImageCount)
         imageCount = m_swapchainSupport.capabilities.maxImageCount;
 
-    VkSwapchainCreateInfoKHR createInfo{};
-    createInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
-    createInfo.surface = m_ctx->GetSurface();
-    createInfo.minImageCount = imageCount;
-    createInfo.imageFormat = m_format;
-    createInfo.imageColorSpace = colorSpace;
-    createInfo.imageExtent = m_extent;
-    createInfo.imageArrayLayers = 1;
-    createInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
+    VkSwapchainCreateInfoKHR createInfo {
+        .sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
+        .surface = m_ctx->GetSurface(),
+        .minImageCount = imageCount,
+        .imageFormat = m_format,
+        .imageColorSpace = colorSpace,
+        .imageExtent = m_extent,
+        .imageArrayLayers = 1,
+        .imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT
+    };
 
-    QueueFamilyIndices indices = VkUtil::find_queue_families(m_ctx->GetPhysicalDevice(), m_ctx->GetSurface());
-    uint32_t queueFamilyIndices[] = {indices.graphicsFamily.value(), indices.presentFamily.value()};
+    auto [graphicsFamily, presentFamily] = VkUtil::find_queue_families(m_ctx->GetPhysicalDevice(), m_ctx->GetSurface());
+    uint32_t queueFamilyIndices[] = {graphicsFamily.value(), presentFamily.value()};
 
-    if (indices.graphicsFamily != indices.presentFamily) {
+    if (graphicsFamily != presentFamily) {
         createInfo.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
         createInfo.queueFamilyIndexCount = 2;
         createInfo.pQueueFamilyIndices = queueFamilyIndices;
@@ -148,7 +152,7 @@ void Swapchain::createDrawImage()
     VkImageViewCreateInfo rview_info = VkInit::imageview_create_info(m_drawImage.format, m_drawImage.image, VK_IMAGE_ASPECT_COLOR_BIT);
     VK_CHECK(vkCreateImageView(m_ctx->GetDevice(), &rview_info, nullptr, &m_drawImage.view));
 
-    m_deletionQueue.PushFunction([=]() {
+    m_deletionQueue.PushFunction([this] {
         vkDestroyImageView(m_ctx->GetDevice(), m_drawImage.view, nullptr);
         vmaDestroyImage(m_allocator, m_drawImage.image, m_drawImage.allocation);
     });
@@ -173,24 +177,27 @@ void Swapchain::createDepthImage()
 
     VK_CHECK(vkCreateImageView(m_ctx->GetDevice(), &dview_info, nullptr, &m_depthImage.view));
 
-    m_deletionQueue.PushFunction([=]() {
+    m_deletionQueue.PushFunction([this] {
         vkDestroyImageView(m_ctx->GetDevice(), m_depthImage.view, nullptr);
         vmaDestroyImage(m_allocator, m_depthImage.image, m_depthImage.allocation);
     });
 }
 
-VkImageView Swapchain::createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags)
+VkImageView Swapchain::createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags) const
 {
-    VkImageViewCreateInfo viewInfo{};
-    viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-    viewInfo.image = image;
-    viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-    viewInfo.format = format;
-    viewInfo.subresourceRange.aspectMask = aspectFlags;
-    viewInfo.subresourceRange.baseMipLevel = 0;
-    viewInfo.subresourceRange.levelCount = 1;
-    viewInfo.subresourceRange.baseArrayLayer = 0;
-    viewInfo.subresourceRange.layerCount = 1;
+    VkImageViewCreateInfo viewInfo {
+        .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
+        .image = image,
+        .viewType = VK_IMAGE_VIEW_TYPE_2D,
+        .format = format,
+        .subresourceRange = {
+            .aspectMask = aspectFlags,
+            .baseMipLevel = 0,
+            .levelCount = 1,
+            .baseArrayLayer = 0,
+            .layerCount = 1
+        }
+    };
 
     VkImageView imageView;
     if (vkCreateImageView(m_ctx->GetDevice(), &viewInfo, nullptr, &imageView) != VK_SUCCESS) {
@@ -207,41 +214,4 @@ void Swapchain::cleanupSwapchain()
 
     vkDestroySwapchainKHR(m_ctx->GetDevice(), m_swapchain, nullptr);
     m_deletionQueue.Flush();
-}
-
-VkSurfaceFormatKHR Swapchain::chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats)
-{
-    for (const auto& availableFormat : availableFormats)
-        if (availableFormat.format == VK_FORMAT_B8G8R8A8_SRGB && availableFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR)
-            return availableFormat;
-
-    return availableFormats[0];
-}
-
-VkPresentModeKHR Swapchain::chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes)
-{
-    for (const auto& availablePresentMode : availablePresentModes)
-        if (availablePresentMode == VK_PRESENT_MODE_MAILBOX_KHR)
-            return availablePresentMode;
-
-    return VK_PRESENT_MODE_FIFO_KHR;
-}
-
-VkExtent2D Swapchain::chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities, SDL_Window* window)
-{
-    if (capabilities.currentExtent.width != std::numeric_limits<uint32_t>::max())
-        return capabilities.currentExtent;
-
-    int width, height;
-    SDL_GetWindowSizeInPixels(window, &width, &height);
-
-    VkExtent2D actualExtent = {
-        static_cast<uint32_t>(width),
-        static_cast<uint32_t>(height)
-    };
-
-    actualExtent.width = std::clamp(actualExtent.width, capabilities.minImageExtent.width, capabilities.maxImageExtent.width);
-    actualExtent.height = std::clamp(actualExtent.height, capabilities.minImageExtent.height, capabilities.maxImageExtent.height);
-
-    return actualExtent;
 }

@@ -3,6 +3,7 @@
 #include <stdexcept>
 
 #include "Swapchain.h"
+#include "VkInit.h"
 #include "VulkanContext.h"
 
 GraphicsPipeline::GraphicsPipeline(const std::shared_ptr<VulkanContext>& ctx, Swapchain& swapchain)
@@ -23,7 +24,6 @@ GraphicsPipeline::~GraphicsPipeline()
 
 void GraphicsPipeline::CreateGraphicsPipeline()
 {
-
     VkPipelineVertexInputStateCreateInfo vertexInputInfo { .sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO };
 
     VkPipelineViewportStateCreateInfo viewportState {

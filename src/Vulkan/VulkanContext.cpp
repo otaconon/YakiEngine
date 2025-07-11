@@ -10,7 +10,7 @@
 #ifdef NDEBUG
     constexpr bool g_enableValidationLayers = false;
 #else
-constexpr bool g_enableValidationLayers = true;
+    constexpr bool g_enableValidationLayers = true;
 #endif
 
 std::vector g_validationLayers {"VK_LAYER_KHRONOS_validation"};
@@ -36,40 +36,13 @@ VulkanContext::~VulkanContext()
     vkDestroyInstance(m_instance, nullptr);
 }
 
-VkInstance VulkanContext::GetInstance() const
-{
-    return m_instance;
-}
-
-VkDevice VulkanContext::GetDevice() const
-{
-    return m_device;
-}
-
-VkPhysicalDevice VulkanContext::GetPhysicalDevice() const
-{
-    return m_physicalDevice;
-}
-
-VkSurfaceKHR VulkanContext::GetSurface() const
-{
-    return m_surface;
-}
-
-VkQueue VulkanContext::GetGraphicsQueue() const
-{
-    return m_graphicsQueue;
-}
-
-VkQueue VulkanContext::GetPresentQueue() const
-{
-    return m_presentQueue;
-}
-
-VkPhysicalDeviceProperties VulkanContext::GetGpuProperties() const
-{
-    return m_gpuProperties;
-}
+VkInstance VulkanContext::GetInstance() const { return m_instance; }
+VkDevice VulkanContext::GetDevice() const { return m_device; }
+VkPhysicalDevice VulkanContext::GetPhysicalDevice() const { return m_physicalDevice; }
+VkSurfaceKHR VulkanContext::GetSurface() const { return m_surface; }
+VkQueue VulkanContext::GetGraphicsQueue() const { return m_graphicsQueue; }
+VkQueue VulkanContext::GetPresentQueue() const { return m_presentQueue; }
+VkPhysicalDeviceProperties VulkanContext::GetGpuProperties() const { return m_gpuProperties; }
 
 void VulkanContext::createInstance()
 {
@@ -88,7 +61,7 @@ void VulkanContext::createInstance()
     };
 
     // Initialize extensions
-    uint32_t extCount; // only used for getting sdl vulkan extensions
+    uint32_t extCount;
     const char* const * instanceExtensions = SDL_Vulkan_GetInstanceExtensions(&extCount);
     std::vector extensions(instanceExtensions, instanceExtensions + extCount);
     extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
@@ -122,7 +95,7 @@ void VulkanContext::createLogicalDevice()
 {
     auto [graphicsFamily, presentFamily] = VkUtil::find_queue_families(m_physicalDevice, m_surface);
     std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
-    std::set<uint32_t> uniqueQueueFamilies = {graphicsFamily.value(), presentFamily.value()};
+    std::set uniqueQueueFamilies = {graphicsFamily.value(), presentFamily.value()};
 
     float queuePriority = 1.0f;
     for (uint32_t queueFamily : uniqueQueueFamilies) {
@@ -193,7 +166,7 @@ void VulkanContext::pickPhysicalDevice()
         throw std::runtime_error("failed to find a suitable GPU!");
 }
 
-bool VulkanContext::isDeviceSuitable(VkPhysicalDevice device)
+bool VulkanContext::isDeviceSuitable(VkPhysicalDevice device) const
 {
     QueueFamilyIndices indices = VkUtil::find_queue_families(device, m_surface);
     bool extensionsSupported = checkDeviceExtensionsSupport(device);
@@ -220,18 +193,17 @@ bool VulkanContext::checkDeviceExtensionsSupport(VkPhysicalDevice device)
 
     std::set<std::string> requiredExtensions(g_deviceExtensions.begin(), g_deviceExtensions.end());
 
-    for (const auto& extension : availableExtensions) {
-        requiredExtensions.erase(extension.extensionName);
+    for (const auto& [extensionName, specVersion] : availableExtensions) {
+        requiredExtensions.erase(extensionName);
     }
 
     return requiredExtensions.empty();
 }
 
-
-
 void VulkanContext::setupDebugMessenger()
 {
     if constexpr (!g_enableValidationLayers) return;
+
     VkDebugUtilsMessengerCreateInfoEXT createInfo;
     populateDebugMessengerCreateInfo(createInfo);
 

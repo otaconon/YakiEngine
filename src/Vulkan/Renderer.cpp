@@ -36,7 +36,7 @@ Renderer::Renderer(SDL_Window* window, const std::shared_ptr<VulkanContext>& ctx
 	};
 	vmaCreateAllocator(&allocatorInfo, &m_allocator);
 
-	m_deletionQueue.PushFunction([&]() {
+	m_deletionQueue.PushFunction([&] {
 		vmaDestroyAllocator(m_allocator);
 	});
 
@@ -66,8 +66,8 @@ Renderer::~Renderer()
 
 void Renderer::initCommands()
 {
-	QueueFamilyIndices queueFamilyIndices = VkUtil::find_queue_families(m_ctx->GetPhysicalDevice(), m_ctx->GetSurface());
-	VkCommandPoolCreateInfo commandPoolInfo = VkInit::command_pool_create_info(queueFamilyIndices.graphicsFamily.value(), VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT);
+	auto [graphicsFamily, presentFamily] = VkUtil::find_queue_families(m_ctx->GetPhysicalDevice(), m_ctx->GetSurface());
+	VkCommandPoolCreateInfo commandPoolInfo = VkInit::command_pool_create_info(graphicsFamily.value(), VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT);
 
 	for (int i = 0; i < FRAME_OVERLAP; i++)
 	{
@@ -80,7 +80,7 @@ void Renderer::initCommands()
 	VkCommandBufferAllocateInfo cmdAllocInfo = VkInit::command_buffer_allocate_info(m_immCommandPool, 1);
 	VK_CHECK(vkAllocateCommandBuffers(m_ctx->GetDevice(), &cmdAllocInfo, &m_immCommandBuffer));
 
-	m_deletionQueue.PushFunction([=]() { vkDestroyCommandPool(m_ctx->GetDevice(), m_immCommandPool, nullptr); });
+	m_deletionQueue.PushFunction([this] { vkDestroyCommandPool(m_ctx->GetDevice(), m_immCommandPool, nullptr); });
 }
 
 void Renderer::initImgui()
@@ -95,7 +95,8 @@ void Renderer::initImgui()
 		{ VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1000 },
 		{ VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 1000 },
 		{ VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, 1000 },
-		{ VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, 1000 } };
+		{ VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, 1000 }
+	};
 
 	VkDescriptorPoolCreateInfo pool_info {
 		.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
@@ -133,7 +134,7 @@ void Renderer::initImgui()
 	ImGui_ImplVulkan_CreateFontsTexture();
 	ImGui::UseCustomStyle();
 
-	m_deletionQueue.PushFunction([=]() {
+	m_deletionQueue.PushFunction([this, imguiPool] {
 		ImGui_ImplVulkan_Shutdown();
 		vkDestroyDescriptorPool(m_ctx->GetDevice(), imguiPool, nullptr);
 	});
@@ -151,7 +152,7 @@ void Renderer::initSyncObjects()
 	}
 
 	VK_CHECK(vkCreateFence(m_ctx->GetDevice(), &fenceCreateInfo, nullptr, &m_immFence));
-	m_deletionQueue.PushFunction([=]() { vkDestroyFence(m_ctx->GetDevice(), m_immFence, nullptr); });
+	m_deletionQueue.PushFunction([this] { vkDestroyFence(m_ctx->GetDevice(), m_immFence, nullptr); });
 }
 
 void Renderer::initGraphicsPipeline()
@@ -187,6 +188,7 @@ void Renderer::initGraphicsPipeline()
 	m_graphicsPipeline.SetMultisamplingNone();
 	m_graphicsPipeline.SetColorAttachmentFormat(m_swapchain.GetDrawImage().format);
 	m_graphicsPipeline.SetDepthFormat(m_swapchain.GetDepthImage().format);
+	m_graphicsPipeline.SetShaders(vertexShader, fragmentShader);
 
 	m_graphicsPipeline.EnableDepthTest();
 
@@ -196,7 +198,7 @@ void Renderer::initGraphicsPipeline()
 
 	vkDestroyShaderModule(m_ctx->GetDevice(), fragmentShader, nullptr);
 	vkDestroyShaderModule(m_ctx->GetDevice(), vertexShader, nullptr);
-	m_deletionQueue.PushFunction([&]() {
+	m_deletionQueue.PushFunction([&] {
 		vkDestroyPipelineLayout(m_ctx->GetDevice(), m_graphicsPipelineLayout, nullptr);
 	});
 }

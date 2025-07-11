@@ -1,7 +1,5 @@
 #pragma once
 
-#include <System.h>
-
 #include "GraphicsPipeline.h"
 #include "Swapchain.h"
 #include "VkTypes.h"
@@ -17,7 +15,6 @@ public:
 
     void DrawFrame(std::vector<Drawable>& drawables);
 
-    [[nodiscard]] Drawable CreateDrawable(std::vector<Vertex>& vertices, std::vector<uint32_t>& indices) const;
     [[nodiscard]] std::shared_ptr<GPUMeshBuffers> UploadMesh(const std::span<uint32_t> indices, const std::span<Vertex> vertices) const;
     [[nodiscard]] std::optional<std::vector<std::shared_ptr<Mesh>>> LoadGltfMeshes(const std::filesystem::path& filePath) const;
 private:

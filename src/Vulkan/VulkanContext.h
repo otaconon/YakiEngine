@@ -35,11 +35,12 @@ private:
     void createLogicalDevice();
     void createSurface(SDL_Window* window);
 
-    void pickPhysicalDevice();
-    bool isDeviceSuitable(VkPhysicalDevice device);
-    bool checkDeviceExtensionsSupport(VkPhysicalDevice device);
-
     void setupDebugMessenger();
+
+    void pickPhysicalDevice();
+    bool isDeviceSuitable(VkPhysicalDevice device) const;
+
+    static bool checkDeviceExtensionsSupport(VkPhysicalDevice device);
     static bool checkValidationLayerSupport(std::vector<const char*>& validationLayers);
     static VkResult createDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkDebugUtilsMessengerEXT* pDebugMessenger);
     static void destroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerEXT debugMessenger, const VkAllocationCallbacks* pAllocator);

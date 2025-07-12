@@ -56,10 +56,16 @@ struct Buffer
     Buffer(const Buffer&) = delete;
     Buffer& operator=(const Buffer&) = delete;
 
-    ~Buffer()
+    void Cleanup()
     {
         if (buffer != VK_NULL_HANDLE && allocation != nullptr && allocator != nullptr)
             vmaDestroyBuffer(allocator, buffer, allocation);
+        buffer = VK_NULL_HANDLE;
+    }
+
+    ~Buffer()
+    {
+        Cleanup();
     }
 
     VkBuffer buffer = VK_NULL_HANDLE;

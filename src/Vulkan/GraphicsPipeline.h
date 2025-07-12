@@ -3,9 +3,12 @@
 #include <vector>
 #include <vulkan/vulkan_core.h>
 
-#include "../Components/Drawable.h"
 #include "Swapchain.h"
 #include "VulkanContext.h"
+
+#include "Descriptors/DescriptorAllocator.h"
+#include "Descriptors/DescriptorLayoutBuilder.h"
+#include "Descriptors/DescriptorWriter.h"
 
 constexpr int MAX_FRAMES_IN_FLIGHT = 3;
 

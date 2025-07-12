@@ -91,7 +91,7 @@ void GraphicsPipeline::initDescriptors(Swapchain& swapchain)
         { VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 1 }
     };
 
-    m_descriptorAllocator.InitPool(m_ctx->GetDevice(), 10, sizes);
+    m_descriptorAllocator.Init(m_ctx->GetDevice(), 10, sizes);
 
     {
         DescriptorLayoutBuilder builder;
@@ -99,29 +99,18 @@ void GraphicsPipeline::initDescriptors(Swapchain& swapchain)
         m_drawImageDescriptorLayout = builder.Build(m_ctx->GetDevice(), VK_SHADER_STAGE_COMPUTE_BIT);
     }
 
-    m_drawImageDescriptors = m_descriptorAllocator.allocate(m_ctx->GetDevice(),m_drawImageDescriptorLayout);
+    m_drawImageDescriptors = m_descriptorAllocator.Allocate(m_ctx->GetDevice(),m_drawImageDescriptorLayout);
 
-    VkDescriptorImageInfo imgInfo {
-        .imageView = swapchain.GetDrawImage().view,
-        .imageLayout = VK_IMAGE_LAYOUT_GENERAL,
-    };
-
-    VkWriteDescriptorSet drawImageWrite {
-        .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-        .pNext = nullptr,
-        .dstSet = m_drawImageDescriptors,
-        .dstBinding = 0,
-        .descriptorCount = 1,
-        .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
-        .pImageInfo = &imgInfo,
-    };
-
-    vkUpdateDescriptorSets(m_ctx->GetDevice(), 1, &drawImageWrite, 0, nullptr);
+    DescriptorWriter writer;
+    writer.WriteImage(0, swapchain.GetDrawImage().view, VK_NULL_HANDLE, VK_IMAGE_LAYOUT_GENERAL, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE);
+    writer.UpdateSet(m_ctx->GetDevice(), m_drawImageDescriptors);
 
     m_deletionQueue.PushFunction([&] {
-        m_descriptorAllocator.DestroyPool(m_ctx->GetDevice());
+        m_descriptorAllocator.DestroyPools(m_ctx->GetDevice());
         vkDestroyDescriptorSetLayout(m_ctx->GetDevice(), m_drawImageDescriptorLayout, nullptr);
     });
+
+
 }
 
 void GraphicsPipeline::SetShaders(VkShaderModule vertexShader, VkShaderModule fragmentShader)

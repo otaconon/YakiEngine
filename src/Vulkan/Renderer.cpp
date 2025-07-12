@@ -44,6 +44,31 @@ Renderer::Renderer(SDL_Window* window, const std::shared_ptr<VulkanContext>& ctx
 	initSyncObjects();
 	initImgui();
 	initGraphicsPipeline();
+
+	// TODO: Move this from here
+	for (int i = 0; i < FRAME_OVERLAP; i++) {
+		std::vector<DescriptorAllocator::PoolSizeRatio> frame_sizes = {
+			{ VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 3 },
+			{ VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 3 },
+			{ VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 3 },
+			{ VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 4 },
+		};
+
+		m_frames[i].frameDescriptors.Init(m_ctx->GetDevice(), 1000, frame_sizes);
+
+		m_deletionQueue.PushFunction([&, i]() {
+			m_frames[i].frameDescriptors.DestroyPools(m_ctx->GetDevice());
+		});
+	}
+
+	{
+		DescriptorLayoutBuilder builder;
+		builder.AddBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER);
+		m_gpuSceneDataDescriptorLayout = builder.Build(m_ctx->GetDevice(), VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT);
+		m_deletionQueue.PushFunction([&] {
+			vkDestroyDescriptorSetLayout(m_ctx->GetDevice(), m_gpuSceneDataDescriptorLayout, nullptr);
+		});
+	}
 }
 
 Renderer::~Renderer()
@@ -157,7 +182,6 @@ void Renderer::initSyncObjects()
 
 void Renderer::initGraphicsPipeline()
 {
-
 	VkPushConstantRange bufferRange {
 		.stageFlags = VK_SHADER_STAGE_VERTEX_BIT,
 		.offset = 0,
@@ -203,7 +227,7 @@ void Renderer::initGraphicsPipeline()
 	});
 }
 
-void Renderer::recordCommandBuffer(VkCommandBuffer cmd, uint32_t imageIndex, std::vector<Drawable>& drawables) const
+void Renderer::recordCommandBuffer(VkCommandBuffer cmd, uint32_t imageIndex, std::vector<Drawable>& drawables)
 {
 	// Setup
 	VkCommandBufferBeginInfo cmdBeginInfo = VkInit::command_buffer_begin_info(VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
@@ -305,7 +329,7 @@ void Renderer::drawImgui(VkCommandBuffer cmd, VkImageView targetImageView) const
 	vkCmdEndRendering(cmd);
 }
 
-void Renderer::drawObjects(VkCommandBuffer cmd, std::vector<Drawable>& drawables) const
+void Renderer::drawObjects(VkCommandBuffer cmd, std::vector<Drawable>& drawables)
 {
 	VkRenderingAttachmentInfo colorAttachment = VkInit::color_attachment_info(m_swapchain.GetDrawImage().view, nullptr, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 	VkRenderingAttachmentInfo depthAttachment = VkInit::depth_attachment_info(m_swapchain.GetDepthImage().view, VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL);
@@ -332,6 +356,18 @@ void Renderer::drawObjects(VkCommandBuffer cmd, std::vector<Drawable>& drawables
 	};
 	vkCmdSetScissor(cmd, 0, 1, &scissor);
 
+	Buffer gpuSceneDataBuffer(m_allocator, sizeof(GPUSceneData), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU);
+	GPUSceneData* sceneUniformData = static_cast<GPUSceneData*>(gpuSceneDataBuffer.allocation->GetMappedData());
+	*sceneUniformData = m_sceneData;
+	VkDescriptorSet globalDescriptor = getCurrentFrame().frameDescriptors.Allocate(m_ctx->GetDevice(), m_gpuSceneDataDescriptorLayout);
+	DescriptorWriter writer;
+	writer.WriteBuffer(0, gpuSceneDataBuffer.buffer, sizeof(GPUSceneData), 0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER);
+	writer.UpdateSet(m_ctx->GetDevice(), globalDescriptor);
+	//TODO: Fix this so that no shared_ptr necessary (probably upgrade the deletion queue)
+	getCurrentFrame().deletionQueue.PushFunction([buffer = std::make_shared<Buffer>(std::move(gpuSceneDataBuffer))]() mutable {
+		buffer->Cleanup();
+	});
+
 	GPUDrawPushConstants push_constants {
 		.model = drawables[0].ubo.model,
 		.view = drawables[0].ubo.view,
@@ -339,6 +375,7 @@ void Renderer::drawObjects(VkCommandBuffer cmd, std::vector<Drawable>& drawables
 		.vertexBuffer = drawables[0].mesh->meshBuffers->vertexBufferAddress
 	};
 
+	//vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, m_graphicsPipelineLayout, 0, 1, &globalDescriptor, 0, nullptr);
 	vkCmdPushConstants(cmd, m_graphicsPipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(GPUDrawPushConstants), &push_constants);
 	vkCmdBindIndexBuffer(cmd, drawables[0].mesh->meshBuffers->indexBuffer.buffer, 0, VK_INDEX_TYPE_UINT32);
 	vkCmdDrawIndexed(cmd, drawables[0].mesh->surfaces[0].count, 1, drawables[0].mesh->surfaces[0].startIndex, 0, 0);
@@ -386,6 +423,9 @@ void Renderer::immediateSubmit(std::function<void(VkCommandBuffer cmd)>&& functi
 void Renderer::DrawFrame(std::vector<Drawable>& drawables)
 {
     VK_CHECK(vkWaitForFences(m_ctx->GetDevice(), 1, &getCurrentFrame().renderFence, true, UINT64_MAX));
+
+	getCurrentFrame().deletionQueue.Flush();
+	getCurrentFrame().frameDescriptors.ClearPools(m_ctx->GetDevice());
 	VK_CHECK(vkResetFences(m_ctx->GetDevice(), 1, &getCurrentFrame().renderFence));
 
 	getCurrentFrame().deletionQueue.Flush();

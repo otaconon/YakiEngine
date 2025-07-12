@@ -8,21 +8,8 @@
 #include <iostream>
 #include <SDL3/SDL_video.h>
 #include <vulkan/vulkan.h>
-#include <vulkan/vk_enum_string_helper.h>
-#include <print>
 
-#ifndef NDEBUG
-#define VK_CHECK(x)                                                     \
-    do {                                                                \
-        VkResult err = x;                                               \
-        if (err) {                                                      \
-             std::print("Detected Vulkan error: {}", string_VkResult(err)); \
-            abort();                                                    \
-        }                                                               \
-    } while (0)
-#else
-#   define VK_CHECK(call)  (void)(call)
-#endif
+#include "VkCheck.h"
 
 struct UniformBufferObject {
     alignas(16) glm::mat4 model;

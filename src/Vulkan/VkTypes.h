@@ -9,6 +9,7 @@
 #include <vk_mem_alloc.h>
 
 #include "Buffer.h"
+#include "Descriptors/DescriptorAllocator.h"
 
 // TODO: Improve the deletion queue, so that for each vk type it holds separate collection
 struct DeletionQueue
@@ -37,6 +38,7 @@ struct FrameData
     VkFence renderFence{};
 
     DeletionQueue deletionQueue;
+    DescriptorAllocator frameDescriptors{};
 };
 
 struct Image
@@ -127,6 +129,13 @@ struct GPUDrawPushConstants {
     VkDeviceAddress vertexBuffer;
 };
 
+struct GPUSceneData
+{
+    glm::mat4 view;
+    glm::mat4 proj;
+    glm::mat4 viewproj;
+};
+
 struct GeoSurface {
     uint32_t startIndex;
     uint32_t count;
@@ -138,103 +147,3 @@ struct Mesh {
     std::vector<GeoSurface> surfaces;
     std::shared_ptr<GPUMeshBuffers> meshBuffers;
 };
-
-struct DescriptorLayoutBuilder
-{
-    std::vector<VkDescriptorSetLayoutBinding> bindings;
-
-    void AddBinding(uint32_t binding, VkDescriptorType type)
-    {
-        VkDescriptorSetLayoutBinding newbind {
-            .binding = binding,
-            .descriptorType = type,
-            .descriptorCount = 1,
-        };
-
-        bindings.push_back(newbind);
-    }
-
-    void Clear()
-    {
-        bindings.clear();
-    }
-
-    VkDescriptorSetLayout Build(VkDevice device, VkShaderStageFlags shaderStages, void* pNext = nullptr, VkDescriptorSetLayoutCreateFlags flags = 0)
-    {
-        for (auto& b : bindings) {
-            b.stageFlags |= shaderStages;
-        }
-
-        VkDescriptorSetLayoutCreateInfo info {
-            .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
-            .pNext = pNext,
-            .flags = flags,
-            .bindingCount = static_cast<uint32_t>(bindings.size()),
-            .pBindings = bindings.data(),
-        };
-
-        VkDescriptorSetLayout set;
-        VK_CHECK(vkCreateDescriptorSetLayout(device, &info, nullptr, &set));
-
-        return set;
-    }
-};
-
-struct DescriptorAllocator {
-
-    struct PoolSizeRatio{
-        VkDescriptorType type;
-        float ratio;
-    };
-
-    VkDescriptorPool pool;
-
-    void InitPool(VkDevice device, uint32_t maxSets, std::span<PoolSizeRatio> poolRatios)
-    {
-        std::vector<VkDescriptorPoolSize> poolSizes;
-        for (auto [type, ratio] : poolRatios) {
-            poolSizes.push_back(VkDescriptorPoolSize{
-                .type = type,
-                .descriptorCount = static_cast<uint32_t>(ratio * static_cast<float>(maxSets))
-            });
-        }
-
-        VkDescriptorPoolCreateInfo pool_info = {
-            .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
-            .flags = 0,
-            .maxSets = maxSets,
-            .poolSizeCount = static_cast<uint32_t>(poolSizes.size()),
-            .pPoolSizes = poolSizes.data(),
-        };
-
-        vkCreateDescriptorPool(device, &pool_info, nullptr, &pool);
-    }
-
-    void ClearDescriptors(VkDevice device) const
-    {
-        vkResetDescriptorPool(device, pool, 0);
-    }
-
-    void DestroyPool(VkDevice device) const
-    {
-        vkDestroyDescriptorPool(device,pool,nullptr);
-    }
-
-    VkDescriptorSet allocate(VkDevice device, VkDescriptorSetLayout layout) const
-    {
-        VkDescriptorSetAllocateInfo allocInfo = {
-            .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
-            .pNext = nullptr,
-            .descriptorPool = pool,
-            .descriptorSetCount = 1,
-            .pSetLayouts = &layout,
-        };
-
-        VkDescriptorSet ds;
-        VK_CHECK(vkAllocateDescriptorSets(device, &allocInfo, &ds));
-
-        return ds;
-    }
-};
-
-

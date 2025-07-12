@@ -17,6 +17,7 @@ public:
 
     [[nodiscard]] std::shared_ptr<GPUMeshBuffers> UploadMesh(const std::span<uint32_t> indices, const std::span<Vertex> vertices) const;
     [[nodiscard]] std::optional<std::vector<std::shared_ptr<Mesh>>> LoadGltfMeshes(const std::filesystem::path& filePath) const;
+
 private:
     SDL_Window* m_window;
 
@@ -32,6 +33,9 @@ private:
     std::array<FrameData, 2> m_frames;
     uint32_t m_currentFrame;
 
+    GPUSceneData m_sceneData;
+    VkDescriptorSetLayout m_gpuSceneDataDescriptorLayout; //TODO: Doesnt this belong to graphics pipeline?
+
     VkFence m_immFence{};
     VkCommandBuffer m_immCommandBuffer{};
     VkCommandPool m_immCommandPool{};
@@ -42,18 +46,16 @@ private:
     void initSyncObjects();
     void initGraphicsPipeline();
 
-    void recordCommandBuffer(VkCommandBuffer cmd, uint32_t imageIndex, std::vector<Drawable>& drawables) const;
+    void recordCommandBuffer(VkCommandBuffer cmd, uint32_t imageIndex, std::vector<Drawable>& drawables);
+    void immediateSubmit(std::function<void(VkCommandBuffer cmd)>&& function) const;
 
     VkCommandBuffer beginSingleTimeCommands(VkCommandPool& commandPool) const;
     void endSingleTimeCommands(VkCommandPool& commandPool, VkCommandBuffer& commandBuffer) const;
 
     void drawImgui(VkCommandBuffer cmd, VkImageView targetImageView) const;
-    void drawObjects(VkCommandBuffer cmd, std::vector<Drawable>& drawables) const;
+    void drawObjects(VkCommandBuffer cmd, std::vector<Drawable>& drawables);
 
     FrameData& getCurrentFrame();
 
     static VkRenderingAttachmentInfo attachmentInfo(VkImageView view, VkClearValue* clear, VkImageLayout layout = VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL);
-
-    void immediateSubmit(std::function<void(VkCommandBuffer cmd)>&& function) const;
-
 };

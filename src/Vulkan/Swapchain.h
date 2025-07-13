@@ -5,6 +5,7 @@
 #include "VulkanContext.h"
 #include "VkUtils.h"
 #include "VkTypes.h"
+#include "Image.h"
 
 class Swapchain {
 public:
@@ -17,8 +18,8 @@ public:
 	[[nodiscard]] VkExtent2D GetExtent() const;
 	[[nodiscard]] VkFormat& GetImageFormat();
 	[[nodiscard]] VkImage GetImage(uint32_t idx) const;
-	[[nodiscard]] Image GetDrawImage() const;
-	[[nodiscard]] Image GetDepthImage() const;
+	[[nodiscard]] Image& GetDrawImage();
+	[[nodiscard]] Image& GetDepthImage();
 	[[nodiscard]] VkImageView GetImageView(uint32_t idx) const;
 	[[nodiscard]] bool IsResized() const;
 	[[nodiscard]] float GetRenderScale() const;

@@ -5,6 +5,7 @@
 #include <stdexcept>
 #include <SDL3/SDL_vulkan.h>
 
+#include "VkInit.h"
 #include "VkUtils.h"
 
 #ifdef NDEBUG
@@ -23,6 +24,20 @@ VulkanContext::VulkanContext(SDL_Window* window)
     pickPhysicalDevice();
     createLogicalDevice();
 
+	VkFenceCreateInfo fenceCreateInfo = VkInit::fence_create_info(VK_FENCE_CREATE_SIGNALED_BIT);
+    VK_CHECK(vkCreateFence(m_device, &fenceCreateInfo, nullptr, &m_immFence));
+
+	auto [graphicsFamily, presentFamily] = VkUtil::find_queue_families(m_physicalDevice, m_surface);
+	VkCommandPoolCreateInfo commandPoolInfo = VkInit::command_pool_create_info(graphicsFamily.value(), VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT);
+    VK_CHECK(vkCreateCommandPool(m_device, &commandPoolInfo, nullptr, &m_immCommandPool));
+    VkCommandBufferAllocateInfo cmdAllocInfo = VkInit::command_buffer_allocate_info(m_immCommandPool, 1);
+    VK_CHECK(vkAllocateCommandBuffers(m_device, &cmdAllocInfo, &m_immCommandBuffer));
+
+    m_deletionQueue.PushFunction([this] {
+        vkDestroyCommandPool(m_device, m_immCommandPool, nullptr);
+        vkDestroyFence(m_device, m_immFence, nullptr);
+    });
+
     vkGetPhysicalDeviceProperties(m_physicalDevice, &m_gpuProperties);
 }
 
@@ -30,6 +45,8 @@ VulkanContext::~VulkanContext()
 {
     if (g_enableValidationLayers)
         destroyDebugUtilsMessengerEXT(m_instance, m_debugMessenger, nullptr);
+
+    m_deletionQueue.Flush();
 
     vkDestroyDevice(m_device, nullptr);
     vkDestroySurfaceKHR(m_instance, m_surface, nullptr);
@@ -181,6 +198,25 @@ bool VulkanContext::isDeviceSuitable(VkPhysicalDevice device) const
     vkGetPhysicalDeviceFeatures(device, &supportedFeatures);
 
     return indices.isComplete() && extensionsSupported && swapChainAdequate && supportedFeatures.samplerAnisotropy;
+}
+
+void VulkanContext::ImmediateSubmit(std::function<void(VkCommandBuffer cmd)>&& function) const
+{
+	VK_CHECK(vkResetFences(m_device, 1, &m_immFence));
+	VK_CHECK(vkResetCommandBuffer(m_immCommandBuffer, 0));
+
+	VkCommandBuffer cmd = m_immCommandBuffer;
+	VkCommandBufferBeginInfo cmdBeginInfo = VkInit::command_buffer_begin_info(VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
+
+	VK_CHECK(vkBeginCommandBuffer(cmd, &cmdBeginInfo));
+	function(cmd);
+	VK_CHECK(vkEndCommandBuffer(cmd));
+
+	VkCommandBufferSubmitInfo cmdInfo = VkInit::command_buffer_submit_info(cmd);
+	VkSubmitInfo2 submit = VkInit::submit_info(&cmdInfo, nullptr, nullptr);
+
+	VK_CHECK(vkQueueSubmit2(GetGraphicsQueue(), 1, &submit, m_immFence));
+	VK_CHECK(vkWaitForFences(GetDevice(), 1, &m_immFence, true, 9999999999));
 }
 
 bool VulkanContext::checkDeviceExtensionsSupport(VkPhysicalDevice device)

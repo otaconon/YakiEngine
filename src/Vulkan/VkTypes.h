@@ -41,15 +41,6 @@ struct FrameData
     DescriptorAllocator frameDescriptors{};
 };
 
-struct Image
-{
-    VkImage image;
-    VkImageView view;
-    VmaAllocation allocation;
-    VkExtent3D extent;
-    VkFormat format;
-};
-
 struct Vertex
 {
     glm::vec3 position;

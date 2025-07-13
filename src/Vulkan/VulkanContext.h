@@ -1,10 +1,13 @@
 #pragma once
 
+#include <functional>
 #include <memory>
 #include <optional>
 #include <vector>
 #include <SDL3/SDL_video.h>
 #include <vulkan/vulkan.h>
+
+#include "VkTypes.h"
 
 class VulkanContext {
 public:
@@ -19,6 +22,8 @@ public:
     [[nodiscard]] VkQueue GetPresentQueue() const;
     [[nodiscard]] VkPhysicalDeviceProperties GetGpuProperties() const;
 
+    void ImmediateSubmit(std::function<void(VkCommandBuffer cmd)>&& function) const;
+
 private:
     VkInstance m_instance{};
     VkDevice m_device{};
@@ -28,6 +33,12 @@ private:
 
     VkQueue m_graphicsQueue{};
     VkQueue m_presentQueue{};
+
+    DeletionQueue m_deletionQueue;
+
+    VkFence m_immFence{};
+    VkCommandBuffer m_immCommandBuffer{};
+    VkCommandPool m_immCommandPool{};
 
     VkDebugUtilsMessengerEXT m_debugMessenger{};
 

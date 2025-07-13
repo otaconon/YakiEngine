@@ -100,12 +100,6 @@ void Renderer::initCommands()
 		VkCommandBufferAllocateInfo cmdAllocInfo = VkInit::command_buffer_allocate_info(m_frames[i].commandPool, 1);
 		VK_CHECK(vkAllocateCommandBuffers(m_ctx->GetDevice(), &cmdAllocInfo, &m_frames[i].commandBuffer));
 	}
-
-	VK_CHECK(vkCreateCommandPool(m_ctx->GetDevice(), &commandPoolInfo, nullptr, &m_immCommandPool));
-	VkCommandBufferAllocateInfo cmdAllocInfo = VkInit::command_buffer_allocate_info(m_immCommandPool, 1);
-	VK_CHECK(vkAllocateCommandBuffers(m_ctx->GetDevice(), &cmdAllocInfo, &m_immCommandBuffer));
-
-	m_deletionQueue.PushFunction([this] { vkDestroyCommandPool(m_ctx->GetDevice(), m_immCommandPool, nullptr); });
 }
 
 void Renderer::initImgui()
@@ -175,9 +169,6 @@ void Renderer::initSyncObjects()
 		VK_CHECK(vkCreateSemaphore(m_ctx->GetDevice(), &semaphoreCreateInfo, nullptr, &m_frames[i].swapchainSemaphore));
 		VK_CHECK(vkCreateSemaphore(m_ctx->GetDevice(), &semaphoreCreateInfo, nullptr, &m_frames[i].renderSemaphore));
 	}
-
-	VK_CHECK(vkCreateFence(m_ctx->GetDevice(), &fenceCreateInfo, nullptr, &m_immFence));
-	m_deletionQueue.PushFunction([this] { vkDestroyFence(m_ctx->GetDevice(), m_immFence, nullptr); });
 }
 
 void Renderer::initGraphicsPipeline()
@@ -210,8 +201,8 @@ void Renderer::initGraphicsPipeline()
 	m_graphicsPipeline.SetPolygonMode(VK_POLYGON_MODE_FILL);
 	m_graphicsPipeline.SetCullMode(VK_CULL_MODE_BACK_BIT, VK_FRONT_FACE_COUNTER_CLOCKWISE);
 	m_graphicsPipeline.SetMultisamplingNone();
-	m_graphicsPipeline.SetColorAttachmentFormat(m_swapchain.GetDrawImage().format);
-	m_graphicsPipeline.SetDepthFormat(m_swapchain.GetDepthImage().format);
+	m_graphicsPipeline.SetColorAttachmentFormat(m_swapchain.GetDrawImage().GetFormat());
+	m_graphicsPipeline.SetDepthFormat(m_swapchain.GetDepthImage().GetFormat());
 	m_graphicsPipeline.SetShaders(vertexShader, fragmentShader);
 
 	m_graphicsPipeline.EnableDepthTest();
@@ -254,24 +245,24 @@ void Renderer::recordCommandBuffer(VkCommandBuffer cmd, uint32_t imageIndex, std
 	vkCmdSetScissor(cmd, 0, 1, &scissor);
 
 	// Record draw commands
-	VkUtil::transition_image(cmd, m_swapchain.GetDrawImage().image, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_GENERAL);
-	VkUtil::transition_image(cmd, m_swapchain.GetDepthImage().image, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL);
+	VkUtil::transition_image(cmd, m_swapchain.GetDrawImage().GetImage(), VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_GENERAL);
+	VkUtil::transition_image(cmd, m_swapchain.GetDepthImage().GetImage(), VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL);
 
 	VkImageSubresourceRange clearRange = VkInit::image_subresource_range(VK_IMAGE_ASPECT_COLOR_BIT);
-	vkCmdClearColorImage(cmd, m_swapchain.GetDrawImage().image, VK_IMAGE_LAYOUT_GENERAL, &clearValues[0].color, 1, &clearRange);
+	vkCmdClearColorImage(cmd, m_swapchain.GetDrawImage().GetImage(), VK_IMAGE_LAYOUT_GENERAL, &clearValues[0].color, 1, &clearRange);
 	drawObjects(cmd, drawables);
 
-	VkUtil::transition_image(cmd, m_swapchain.GetDrawImage().image, VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
+	VkUtil::transition_image(cmd, m_swapchain.GetDrawImage().GetImage(), VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
 	VkUtil::transition_image(cmd, m_swapchain.GetImage(imageIndex), VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
 
 	VkExtent2D drawExtent {
-		.width = static_cast<uint32_t>(std::min(m_swapchain.GetExtent().width, m_swapchain.GetDrawImage().extent.width) * m_swapchain.GetRenderScale()),
-		.height = static_cast<uint32_t>(std::min(m_swapchain.GetExtent().height, m_swapchain.GetDrawImage().extent.height) * m_swapchain.GetRenderScale())
+		.width = static_cast<uint32_t>(std::min(m_swapchain.GetExtent().width, m_swapchain.GetDrawImage().GetExtent().width) * m_swapchain.GetRenderScale()),
+		.height = static_cast<uint32_t>(std::min(m_swapchain.GetExtent().height, m_swapchain.GetDrawImage().GetExtent().height) * m_swapchain.GetRenderScale())
 	};
-	VkUtil::copy_image_to_image(cmd, m_swapchain.GetDrawImage().image, m_swapchain.GetImage(imageIndex), drawExtent, m_swapchain.GetExtent());
+	VkUtil::copy_image_to_image(cmd, m_swapchain.GetDrawImage().GetImage(), m_swapchain.GetImage(imageIndex), drawExtent, m_swapchain.GetExtent());
 
 	// Imgui
-	VkUtil::copy_image_to_image(cmd, m_swapchain.GetDrawImage().image, m_swapchain.GetImage(imageIndex), drawExtent, m_swapchain.GetExtent());
+	VkUtil::copy_image_to_image(cmd, m_swapchain.GetDrawImage().GetImage(), m_swapchain.GetImage(imageIndex), drawExtent, m_swapchain.GetExtent());
 	VkUtil::transition_image(cmd, m_swapchain.GetImage(imageIndex), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 	drawImgui(cmd, m_swapchain.GetImageView(imageIndex));
 
@@ -331,10 +322,10 @@ void Renderer::drawImgui(VkCommandBuffer cmd, VkImageView targetImageView) const
 
 void Renderer::drawObjects(VkCommandBuffer cmd, std::vector<Drawable>& drawables)
 {
-	VkRenderingAttachmentInfo colorAttachment = VkInit::color_attachment_info(m_swapchain.GetDrawImage().view, nullptr, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
-	VkRenderingAttachmentInfo depthAttachment = VkInit::depth_attachment_info(m_swapchain.GetDepthImage().view, VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL);
+	VkRenderingAttachmentInfo colorAttachment = VkInit::color_attachment_info(m_swapchain.GetDrawImage().GetView(), nullptr, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+	VkRenderingAttachmentInfo depthAttachment = VkInit::depth_attachment_info(m_swapchain.GetDepthImage().GetView(), VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL);
 
-	VkExtent2D drawExtent = {m_swapchain.GetDrawImage().extent.width, m_swapchain.GetDrawImage().extent.height};
+	VkExtent2D drawExtent = {m_swapchain.GetDrawImage().GetExtent().width, m_swapchain.GetDrawImage().GetExtent().height};
 	VkRenderingInfo renderInfo = VkInit::rendering_info(drawExtent, &colorAttachment, &depthAttachment);
 	vkCmdBeginRendering(cmd, &renderInfo);
 
@@ -352,7 +343,7 @@ void Renderer::drawObjects(VkCommandBuffer cmd, std::vector<Drawable>& drawables
 
 	VkRect2D scissor {
 		.offset = {0, 0},
-		.extent = {m_swapchain.GetDrawImage().extent.width, m_swapchain.GetDrawImage().extent.height}
+		.extent = {m_swapchain.GetDrawImage().GetExtent().width, m_swapchain.GetDrawImage().GetExtent().height}
 	};
 	vkCmdSetScissor(cmd, 0, 1, &scissor);
 
@@ -399,25 +390,6 @@ VkRenderingAttachmentInfo Renderer::attachmentInfo(VkImageView view, VkClearValu
 		colorAttachment.clearValue = *clear;
 
 	return colorAttachment;
-}
-
-void Renderer::immediateSubmit(std::function<void(VkCommandBuffer cmd)>&& function) const
-{
-	VK_CHECK(vkResetFences(m_ctx->GetDevice(), 1, &m_immFence));
-	VK_CHECK(vkResetCommandBuffer(m_immCommandBuffer, 0));
-
-	VkCommandBuffer cmd = m_immCommandBuffer;
-	VkCommandBufferBeginInfo cmdBeginInfo = VkInit::command_buffer_begin_info(VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
-
-	VK_CHECK(vkBeginCommandBuffer(cmd, &cmdBeginInfo));
-	function(cmd);
-	VK_CHECK(vkEndCommandBuffer(cmd));
-
-	VkCommandBufferSubmitInfo cmdInfo = VkInit::command_buffer_submit_info(cmd);
-	VkSubmitInfo2 submit = VkInit::submit_info(&cmdInfo, nullptr, nullptr);
-
-	VK_CHECK(vkQueueSubmit2(m_ctx->GetGraphicsQueue(), 1, &submit, m_immFence));
-	VK_CHECK(vkWaitForFences(m_ctx->GetDevice(), 1, &m_immFence, true, 9999999999));
 }
 
 void Renderer::DrawFrame(std::vector<Drawable>& drawables)
@@ -514,7 +486,7 @@ std::shared_ptr<GPUMeshBuffers> Renderer::UploadMesh(const std::span<uint32_t> i
 	memcpy(static_cast<char*>(data) + vertexBufferSize, indices.data(), indexBufferSize);
 
 	// TODO: put on a background thread
-	immediateSubmit([&](VkCommandBuffer cmd) {
+	m_ctx->ImmediateSubmit([&](VkCommandBuffer cmd) {
 		VkBufferCopy vertexCopy {
 			.srcOffset = 0,
 			.dstOffset = 0,

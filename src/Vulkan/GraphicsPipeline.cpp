@@ -102,7 +102,7 @@ void GraphicsPipeline::initDescriptors(Swapchain& swapchain)
     m_drawImageDescriptors = m_descriptorAllocator.Allocate(m_ctx->GetDevice(),m_drawImageDescriptorLayout);
 
     DescriptorWriter writer;
-    writer.WriteImage(0, swapchain.GetDrawImage().view, VK_NULL_HANDLE, VK_IMAGE_LAYOUT_GENERAL, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE);
+    writer.WriteImage(0, swapchain.GetDrawImage().GetView(), VK_NULL_HANDLE, VK_IMAGE_LAYOUT_GENERAL, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE);
     writer.UpdateSet(m_ctx->GetDevice(), m_drawImageDescriptors);
 
     m_deletionQueue.PushFunction([&] {

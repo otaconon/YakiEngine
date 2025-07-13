@@ -36,10 +36,6 @@ private:
     GPUSceneData m_sceneData;
     VkDescriptorSetLayout m_gpuSceneDataDescriptorLayout; //TODO: Doesnt this belong to graphics pipeline?
 
-    VkFence m_immFence{};
-    VkCommandBuffer m_immCommandBuffer{};
-    VkCommandPool m_immCommandPool{};
-
 private:
     void initCommands();
     void initImgui();
@@ -47,7 +43,6 @@ private:
     void initGraphicsPipeline();
 
     void recordCommandBuffer(VkCommandBuffer cmd, uint32_t imageIndex, std::vector<Drawable>& drawables);
-    void immediateSubmit(std::function<void(VkCommandBuffer cmd)>&& function) const;
 
     VkCommandBuffer beginSingleTimeCommands(VkCommandPool& commandPool) const;
     void endSingleTimeCommands(VkCommandPool& commandPool, VkCommandBuffer& commandBuffer) const;

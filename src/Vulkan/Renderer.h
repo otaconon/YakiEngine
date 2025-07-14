@@ -33,6 +33,11 @@ private:
     std::array<FrameData, 2> m_frames;
     uint32_t m_currentFrame;
 
+    Image m_errorTexture{};
+    VkSampler m_defaultSamplerLinear;
+    VkSampler m_defaultSamplerNearest;
+    VkDescriptorSetLayout m_singleImageDescriptorLayout;
+
     GPUSceneData m_sceneData;
     VkDescriptorSetLayout m_gpuSceneDataDescriptorLayout; //TODO: Doesnt this belong to graphics pipeline?
 

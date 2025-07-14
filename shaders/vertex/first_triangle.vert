@@ -29,4 +29,5 @@ void main() {
 
     gl_Position = PushConstants.proj * PushConstants.view * PushConstants.model * vec4(v.position, 1.0);
     fragColor = v.color;
+    fragTexCoord = v.texCoord;
 }

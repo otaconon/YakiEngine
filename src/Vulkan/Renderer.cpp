@@ -38,11 +38,21 @@ Renderer::Renderer(SDL_Window* window, const std::shared_ptr<VulkanContext>& ctx
 
 	m_deletionQueue.PushFunction([&] {
 		vmaDestroyAllocator(m_allocator);
+
 	});
 
 	initCommands();
 	initSyncObjects();
 	initImgui();
+
+	{
+		DescriptorLayoutBuilder builder;
+		builder.AddBinding(0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER);
+		m_singleImageDescriptorLayout = builder.Build(m_ctx->GetDevice(), VK_SHADER_STAGE_FRAGMENT_BIT);
+		m_deletionQueue.PushFunction([this] {
+			vkDestroyDescriptorSetLayout(m_ctx->GetDevice(), m_singleImageDescriptorLayout, nullptr);
+		});
+	}
 	initGraphicsPipeline();
 
 	// TODO: Move this from here
@@ -69,6 +79,33 @@ Renderer::Renderer(SDL_Window* window, const std::shared_ptr<VulkanContext>& ctx
 			vkDestroyDescriptorSetLayout(m_ctx->GetDevice(), m_gpuSceneDataDescriptorLayout, nullptr);
 		});
 	}
+
+	uint32_t black = glm::packUnorm4x8(glm::vec4(0, 0, 0, 0));
+	uint32_t magenta = glm::packUnorm4x8(glm::vec4(1, 0, 1, 1));
+	std::array<uint32_t, 16*16 > pixels;
+	for (int x = 0; x < 16; x++) {
+		for (int y = 0; y < 16; y++) {
+			pixels[y*16 + x] = ((x % 2) ^ (y % 2)) ? magenta : black;
+		}
+	}
+
+	m_errorTexture = Image(m_ctx, m_allocator, pixels.data(), VkExtent3D{16, 16, 1}, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_USAGE_SAMPLED_BIT, false);
+	m_deletionQueue.PushFunction([this] {
+		m_errorTexture.Cleanup();
+	});
+
+	VkSamplerCreateInfo sampl = {.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO};
+	sampl.magFilter = VK_FILTER_NEAREST;
+	sampl.minFilter = VK_FILTER_NEAREST;
+	vkCreateSampler(m_ctx->GetDevice(), &sampl, nullptr, &m_defaultSamplerNearest);
+	sampl.magFilter = VK_FILTER_LINEAR;
+	sampl.minFilter = VK_FILTER_LINEAR;
+	vkCreateSampler(m_ctx->GetDevice(), &sampl, nullptr, &m_defaultSamplerLinear);
+
+	m_deletionQueue.PushFunction([&](){
+		vkDestroySampler(m_ctx->GetDevice(), m_defaultSamplerNearest,nullptr);
+		vkDestroySampler(m_ctx->GetDevice(), m_defaultSamplerLinear,nullptr);
+	});
 }
 
 Renderer::~Renderer()
@@ -182,6 +219,8 @@ void Renderer::initGraphicsPipeline()
 	VkPipelineLayoutCreateInfo pipelineLayoutInfo = VkInit::pipeline_layout_create_info();
 	pipelineLayoutInfo.pPushConstantRanges = &bufferRange;
 	pipelineLayoutInfo.pushConstantRangeCount = 1;
+	pipelineLayoutInfo.pSetLayouts = &m_singleImageDescriptorLayout;
+	pipelineLayoutInfo.setLayoutCount = 1;
 	VK_CHECK(vkCreatePipelineLayout(m_ctx->GetDevice(), &pipelineLayoutInfo, nullptr, &m_graphicsPipelineLayout));
 
 	VkShaderModule fragmentShader;
@@ -358,6 +397,15 @@ void Renderer::drawObjects(VkCommandBuffer cmd, std::vector<Drawable>& drawables
 	getCurrentFrame().deletionQueue.PushFunction([buffer = std::make_shared<Buffer>(std::move(gpuSceneDataBuffer))]() mutable {
 		buffer->Cleanup();
 	});
+
+	VkDescriptorSet imageSet = getCurrentFrame().frameDescriptors.Allocate(m_ctx->GetDevice(), m_singleImageDescriptorLayout);
+	{
+		DescriptorWriter writer;
+		writer.WriteImage(0, m_errorTexture.GetView(), m_defaultSamplerNearest, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER);
+
+		writer.UpdateSet(m_ctx->GetDevice(), imageSet);
+	}
+	vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, m_graphicsPipelineLayout, 0, 1, &imageSet, 0, nullptr);
 
 	GPUDrawPushConstants push_constants {
 		.model = drawables[0].ubo.model,

@@ -20,9 +20,8 @@ void DescriptorLayoutBuilder::Clear()
 
 VkDescriptorSetLayout DescriptorLayoutBuilder::Build(VkDevice device, VkShaderStageFlags shaderStages, void* pNext, VkDescriptorSetLayoutCreateFlags flags)
 {
-    for (auto& b : bindings) {
+    for (auto& b : bindings)
         b.stageFlags |= shaderStages;
-    }
 
     VkDescriptorSetLayoutCreateInfo info {
         .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,

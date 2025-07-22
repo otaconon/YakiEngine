@@ -38,7 +38,6 @@ Renderer::Renderer(SDL_Window* window, const std::shared_ptr<VulkanContext>& ctx
 
 	m_deletionQueue.PushFunction([&] {
 		vmaDestroyAllocator(m_allocator);
-
 	});
 
 	initCommands();
@@ -53,7 +52,6 @@ Renderer::Renderer(SDL_Window* window, const std::shared_ptr<VulkanContext>& ctx
 			vkDestroyDescriptorSetLayout(m_ctx->GetDevice(), m_singleImageDescriptorLayout, nullptr);
 		});
 	}
-	initGraphicsPipeline();
 
 	// TODO: Move this from here
 	for (int i = 0; i < FRAME_OVERLAP; i++) {
@@ -80,6 +78,8 @@ Renderer::Renderer(SDL_Window* window, const std::shared_ptr<VulkanContext>& ctx
 		});
 	}
 
+	initGraphicsPipeline();
+
 	uint32_t black = glm::packUnorm4x8(glm::vec4(0, 0, 0, 0));
 	uint32_t magenta = glm::packUnorm4x8(glm::vec4(1, 0, 1, 1));
 	std::array<uint32_t, 16*16 > pixels;
@@ -89,9 +89,9 @@ Renderer::Renderer(SDL_Window* window, const std::shared_ptr<VulkanContext>& ctx
 		}
 	}
 
-	m_errorTexture = Image(m_ctx, m_allocator, pixels.data(), VkExtent3D{16, 16, 1}, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_USAGE_SAMPLED_BIT, false);
+	m_errorTexture = std::make_shared<Image>(m_ctx, m_allocator, pixels.data(), VkExtent3D{16, 16, 1}, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_USAGE_SAMPLED_BIT, false);
 	m_deletionQueue.PushFunction([this] {
-		m_errorTexture.Cleanup();
+		m_errorTexture->Cleanup();
 	});
 
 	VkSamplerCreateInfo sampl = {.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO};
@@ -106,6 +106,8 @@ Renderer::Renderer(SDL_Window* window, const std::shared_ptr<VulkanContext>& ctx
 		vkDestroySampler(m_ctx->GetDevice(), m_defaultSamplerNearest,nullptr);
 		vkDestroySampler(m_ctx->GetDevice(), m_defaultSamplerLinear,nullptr);
 	});
+
+	initDefaultData();
 }
 
 Renderer::~Renderer()
@@ -224,13 +226,13 @@ void Renderer::initGraphicsPipeline()
 	VK_CHECK(vkCreatePipelineLayout(m_ctx->GetDevice(), &pipelineLayoutInfo, nullptr, &m_graphicsPipelineLayout));
 
 	VkShaderModule fragmentShader;
-	if (!VkUtil::load_shader_module("../shaders/fragment/first_triangle.frag.spv", m_ctx->GetDevice(), &fragmentShader))
+	if (!VkUtil::load_shader_module("../shaders/fragment/basic_mesh.frag.spv", m_ctx->GetDevice(), &fragmentShader))
 		std::println("Error when building the triangle fragment shader module");
 	else
 		std::println("Triangle fragment shader successfully loaded");
 
 	VkShaderModule vertexShader;
-	if (!VkUtil::load_shader_module("../shaders/vertex/first_triangle.vert.spv", m_ctx->GetDevice(), &vertexShader))
+	if (!VkUtil::load_shader_module("../shaders/vertex/basic_mesh.vert.spv", m_ctx->GetDevice(), &vertexShader))
 		std::println("Error when building the triangle vertex shader module");
 	else
 		std::println("Triangle vertex shader successfully loaded");
@@ -244,7 +246,7 @@ void Renderer::initGraphicsPipeline()
 	m_graphicsPipeline.SetDepthFormat(m_swapchain.GetDepthImage().GetFormat());
 	m_graphicsPipeline.SetShaders(vertexShader, fragmentShader);
 
-	m_graphicsPipeline.EnableDepthTest();
+	m_graphicsPipeline.EnableDepthTest(true);
 
 	m_graphicsPipeline.DisableBlending();
 
@@ -255,6 +257,33 @@ void Renderer::initGraphicsPipeline()
 	m_deletionQueue.PushFunction([&] {
 		vkDestroyPipelineLayout(m_ctx->GetDevice(), m_graphicsPipelineLayout, nullptr);
 	});
+
+	m_metalRoughMaterial.BuildPipelines(m_ctx, m_swapchain, m_gpuSceneDataDescriptorLayout);
+}
+
+void Renderer::initDefaultData()
+{
+	MaterialResources materialResources;
+	materialResources.colorImage = m_errorTexture;
+	materialResources.colorSampler = m_defaultSamplerLinear;
+	materialResources.metalRoughImage = m_errorTexture;
+	materialResources.metalRoughSampler = m_defaultSamplerLinear;
+
+	Buffer materialConstants(m_allocator, sizeof(MaterialConstants), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU);
+
+	MaterialConstants* sceneUniformData = static_cast<MaterialConstants*>(materialConstants.allocation->GetMappedData());
+	sceneUniformData->colorFactors = glm::vec4{1,1,1,1};
+	sceneUniformData->metal_rough_factors = glm::vec4{1,0.5,0,0};
+
+	// TODO: Change this
+	m_deletionQueue.PushFunction([buffer = std::make_shared<Buffer>(std::move(materialConstants))]() mutable {
+		buffer->Cleanup();
+	});
+
+	materialResources.dataBuffer = materialConstants.buffer;
+	materialResources.dataBufferOffset = 0;
+
+	m_defaultData = m_metalRoughMaterial.WriteMaterial(m_ctx, MaterialPass::MainColor, materialResources, m_graphicsPipeline.GetDescriptorAllocator());
 }
 
 void Renderer::recordCommandBuffer(VkCommandBuffer cmd, uint32_t imageIndex, std::vector<Drawable>& drawables)
@@ -401,7 +430,7 @@ void Renderer::drawObjects(VkCommandBuffer cmd, std::vector<Drawable>& drawables
 	VkDescriptorSet imageSet = getCurrentFrame().frameDescriptors.Allocate(m_ctx->GetDevice(), m_singleImageDescriptorLayout);
 	{
 		DescriptorWriter writer;
-		writer.WriteImage(0, m_errorTexture.GetView(), m_defaultSamplerNearest, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER);
+		writer.WriteImage(0, m_errorTexture->GetView(), m_defaultSamplerNearest, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER);
 
 		writer.UpdateSet(m_ctx->GetDevice(), imageSet);
 	}

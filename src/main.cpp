@@ -53,7 +53,7 @@ std::vector<uint32_t> indices = {
     20,21,22, 22,23,20   // –Y
 };
 
-Drawable create_drawable(const std::shared_ptr<Mesh>& mesh)
+Drawable create_drawable(std::shared_ptr<Mesh> mesh)
 {
 	Drawable drawable{mesh, {}, {}, {glm::mat4{1.f}, glm::mat4{}, glm::mat4{}}};
 	return drawable;

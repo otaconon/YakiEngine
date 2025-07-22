@@ -1,6 +1,7 @@
 #pragma once
 
 #include "GraphicsPipeline.h"
+#include "MetallicRoughnessMaterial.h"
 #include "Swapchain.h"
 #include "VkTypes.h"
 #include "VulkanContext.h"
@@ -33,7 +34,7 @@ private:
     std::array<FrameData, 2> m_frames;
     uint32_t m_currentFrame;
 
-    Image m_errorTexture{};
+    std::shared_ptr<Image> m_errorTexture{};
     VkSampler m_defaultSamplerLinear;
     VkSampler m_defaultSamplerNearest;
     VkDescriptorSetLayout m_singleImageDescriptorLayout;
@@ -41,11 +42,15 @@ private:
     GPUSceneData m_sceneData;
     VkDescriptorSetLayout m_gpuSceneDataDescriptorLayout; //TODO: Doesnt this belong to graphics pipeline?
 
+    MaterialInstance m_defaultData;
+    MetallicRoughnessMaterial m_metalRoughMaterial;
+
 private:
     void initCommands();
     void initImgui();
     void initSyncObjects();
     void initGraphicsPipeline();
+    void initDefaultData();
 
     void recordCommandBuffer(VkCommandBuffer cmd, uint32_t imageIndex, std::vector<Drawable>& drawables);
 

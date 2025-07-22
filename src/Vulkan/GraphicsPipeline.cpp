@@ -84,6 +84,7 @@ void GraphicsPipeline::SetLayout(VkPipelineLayout layout) { m_pipelineLayout = l
 
 VkPipeline GraphicsPipeline::GetGraphicsPipeline() const { return m_graphicsPipeline; }
 VkPipelineLayout GraphicsPipeline::GetPipelineLayout() const { return m_pipelineLayout; }
+DescriptorAllocator& GraphicsPipeline::GetDescriptorAllocator() { return m_descriptorAllocator; }
 
 void GraphicsPipeline::initDescriptors(Swapchain& swapchain)
 {
@@ -160,10 +161,10 @@ void GraphicsPipeline::SetDepthFormat(VkFormat format)
     m_renderInfo.depthAttachmentFormat = format;
 }
 
-void GraphicsPipeline::EnableDepthTest()
+void GraphicsPipeline::EnableDepthTest(bool depthWriteEnable)
 {
     m_depthStencil.depthTestEnable = VK_TRUE;
-    m_depthStencil.depthWriteEnable = VK_TRUE;
+    m_depthStencil.depthWriteEnable = depthWriteEnable;
     m_depthStencil.depthCompareOp = VK_COMPARE_OP_LESS;
     m_depthStencil.depthBoundsTestEnable = VK_FALSE;
     m_depthStencil.stencilTestEnable = VK_FALSE;

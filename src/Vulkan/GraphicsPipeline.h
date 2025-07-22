@@ -28,7 +28,7 @@ public:
     void SetColorAttachmentFormat(VkFormat format);
     void SetDepthFormat(VkFormat format);
 
-    void EnableDepthTest();
+    void EnableDepthTest(bool depthWriteEnable);
     void EnableBlendingAdditive();
     void EnableBlendingAlphablend();
 
@@ -37,6 +37,7 @@ public:
 
     [[nodiscard]] VkPipeline GetGraphicsPipeline() const;
     [[nodiscard]] VkPipelineLayout GetPipelineLayout() const;
+    [[nodiscard]] DescriptorAllocator& GetDescriptorAllocator();
 
 private:
     std::shared_ptr<VulkanContext> m_ctx;

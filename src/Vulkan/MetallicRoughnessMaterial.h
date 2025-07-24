@@ -25,10 +25,15 @@ struct MaterialResources {
 
 class MetallicRoughnessMaterial {
 public:
-    void BuildPipelines(std::shared_ptr<VulkanContext> ctx, Swapchain& swapchain, VkDescriptorSetLayout gpuSceneDataDescriptorLayout);
-    MaterialInstance WriteMaterial(std::shared_ptr<VulkanContext> ctx, MaterialPass pass, const MaterialResources& resources, DescriptorAllocator& descriptorAllocator);
+    MetallicRoughnessMaterial(std::shared_ptr<VulkanContext> ctx);
+    ~MetallicRoughnessMaterial();
+
+    void BuildPipelines(Swapchain& swapchain, VkDescriptorSetLayout gpuSceneDataDescriptorLayout);
+    MaterialInstance WriteMaterial(MaterialPass pass, const MaterialResources& resources, DescriptorAllocator& descriptorAllocator);
 
 private:
+    std::shared_ptr<VulkanContext> m_ctx;
+
     MaterialPipeline m_opaquePipeline{};
     MaterialPipeline m_transparentPipeline{};
 

@@ -22,7 +22,7 @@ GraphicsPipeline::~GraphicsPipeline()
     m_deletionQueue.Flush();
 }
 
-void GraphicsPipeline::CreateGraphicsPipeline()
+VkPipeline GraphicsPipeline::CreateGraphicsPipeline()
 {
     VkPipelineVertexInputStateCreateInfo vertexInputInfo { .sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO };
 
@@ -72,17 +72,19 @@ void GraphicsPipeline::CreateGraphicsPipeline()
         .basePipelineHandle = VK_NULL_HANDLE,
     };
 
-    if (vkCreateGraphicsPipelines(m_ctx->GetDevice(), VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &m_graphicsPipeline) != VK_SUCCESS)
+    if (vkCreateGraphicsPipelines(m_ctx->GetDevice(), VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &m_pipeline) != VK_SUCCESS)
         throw std::runtime_error("failed to create graphics pipeline!");
 
-    m_deletionQueue.PushFunction([&] {
-        vkDestroyPipeline(m_ctx->GetDevice(), m_graphicsPipeline, nullptr);
-    });
+    return m_pipeline;
+
+    //m_deletionQueue.PushFunction([&] {
+    //    vkDestroyPipeline(m_ctx->GetDevice(), m_pipeline, nullptr);
+    //});
 }
 
 void GraphicsPipeline::SetLayout(VkPipelineLayout layout) { m_pipelineLayout = layout; }
 
-VkPipeline GraphicsPipeline::GetGraphicsPipeline() const { return m_graphicsPipeline; }
+VkPipeline GraphicsPipeline::GetGraphicsPipeline() const { return m_pipeline; }
 VkPipelineLayout GraphicsPipeline::GetPipelineLayout() const { return m_pipelineLayout; }
 DescriptorAllocator& GraphicsPipeline::GetDescriptorAllocator() { return m_descriptorAllocator; }
 
@@ -110,8 +112,6 @@ void GraphicsPipeline::initDescriptors(Swapchain& swapchain)
         m_descriptorAllocator.DestroyPools(m_ctx->GetDevice());
         vkDestroyDescriptorSetLayout(m_ctx->GetDevice(), m_drawImageDescriptorLayout, nullptr);
     });
-
-
 }
 
 void GraphicsPipeline::SetShaders(VkShaderModule vertexShader, VkShaderModule fragmentShader)

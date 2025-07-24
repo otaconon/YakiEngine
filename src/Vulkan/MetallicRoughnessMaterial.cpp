@@ -4,14 +4,28 @@
 #include "Swapchain.h"
 #include "Descriptors/DescriptorLayoutBuilder.h"
 
-void MetallicRoughnessMaterial::BuildPipelines(std::shared_ptr<VulkanContext> ctx, Swapchain& swapchain, VkDescriptorSetLayout gpuSceneDataDescriptorLayout)
+MetallicRoughnessMaterial::MetallicRoughnessMaterial(std::shared_ptr<VulkanContext> ctx)
+	: m_ctx(ctx)
+{
+
+}
+
+MetallicRoughnessMaterial::~MetallicRoughnessMaterial()
+{
+	vkDestroyPipeline(m_ctx->GetDevice(), m_opaquePipeline.pipeline, nullptr);
+	vkDestroyPipeline(m_ctx->GetDevice(), m_transparentPipeline.pipeline, nullptr);
+	vkDestroyPipelineLayout(m_ctx->GetDevice(), m_opaquePipeline.layout, nullptr);
+	vkDestroyDescriptorSetLayout(m_ctx->GetDevice(), m_materialLayout, nullptr);
+}
+
+void MetallicRoughnessMaterial::BuildPipelines(Swapchain& swapchain, VkDescriptorSetLayout gpuSceneDataDescriptorLayout)
 {
     VkShaderModule meshFragShader;
-	if (!VkUtil::load_shader_module("../shaders/fragment/materials.frag.spv", ctx->GetDevice(), &meshFragShader))
+	if (!VkUtil::load_shader_module("../shaders/fragment/materials.frag.spv", m_ctx->GetDevice(), &meshFragShader))
 		std::println("Error when building the triangle fragment shader module");
 
 	VkShaderModule meshVertexShader;
-	if (!VkUtil::load_shader_module("../shaders/vertex/materials.vert.spv", ctx->GetDevice(), &meshVertexShader))
+	if (!VkUtil::load_shader_module("../shaders/vertex/materials.vert.spv", m_ctx->GetDevice(), &meshVertexShader))
 		std::println("Error when building the triangle vertex shader module");
 
 	VkPushConstantRange matrixRange {
@@ -25,7 +39,7 @@ void MetallicRoughnessMaterial::BuildPipelines(std::shared_ptr<VulkanContext> ct
     layoutBuilder.AddBinding(1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER);
 	layoutBuilder.AddBinding(2, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER);
 
-    m_materialLayout = layoutBuilder.Build(ctx->GetDevice(), VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT);
+    m_materialLayout = layoutBuilder.Build(m_ctx->GetDevice(), VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT);
 
 	VkDescriptorSetLayout layouts[] = { gpuSceneDataDescriptorLayout, m_materialLayout };
 
@@ -36,12 +50,12 @@ void MetallicRoughnessMaterial::BuildPipelines(std::shared_ptr<VulkanContext> ct
 	mesh_layout_info.pushConstantRangeCount = 1;
 
 	VkPipelineLayout newLayout;
-	VK_CHECK(vkCreatePipelineLayout(ctx->GetDevice(), &mesh_layout_info, nullptr, &newLayout));
+	VK_CHECK(vkCreatePipelineLayout(m_ctx->GetDevice(), &mesh_layout_info, nullptr, &newLayout));
 
     m_opaquePipeline.layout = newLayout;
     m_transparentPipeline.layout = newLayout;
 
-	GraphicsPipeline pipeline(ctx, swapchain);
+	GraphicsPipeline pipeline(m_ctx, swapchain);
 	pipeline.SetShaders(meshVertexShader, meshFragShader);
 	pipeline.SetInputTopology(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
 	pipeline.SetPolygonMode(VK_POLYGON_MODE_FILL);
@@ -52,19 +66,17 @@ void MetallicRoughnessMaterial::BuildPipelines(std::shared_ptr<VulkanContext> ct
 	pipeline.SetColorAttachmentFormat(swapchain.GetDrawImage().GetFormat());
 	pipeline.SetDepthFormat(swapchain.GetDepthImage().GetFormat());
 	pipeline.SetLayout(newLayout);
-	pipeline.CreateGraphicsPipeline();
-    m_opaquePipeline.pipeline = pipeline.GetGraphicsPipeline();
+	m_opaquePipeline.pipeline = pipeline.CreateGraphicsPipeline();
 
 	pipeline.EnableBlendingAdditive();
 	pipeline.EnableDepthTest(false);
-	pipeline.CreateGraphicsPipeline();
-	m_transparentPipeline.pipeline = pipeline.GetGraphicsPipeline();
+	m_transparentPipeline.pipeline = pipeline.CreateGraphicsPipeline();
 
-	vkDestroyShaderModule(ctx->GetDevice(), meshFragShader, nullptr);
-	vkDestroyShaderModule(ctx->GetDevice(), meshVertexShader, nullptr);
+	vkDestroyShaderModule(m_ctx->GetDevice(), meshFragShader, nullptr);
+	vkDestroyShaderModule(m_ctx->GetDevice(), meshVertexShader, nullptr);
 }
 
-MaterialInstance MetallicRoughnessMaterial::WriteMaterial(std::shared_ptr<VulkanContext> ctx, MaterialPass pass, const MaterialResources& resources, DescriptorAllocator& descriptorAllocator)
+MaterialInstance MetallicRoughnessMaterial::WriteMaterial(MaterialPass pass, const MaterialResources& resources, DescriptorAllocator& descriptorAllocator)
 {
 	MaterialInstance matData;
 	matData.passType = pass;
@@ -75,13 +87,13 @@ MaterialInstance MetallicRoughnessMaterial::WriteMaterial(std::shared_ptr<Vulkan
 		matData.pipeline = &m_opaquePipeline;
 	}
 
-	matData.materialSet = descriptorAllocator.Allocate(ctx->GetDevice(), m_materialLayout);
+	matData.materialSet = descriptorAllocator.Allocate(m_ctx->GetDevice(), m_materialLayout);
 
 	m_writer.Clear();
 	m_writer.WriteBuffer(0, resources.dataBuffer, sizeof(MaterialConstants), resources.dataBufferOffset, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER);
 	m_writer.WriteImage(1, resources.colorImage->GetView(), resources.colorSampler, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER);
 	m_writer.WriteImage(2, resources.metalRoughImage->GetView(), resources.metalRoughSampler, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER);
-	m_writer.UpdateSet(ctx->GetDevice(), matData.materialSet);
+	m_writer.UpdateSet(m_ctx->GetDevice(), matData.materialSet);
 
 	return matData;
 }

@@ -12,12 +12,13 @@
 
 constexpr int MAX_FRAMES_IN_FLIGHT = 3;
 
+// TODO: For now this class does not own the VkPipeline not taking responsibility of its destruction, this should be changed.
 class GraphicsPipeline {
 public:
     GraphicsPipeline(const std::shared_ptr<VulkanContext>& ctx, Swapchain& swapchain);
     ~GraphicsPipeline();
 
-    void CreateGraphicsPipeline();
+    VkPipeline CreateGraphicsPipeline();
 
     void SetLayout(VkPipelineLayout layout);
     void SetShaders(VkShaderModule vertexShader, VkShaderModule fragmentShader);
@@ -42,7 +43,7 @@ public:
 private:
     std::shared_ptr<VulkanContext> m_ctx;
 
-    VkPipeline m_graphicsPipeline{};
+    VkPipeline m_pipeline{};
     DescriptorAllocator m_descriptorAllocator{};
 
     std::vector<VkPipelineShaderStageCreateInfo> m_shaderStages;

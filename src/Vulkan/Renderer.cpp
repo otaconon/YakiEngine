@@ -26,7 +26,8 @@ Renderer::Renderer(SDL_Window* window, const std::shared_ptr<VulkanContext>& ctx
     m_ctx(ctx),
     m_swapchain(ctx, window),
 	m_graphicsPipeline(ctx, m_swapchain),
-    m_currentFrame(0)
+    m_currentFrame(0),
+	m_metalRoughMaterial(ctx)
 {
 	VmaAllocatorCreateInfo allocatorInfo {
 		.flags = VMA_ALLOCATOR_CREATE_BUFFER_DEVICE_ADDRESS_BIT,
@@ -256,9 +257,10 @@ void Renderer::initGraphicsPipeline()
 	vkDestroyShaderModule(m_ctx->GetDevice(), vertexShader, nullptr);
 	m_deletionQueue.PushFunction([&] {
 		vkDestroyPipelineLayout(m_ctx->GetDevice(), m_graphicsPipelineLayout, nullptr);
+		vkDestroyPipeline(m_ctx->GetDevice(), m_graphicsPipeline.GetGraphicsPipeline(), nullptr);
 	});
 
-	m_metalRoughMaterial.BuildPipelines(m_ctx, m_swapchain, m_gpuSceneDataDescriptorLayout);
+	m_metalRoughMaterial.BuildPipelines(m_swapchain, m_gpuSceneDataDescriptorLayout);
 }
 
 void Renderer::initDefaultData()
@@ -283,7 +285,7 @@ void Renderer::initDefaultData()
 	materialResources.dataBuffer = materialConstants.buffer;
 	materialResources.dataBufferOffset = 0;
 
-	m_defaultData = m_metalRoughMaterial.WriteMaterial(m_ctx, MaterialPass::MainColor, materialResources, m_graphicsPipeline.GetDescriptorAllocator());
+	m_defaultData = m_metalRoughMaterial.WriteMaterial(MaterialPass::MainColor, materialResources, m_graphicsPipeline.GetDescriptorAllocator());
 }
 
 void Renderer::recordCommandBuffer(VkCommandBuffer cmd, uint32_t imageIndex, std::vector<Drawable>& drawables)

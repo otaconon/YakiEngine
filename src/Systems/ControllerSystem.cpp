@@ -1,5 +1,6 @@
 #include "ControllerSystem.h"
 
+#include <print>
 #include <SDL3/SDL.h>
 
 #include "../InputData.h"
@@ -39,7 +40,5 @@ void ControllerSystem::Update(float dt)
             dir = glm::normalize(dir);
 
         controller.direction = dir;
-
-
     });
 }

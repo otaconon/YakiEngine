@@ -1,6 +1,5 @@
 #pragma once
-#include "../Transform.h"
-#include "../Vulkan/Buffer.h"
+
 #include "../Vulkan/VkUtils.h"
 #include "../Vulkan/VkTypes.h"
 

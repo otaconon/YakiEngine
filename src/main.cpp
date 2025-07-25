@@ -5,17 +5,16 @@
 #include "Ecs.h"
 #include "Vulkan/Renderer.h"
 #include "Window.h"
-#include "Camera/Camera.h"
 #include "Systems/RendererSystem.h"
-#include "Components/Controller.h"
 #include "Systems/ControllerSystem.h"
 #include "Systems/MovementSystem.h"
 #include "InputData.h"
 #include "Raycast.h"
-#include "Components/Collider.h"
 #include "Systems/PhysicsSystem.h"
-#include "Components/gui.h"
 #include "Systems/GuiSystem.h"
+#include "Systems/TransformSystem.h"
+#include "Systems/CameraSystem.h"
+#include "Components/Components.h"
 
 std::vector<Vertex> vertices = {
 /* +Z (front)  */ {{-0.5f,-0.5f, 0.5f},{ 0.0f, 0.0f, 1.0f},{1,0,0},{0,0}}, // 0
@@ -66,9 +65,11 @@ int main() {
 	auto vk = std::make_shared<VulkanContext>(mainWindow.window());
 
 	Renderer renderer(mainWindow.window(), vk);
-	ecs.AddSystem<RenderSystem>(renderer);
+	ecs.AddSystem<CameraSystem>(CameraSystem());
 	ecs.AddSystem<ControllerSystem>(ControllerSystem());
 	ecs.AddSystem<MovementSystem>(MovementSystem());
+	ecs.AddSystem<TransformSystem>(TransformSystem());
+	ecs.AddSystem<RenderSystem>(renderer);
 	ecs.AddSystem<PhysicsSystem>(PhysicsSystem());
 
 	ecs.AddSingletonComponent(InputEvents{});
@@ -76,14 +77,17 @@ int main() {
 	auto allMeshes = renderer.LoadGltfMeshes("../assets/meshes/basicmesh.glb").value();
 	std::shared_ptr<Mesh> monkeyMesh = allMeshes[2];
 	Drawable drawable = create_drawable(monkeyMesh);
-	Hori::Entity monkey = ecs.CreateEntity();
-	ecs.AddComponents(monkey, std::move(drawable), Transform{{0.0f, 0.0f, 0.0f}, {0.f, 0.f, 0.f}, {5.f, 5.f, 5.f}}, BoxCollider{{0.5f, 0.5f, 0.5f}, true});
 
+	// Create monkey entity
+	Hori::Entity monkey = ecs.CreateEntity();
+	ecs.AddComponents(monkey, std::move(drawable), Translation{}, Rotation{}, Scale{{5.f, 5.f, 5.f}}, LocalToParent{}, BoxCollider{{0.5f, 0.5f, 0.5f}, true});
+
+	// Create camera entity
 	Hori::Entity camera = ecs.CreateEntity();
-	Transform camTrans{{0.f, -10.f, -10.f}, glm::vec3{0.f}, glm::vec3{1.f}};
-	camTrans.LookAt({0.f, 0.f, 0.f});
+	//Transform camTrans{{0.f, -10.f, -10.f}, glm::vec3{0.f}, glm::vec3{1.f}};
+	//camTrans.LookAt({0.f, 0.f, 0.f});
 	ecs.AddComponents(camera, Camera{}, Controller{}, RayData{});
-	ecs.AddComponents(camera, std::move(camTrans));
+	ecs.AddComponents(camera, Translation{{0, -10.f, -10.f}}, Rotation{}, Scale{}, LocalToParent{});
 
 	auto prevTime = std::chrono::high_resolution_clock::now();
 	bool running = true;

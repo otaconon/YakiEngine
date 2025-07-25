@@ -1,8 +1,10 @@
 #pragma once
 
+#include <glm/vec3.hpp>
+
 struct SphereCollider
 {
-	SphereCollider(const float radius, const bool isTrigger = false)
+	explicit SphereCollider(const float radius, const bool isTrigger = false)
 		: radius{radius},
 		isTrigger{isTrigger}
 	{}
@@ -13,7 +15,7 @@ struct SphereCollider
 
 struct BoxCollider
 {
-	BoxCollider(const glm::vec3 dims, const bool isTrigger = false)
+	explicit BoxCollider(const glm::vec3 dims, const bool isTrigger = false)
 		: dims(dims),
 		isTrigger(isTrigger)
 	{}

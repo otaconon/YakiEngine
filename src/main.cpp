@@ -16,42 +16,6 @@
 #include "Systems/CameraSystem.h"
 #include "Components/Components.h"
 
-std::vector<Vertex> vertices = {
-/* +Z (front)  */ {{-0.5f,-0.5f, 0.5f},{ 0.0f, 0.0f, 1.0f},{1,0,0},{0,0}}, // 0
-                   {{ 0.5f,-0.5f, 0.5f},{ 0.0f, 0.0f, 1.0f},{0,1,0},{1,0}}, // 1
-                   {{ 0.5f, 0.5f, 0.5f},{ 0.0f, 0.0f, 1.0f},{0,0,1},{1,1}}, // 2
-                   {{-0.5f, 0.5f, 0.5f},{ 0.0f, 0.0f, 1.0f},{1,1,1},{0,1}}, // 3
-/* –Z (back)   */ {{ 0.5f,-0.5f,-0.5f},{ 0.0f, 0.0f,-1.0f},{1,0,0},{0,0}}, // 4
-                   {{-0.5f,-0.5f,-0.5f},{ 0.0f, 0.0f,-1.0f},{0,1,0},{1,0}}, // 5
-                   {{-0.5f, 0.5f,-0.5f},{ 0.0f, 0.0f,-1.0f},{0,0,1},{1,1}}, // 6
-                   {{ 0.5f, 0.5f,-0.5f},{ 0.0f, 0.0f,-1.0f},{1,1,1},{0,1}}, // 7
-/* –X (left)   */ {{-0.5f,-0.5f,-0.5f},{-1.0f, 0.0f, 0.0f},{1,0,0},{0,0}}, // 8
-                   {{-0.5f,-0.5f, 0.5f},{-1.0f, 0.0f, 0.0f},{0,1,0},{1,0}}, // 9
-                   {{-0.5f, 0.5f, 0.5f},{-1.0f, 0.0f, 0.0f},{0,0,1},{1,1}}, // 10
-                   {{-0.5f, 0.5f,-0.5f},{-1.0f, 0.0f, 0.0f},{1,1,1},{0,1}}, // 11
-/* +X (right)  */ {{ 0.5f,-0.5f, 0.5f},{ 1.0f, 0.0f, 0.0f},{1,0,0},{0,0}}, // 12
-                   {{ 0.5f,-0.5f,-0.5f},{ 1.0f, 0.0f, 0.0f},{0,1,0},{1,0}}, // 13
-                   {{ 0.5f, 0.5f,-0.5f},{ 1.0f, 0.0f, 0.0f},{0,0,1},{1,1}}, // 14
-                   {{ 0.5f, 0.5f, 0.5f},{ 1.0f, 0.0f, 0.0f},{1,1,1},{0,1}}, // 15
-/* +Y (top)    */ {{-0.5f, 0.5f, 0.5f},{ 0.0f, 1.0f, 0.0f},{1,0,0},{0,0}}, // 16
-                   {{ 0.5f, 0.5f, 0.5f},{ 0.0f, 1.0f, 0.0f},{0,1,0},{1,0}}, // 17
-                   {{ 0.5f, 0.5f,-0.5f},{ 0.0f, 1.0f, 0.0f},{0,0,1},{1,1}}, // 18
-                   {{-0.5f, 0.5f,-0.5f},{ 0.0f, 1.0f, 0.0f},{1,1,1},{0,1}}, // 19
-/* –Y (bottom) */ {{-0.5f,-0.5f,-0.5f},{ 0.0f,-1.0f, 0.0f},{1,0,0},{0,0}}, // 20
-                   {{ 0.5f,-0.5f,-0.5f},{ 0.0f,-1.0f, 0.0f},{0,1,0},{1,0}}, // 21
-                   {{ 0.5f,-0.5f, 0.5f},{ 0.0f,-1.0f, 0.0f},{0,0,1},{1,1}}, // 22
-                   {{-0.5f,-0.5f, 0.5f},{ 0.0f,-1.0f, 0.0f},{1,1,1},{0,1}}  // 23
-};
-
-std::vector<uint32_t> indices = {
-    0,1,2,  2,3,0,       // +Z
-    4,5,6,  6,7,4,       // –Z
-    8,9,10, 10,11,8,     // –X
-    12,13,14, 14,15,12,  // +X
-    16,17,18, 18,19,16,  // +Y
-    20,21,22, 22,23,20   // –Y
-};
-
 Drawable create_drawable(std::shared_ptr<Mesh> mesh)
 {
 	Drawable drawable{mesh, {}, {}, {glm::mat4{1.f}, glm::mat4{}, glm::mat4{}}};
@@ -80,7 +44,7 @@ int main() {
 
 	// Create monkey entity
 	Hori::Entity monkey = ecs.CreateEntity();
-	ecs.AddComponents(monkey, std::move(drawable), Translation{}, Rotation{}, Scale{{5.f, 5.f, 5.f}}, LocalToWorld{}, LocalToParent{}, ParentToLocal{}, BoxCollider{{0.5f, 0.5f, 0.5f}, true});
+	ecs.AddComponents(monkey, std::move(drawable), Translation{}, Rotation{}, Scale{{1.f, 1.f, 1.f}}, LocalToWorld{}, LocalToParent{}, ParentToLocal{}, BoxCollider{{0.5f, 0.5f, 0.5f}, true});
 
 	// Create camera entity
 	Hori::Entity camera = ecs.CreateEntity();

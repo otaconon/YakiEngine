@@ -406,8 +406,6 @@ void Renderer::drawObjects(VkCommandBuffer cmd, std::vector<RenderObject>& objec
 	VkRenderingInfo renderInfo = VkInit::rendering_info(drawExtent, &colorAttachment, &depthAttachment);
 	vkCmdBeginRendering(cmd, &renderInfo);
 
-	vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, m_graphicsPipeline.GetGraphicsPipeline());
-
 	Buffer gpuSceneDataBuffer(m_allocator, sizeof(GPUSceneData), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU);
 	GPUSceneData* sceneUniformData = static_cast<GPUSceneData*>(gpuSceneDataBuffer.allocation->GetMappedData());
 	*sceneUniformData = *Ecs::GetInstance().GetSingletonComponent<GPUSceneData>();
@@ -427,11 +425,11 @@ void Renderer::drawObjects(VkCommandBuffer cmd, std::vector<RenderObject>& objec
 	for (auto& [indexCount, firstIndex, indexBuffer, material, transform, vertexBufferAddress] : objects)
 	{
 		material = &m_defaultData; // TODO: This is not the right way to do this
-		vkCmdBindPipeline(cmd,VK_PIPELINE_BIND_POINT_GRAPHICS, material->pipeline->pipeline);
-		vkCmdBindDescriptorSets(cmd,VK_PIPELINE_BIND_POINT_GRAPHICS, material->pipeline->layout, 0, 1, &globalDescriptor, 0, nullptr );
-		vkCmdBindDescriptorSets(cmd,VK_PIPELINE_BIND_POINT_GRAPHICS, material->pipeline->layout, 1, 1, &material->materialSet, 0, nullptr );
+		vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, material->pipeline->pipeline);
+		vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, material->pipeline->layout, 0, 1, &globalDescriptor, 0, nullptr );
+		vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, material->pipeline->layout, 1, 1, &material->materialSet, 0, nullptr );
 
-		vkCmdBindIndexBuffer(cmd, indexBuffer,0,VK_INDEX_TYPE_UINT32);
+		vkCmdBindIndexBuffer(cmd, indexBuffer, 0, VK_INDEX_TYPE_UINT32);
 
 		GPUDrawPushConstants pushConstants {
 			.worldMatrix = transform,
@@ -439,7 +437,7 @@ void Renderer::drawObjects(VkCommandBuffer cmd, std::vector<RenderObject>& objec
 		};
 		vkCmdPushConstants(cmd, material->pipeline->layout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(GPUDrawPushConstants), &pushConstants);
 
-		vkCmdDrawIndexed(cmd, indexCount, 1, firstIndex,0,0);
+		vkCmdDrawIndexed(cmd, indexCount, 1, firstIndex, 0, 0);
 	}
 
 	vkCmdEndRendering(cmd);

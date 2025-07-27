@@ -59,7 +59,7 @@ void MetallicRoughnessMaterial::BuildPipelines(Swapchain& swapchain, VkDescripto
 	pipeline.SetShaders(meshVertexShader, meshFragShader);
 	pipeline.SetInputTopology(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
 	pipeline.SetPolygonMode(VK_POLYGON_MODE_FILL);
-	pipeline.SetCullMode(VK_CULL_MODE_NONE, VK_FRONT_FACE_CLOCKWISE);
+	pipeline.SetCullMode(VK_CULL_MODE_BACK_BIT, VK_FRONT_FACE_COUNTER_CLOCKWISE);
 	pipeline.SetMultisamplingNone();
 	pipeline.DisableBlending();
 	pipeline.EnableDepthTest(true);

@@ -14,7 +14,7 @@ public:
     Renderer(SDL_Window* window, const std::shared_ptr<VulkanContext>& ctx);
     ~Renderer();
 
-    void DrawFrame(std::vector<Drawable>& drawables);
+    void DrawFrame(std::vector<RenderObject>& objects);
 
     [[nodiscard]] std::shared_ptr<GPUMeshBuffers> UploadMesh(const std::span<uint32_t> indices, const std::span<Vertex> vertices) const;
     [[nodiscard]] std::optional<std::vector<std::shared_ptr<Mesh>>> LoadGltfMeshes(const std::filesystem::path& filePath) const;
@@ -52,13 +52,13 @@ private:
     void initGraphicsPipeline();
     void initDefaultData();
 
-    void recordCommandBuffer(VkCommandBuffer cmd, uint32_t imageIndex, std::vector<Drawable>& drawables);
+    void recordCommandBuffer(VkCommandBuffer cmd, uint32_t imageIndex, std::vector<RenderObject>& objects);
 
     VkCommandBuffer beginSingleTimeCommands(VkCommandPool& commandPool) const;
     void endSingleTimeCommands(VkCommandPool& commandPool, VkCommandBuffer& commandBuffer) const;
 
     void drawImgui(VkCommandBuffer cmd, VkImageView targetImageView) const;
-    void drawObjects(VkCommandBuffer cmd, std::vector<Drawable>& drawables);
+    void drawObjects(VkCommandBuffer cmd, std::vector<RenderObject>& objects);
 
     FrameData& getCurrentFrame();
 

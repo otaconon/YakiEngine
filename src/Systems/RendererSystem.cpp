@@ -21,17 +21,27 @@ void RenderSystem::Update(float dt)
         cameraTransform = transform.value;
     });
 
+    auto sceneData = ecs.GetSingletonComponent<GPUSceneData>();
+    sceneData->proj = camera.projection;
+    sceneData->view = camera.view;
+    sceneData-> viewproj = camera.viewProjection;
+
     // TODO: Fix this not very fast
-    std::vector<Drawable> drawables;
     std::vector<RenderObject> objects;
     ecs.Each<Drawable, LocalToWorld>([&](Hori::Entity, Drawable& drawable, LocalToWorld& localToWorld) {
-        drawable.ubo.model = localToWorld.value;
-        drawable.ubo.view = camera.view;
-        drawable.ubo.proj = camera.projection;
-        drawables.push_back(drawable);
+        for (auto& s : drawable.mesh->surfaces)
+        {
+            RenderObject def;
+            def.indexCount = s.count;
+            def.firstIndex = s.startIndex;
+            def.indexBuffer = drawable.mesh->meshBuffers->indexBuffer.buffer;
+            def.material = s.material.get();
+            def.transform = localToWorld.value;
+            def.vertexBufferAddress = drawable.mesh->meshBuffers->vertexBufferAddress;
 
-
+            objects.push_back(def);
+        }
     });
 
-    m_renderer->DrawFrame(drawables);
+    m_renderer->DrawFrame(objects);
 }

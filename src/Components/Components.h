@@ -10,3 +10,6 @@
 #include "Translation.h"
 #include "LocalToParent.h"
 #include "Camera.h"
+#include "ParentToLocal.h"
+#include "Children.h"
+#include "LocalToWorld.h"

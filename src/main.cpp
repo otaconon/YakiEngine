@@ -80,14 +80,14 @@ int main() {
 
 	// Create monkey entity
 	Hori::Entity monkey = ecs.CreateEntity();
-	ecs.AddComponents(monkey, std::move(drawable), Translation{}, Rotation{}, Scale{{5.f, 5.f, 5.f}}, LocalToParent{}, BoxCollider{{0.5f, 0.5f, 0.5f}, true});
+	ecs.AddComponents(monkey, std::move(drawable), Translation{}, Rotation{}, Scale{{5.f, 5.f, 5.f}}, LocalToWorld{}, LocalToParent{}, ParentToLocal{}, BoxCollider{{0.5f, 0.5f, 0.5f}, true});
 
 	// Create camera entity
 	Hori::Entity camera = ecs.CreateEntity();
 	//Transform camTrans{{0.f, -10.f, -10.f}, glm::vec3{0.f}, glm::vec3{1.f}};
 	//camTrans.LookAt({0.f, 0.f, 0.f});
 	ecs.AddComponents(camera, Camera{}, Controller{}, RayData{});
-	ecs.AddComponents(camera, Translation{{0, -10.f, -10.f}}, Rotation{}, Scale{}, LocalToParent{});
+	ecs.AddComponents(camera, Translation{{0, -10.f, -10.f}}, Rotation{}, Scale{}, LocalToWorld{}, LocalToParent{}, ParentToLocal{});
 
 	auto prevTime = std::chrono::high_resolution_clock::now();
 	bool running = true;

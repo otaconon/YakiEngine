@@ -13,3 +13,4 @@
 #include "ParentToLocal.h"
 #include "Children.h"
 #include "LocalToWorld.h"
+#include "RenderObject.h"

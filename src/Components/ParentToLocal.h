@@ -4,5 +4,5 @@
 
 struct ParentToLocal
 {
-    glm::mat4 value{};
+    glm::mat4 value{1.f};
 };

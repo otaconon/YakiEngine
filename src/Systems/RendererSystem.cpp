@@ -21,12 +21,16 @@ void RenderSystem::Update(float dt)
         cameraTransform = transform.value;
     });
 
+    // TODO: Fix this not very fast
     std::vector<Drawable> drawables;
-    ecs.Each<Drawable, LocalToParent>([&](Hori::Entity, Drawable& drawable, LocalToParent& transform) {
-        drawable.ubo.model = transform.value;
+    std::vector<RenderObject> objects;
+    ecs.Each<Drawable, LocalToWorld>([&](Hori::Entity, Drawable& drawable, LocalToWorld& localToWorld) {
+        drawable.ubo.model = localToWorld.value;
         drawable.ubo.view = camera.view;
         drawable.ubo.proj = camera.projection;
         drawables.push_back(drawable);
+
+
     });
 
     m_renderer->DrawFrame(drawables);

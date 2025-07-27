@@ -15,9 +15,7 @@ layout(buffer_reference, std430) readonly buffer VertexBuffer{
 
 layout( push_constant ) uniform constants
 {
-    mat4 model;
-    mat4 view;
-    mat4 proj;
+    mat4 render_matrix;
     VertexBuffer vertexBuffer;
 } PushConstants;
 
@@ -27,7 +25,7 @@ layout(location = 1) out vec2 fragTexCoord;
 void main() {
     Vertex v = PushConstants.vertexBuffer.vertices[gl_VertexIndex];
 
-    gl_Position = PushConstants.proj * PushConstants.view * PushConstants.model * vec4(v.position, 1.0);
+    gl_Position = PushConstants.render_matrix * vec4(v.position, 1.0);
     fragColor = v.color;
     fragTexCoord = v.texCoord;
 }

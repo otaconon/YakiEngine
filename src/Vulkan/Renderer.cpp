@@ -219,26 +219,21 @@ void Renderer::initGraphicsPipeline()
 		.size = sizeof(GPUDrawPushConstants),
 	};
 
-	std::array<VkDescriptorSetLayout, 2> setLayouts = {
-		m_singleImageDescriptorLayout,
-		m_gpuSceneDataDescriptorLayout
-	};
-
 	VkPipelineLayoutCreateInfo pipelineLayoutInfo = VkInit::pipeline_layout_create_info();
 	pipelineLayoutInfo.pPushConstantRanges = &bufferRange;
 	pipelineLayoutInfo.pushConstantRangeCount = 1;
-	pipelineLayoutInfo.pSetLayouts = setLayouts.data();
-	pipelineLayoutInfo.setLayoutCount = setLayouts.size();
+	pipelineLayoutInfo.pSetLayouts = &m_singleImageDescriptorLayout;
+	pipelineLayoutInfo.setLayoutCount = 1;
 	VK_CHECK(vkCreatePipelineLayout(m_ctx->GetDevice(), &pipelineLayoutInfo, nullptr, &m_graphicsPipelineLayout));
 
 	VkShaderModule fragmentShader;
-	if (!VkUtil::load_shader_module("../shaders/fragment/materials.frag.spv", m_ctx->GetDevice(), &fragmentShader))
+	if (!VkUtil::load_shader_module("../shaders/fragment/basic_mesh.frag.spv", m_ctx->GetDevice(), &fragmentShader))
 		std::println("Error when building the triangle fragment shader module");
 	else
 		std::println("Triangle fragment shader successfully loaded");
 
 	VkShaderModule vertexShader;
-	if (!VkUtil::load_shader_module("../shaders/vertex/materials.vert.spv", m_ctx->GetDevice(), &vertexShader))
+	if (!VkUtil::load_shader_module("../shaders/vertex/basic_mesh.vert.spv", m_ctx->GetDevice(), &vertexShader))
 		std::println("Error when building the triangle vertex shader module");
 	else
 		std::println("Triangle vertex shader successfully loaded");
@@ -282,13 +277,13 @@ void Renderer::initDefaultData()
 	sceneUniformData->colorFactors = glm::vec4{1,1,1,1};
 	sceneUniformData->metal_rough_factors = glm::vec4{1,0.5,0,0};
 
+	materialResources.dataBuffer = materialConstants.buffer;
+	materialResources.dataBufferOffset = 0;
+
 	// TODO: Change this
 	m_deletionQueue.PushFunction([buffer = std::make_shared<Buffer>(std::move(materialConstants))]() mutable {
 		buffer->Cleanup();
 	});
-
-	materialResources.dataBuffer = materialConstants.buffer;
-	materialResources.dataBufferOffset = 0;
 
 	m_defaultData = m_metalRoughMaterial.WriteMaterial(MaterialPass::MainColor, materialResources, m_graphicsPipeline.GetDescriptorAllocator());
 
@@ -415,7 +410,7 @@ void Renderer::drawObjects(VkCommandBuffer cmd, std::vector<RenderObject>& objec
 
 	Buffer gpuSceneDataBuffer(m_allocator, sizeof(GPUSceneData), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU);
 	GPUSceneData* sceneUniformData = static_cast<GPUSceneData*>(gpuSceneDataBuffer.allocation->GetMappedData());
-	*sceneUniformData = m_sceneData;
+	*sceneUniformData = *Ecs::GetInstance().GetSingletonComponent<GPUSceneData>();
 	VkDescriptorSet globalDescriptor = getCurrentFrame().frameDescriptors.Allocate(m_ctx->GetDevice(), m_gpuSceneDataDescriptorLayout);
 
 	{
@@ -428,14 +423,6 @@ void Renderer::drawObjects(VkCommandBuffer cmd, std::vector<RenderObject>& objec
 	getCurrentFrame().deletionQueue.PushFunction([buffer = std::make_shared<Buffer>(std::move(gpuSceneDataBuffer))]() mutable {
 		buffer->Cleanup();
 	});
-
-	VkDescriptorSet imageSet = getCurrentFrame().frameDescriptors.Allocate(m_ctx->GetDevice(), m_singleImageDescriptorLayout);
-	{
-		DescriptorWriter writer;
-		writer.WriteImage(0, m_errorTexture->GetView(), m_defaultSamplerNearest, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER);
-		writer.UpdateSet(m_ctx->GetDevice(), imageSet);
-	}
-	vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, m_graphicsPipelineLayout, 0, 1, &imageSet, 0, nullptr);
 
 	for (auto& [indexCount, firstIndex, indexBuffer, material, transform, vertexBufferAddress] : objects)
 	{

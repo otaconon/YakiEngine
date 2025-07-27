@@ -15,10 +15,8 @@ void RenderSystem::Update(float dt)
     auto& ecs = Ecs::GetInstance();
 
     Camera camera;
-    glm::mat4 cameraTransform;
-    ecs.Each<Camera, LocalToParent>([&camera, &cameraTransform](Hori::Entity e, const Camera& cam, LocalToParent transform) {
+    ecs.Each<Camera>([&camera](Hori::Entity e, const Camera& cam) {
         camera = cam;
-        cameraTransform = transform.value;
     });
 
     auto sceneData = ecs.GetSingletonComponent<GPUSceneData>();

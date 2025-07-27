@@ -39,7 +39,6 @@ private:
     VkSampler m_defaultSamplerNearest;
     VkDescriptorSetLayout m_singleImageDescriptorLayout;
 
-    GPUSceneData m_sceneData;
     VkDescriptorSetLayout m_gpuSceneDataDescriptorLayout; //TODO: Doesnt this belong to graphics pipeline?
 
     MaterialInstance m_defaultData;

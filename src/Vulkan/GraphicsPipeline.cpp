@@ -102,7 +102,7 @@ void GraphicsPipeline::initDescriptors(Swapchain& swapchain)
         m_drawImageDescriptorLayout = builder.Build(m_ctx->GetDevice(), VK_SHADER_STAGE_COMPUTE_BIT);
     }
 
-    m_drawImageDescriptors = m_descriptorAllocator.Allocate(m_ctx->GetDevice(),m_drawImageDescriptorLayout);
+    m_drawImageDescriptors = m_descriptorAllocator.Allocate(m_ctx->GetDevice(), m_drawImageDescriptorLayout);
 
     DescriptorWriter writer;
     writer.WriteImage(0, swapchain.GetDrawImage().GetView(), VK_NULL_HANDLE, VK_IMAGE_LAYOUT_GENERAL, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE);

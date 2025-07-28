@@ -39,12 +39,12 @@ int main() {
 	ecs.AddSingletonComponent(InputEvents{});
 
 	auto allMeshes = renderer.LoadGltfMeshes("../assets/meshes/basicmesh.glb").value();
-	std::shared_ptr<Mesh> monkeyMesh = allMeshes[2];
+	std::shared_ptr<Mesh> monkeyMesh = allMeshes[0];
 	Drawable drawable = create_drawable(monkeyMesh);
 
 	// Create monkey entity
 	Hori::Entity monkey = ecs.CreateEntity();
-	ecs.AddComponents(monkey, std::move(drawable), Translation{}, Rotation{}, Scale{{1.f, 1.f, 1.f}}, LocalToWorld{}, LocalToParent{}, ParentToLocal{}, BoxCollider{{0.5f, 0.5f, 0.5f}, true});
+	ecs.AddComponents(monkey, std::move(drawable), Translation{{1.f, 1.f, 1.f}}, Rotation{}, Scale{{1.f, 1.f, 1.f}}, LocalToWorld{}, LocalToParent{}, ParentToLocal{}, BoxCollider{{0.5f, 0.5f, 0.5f}, true});
 
 	// Create camera entity
 	Hori::Entity camera = ecs.CreateEntity();

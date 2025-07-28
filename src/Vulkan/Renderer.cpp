@@ -213,72 +213,25 @@ void Renderer::initSyncObjects()
 
 void Renderer::initGraphicsPipeline()
 {
-	VkPushConstantRange bufferRange {
-		.stageFlags = VK_SHADER_STAGE_VERTEX_BIT,
-		.offset = 0,
-		.size = sizeof(GPUDrawPushConstants),
-	};
-
-	VkPipelineLayoutCreateInfo pipelineLayoutInfo = VkInit::pipeline_layout_create_info();
-	pipelineLayoutInfo.pPushConstantRanges = &bufferRange;
-	pipelineLayoutInfo.pushConstantRangeCount = 1;
-	pipelineLayoutInfo.pSetLayouts = &m_singleImageDescriptorLayout;
-	pipelineLayoutInfo.setLayoutCount = 1;
-	VK_CHECK(vkCreatePipelineLayout(m_ctx->GetDevice(), &pipelineLayoutInfo, nullptr, &m_graphicsPipelineLayout));
-
-	VkShaderModule fragmentShader;
-	if (!VkUtil::load_shader_module("../shaders/fragment/basic_mesh.frag.spv", m_ctx->GetDevice(), &fragmentShader))
-		std::println("Error when building the triangle fragment shader module");
-	else
-		std::println("Triangle fragment shader successfully loaded");
-
-	VkShaderModule vertexShader;
-	if (!VkUtil::load_shader_module("../shaders/vertex/basic_mesh.vert.spv", m_ctx->GetDevice(), &vertexShader))
-		std::println("Error when building the triangle vertex shader module");
-	else
-		std::println("Triangle vertex shader successfully loaded");
-
-	m_graphicsPipeline.SetLayout(m_graphicsPipelineLayout);
-	m_graphicsPipeline.SetInputTopology(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
-	m_graphicsPipeline.SetPolygonMode(VK_POLYGON_MODE_FILL);
-	m_graphicsPipeline.SetCullMode(VK_CULL_MODE_BACK_BIT, VK_FRONT_FACE_COUNTER_CLOCKWISE);
-	m_graphicsPipeline.SetMultisamplingNone();
-	m_graphicsPipeline.SetColorAttachmentFormat(m_swapchain.GetDrawImage().GetFormat());
-	m_graphicsPipeline.SetDepthFormat(m_swapchain.GetDepthImage().GetFormat());
-	m_graphicsPipeline.SetShaders(vertexShader, fragmentShader);
-
-	m_graphicsPipeline.EnableDepthTest(true);
-
-	m_graphicsPipeline.DisableBlending();
-
-	m_graphicsPipeline.CreateGraphicsPipeline();
-
-	vkDestroyShaderModule(m_ctx->GetDevice(), fragmentShader, nullptr);
-	vkDestroyShaderModule(m_ctx->GetDevice(), vertexShader, nullptr);
-	m_deletionQueue.PushFunction([&] {
-		vkDestroyPipelineLayout(m_ctx->GetDevice(), m_graphicsPipelineLayout, nullptr);
-		vkDestroyPipeline(m_ctx->GetDevice(), m_graphicsPipeline.GetGraphicsPipeline(), nullptr);
-	});
-
 	m_metalRoughMaterial.BuildPipelines(m_swapchain, m_gpuSceneDataDescriptorLayout);
 }
 
 void Renderer::initDefaultData()
 {
-	MaterialResources materialResources;
-	materialResources.colorImage = m_errorTexture;
-	materialResources.colorSampler = m_defaultSamplerLinear;
-	materialResources.metalRoughImage = m_errorTexture;
-	materialResources.metalRoughSampler = m_defaultSamplerLinear;
-
 	Buffer materialConstants(m_allocator, sizeof(MaterialConstants), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU);
 
 	MaterialConstants* sceneUniformData = static_cast<MaterialConstants*>(materialConstants.allocation->GetMappedData());
 	sceneUniformData->colorFactors = glm::vec4{1,1,1,1};
 	sceneUniformData->metal_rough_factors = glm::vec4{1,0.5,0,0};
 
-	materialResources.dataBuffer = materialConstants.buffer;
-	materialResources.dataBufferOffset = 0;
+	MaterialResources materialResources {
+		.colorImage = m_errorTexture,
+		.colorSampler = m_defaultSamplerLinear,
+		.metalRoughImage = m_errorTexture,
+		.metalRoughSampler = m_defaultSamplerLinear,
+		.dataBuffer = materialConstants.buffer,
+		.dataBufferOffset = 0
+	};
 
 	// TODO: Change this
 	m_deletionQueue.PushFunction([buffer = std::make_shared<Buffer>(std::move(materialConstants))]() mutable {
@@ -634,10 +587,10 @@ std::optional<std::vector<std::shared_ptr<Mesh>>> Renderer::LoadGltfMeshes(const
                     [&](glm::vec3 v, size_t index) {
                         Vertex newVertex;
                         newVertex.position = v;
+                    	newVertex.uv_x = 0;
                         newVertex.normal = { 1, 0, 0 };
+                        newVertex.uv_y = 0;
                         newVertex.color = glm::vec4 { 1.f };
-                        newVertex.uv.x = 0;
-                        newVertex.uv.y = 0;
                         vertices[initial_vtx + index] = newVertex;
                     });
             }
@@ -658,20 +611,22 @@ std::optional<std::vector<std::shared_ptr<Mesh>>> Renderer::LoadGltfMeshes(const
 
                 fastgltf::iterateAccessorWithIndex<glm::vec2>(gltf, gltf.accessors[uv->accessorIndex],
                     [&](glm::vec2 v, size_t index) {
-                        vertices[initial_vtx + index].uv.x = v.x;
-                        vertices[initial_vtx + index].uv.y = v.y;
+                        vertices[initial_vtx + index].uv_x = v.x;
+                        vertices[initial_vtx + index].uv_y = v.y;
                     });
             }
 
-            // load vertex colors
-            auto colors = p.findAttribute("COLOR_0");
-            if (colors != p.attributes.end()) {
 
-                fastgltf::iterateAccessorWithIndex<glm::vec4>(gltf, gltf.accessors[colors->accessorIndex],
-                    [&](glm::vec4 v, size_t index) {
-                        vertices[initial_vtx + index].color = v;
-                    });
-            }
+        	// load vertex colors
+        	auto colors = p.findAttribute("COLOR_0");
+        	if (colors != p.attributes.end()) {
+
+        		fastgltf::iterateAccessorWithIndex<glm::vec4>(gltf, gltf.accessors[colors->accessorIndex],
+					[&](glm::vec4 v, size_t index) {
+						vertices[initial_vtx + index].color = v;
+					});
+        	}
+
             newMesh.surfaces.push_back(newSurface);
         }
 

@@ -27,13 +27,13 @@ void RenderSystem::Update(float dt)
     // TODO: Fix this not very fast
     std::vector<RenderObject> objects;
     ecs.Each<Drawable, LocalToWorld>([&](Hori::Entity, Drawable& drawable, LocalToWorld& localToWorld) {
-        for (auto& s : drawable.mesh->surfaces)
+        for (auto& [startIndex, count, material] : drawable.mesh->surfaces)
         {
             RenderObject def;
-            def.indexCount = s.count;
-            def.firstIndex = s.startIndex;
+            def.indexCount = count;
+            def.firstIndex = startIndex;
             def.indexBuffer = drawable.mesh->meshBuffers->indexBuffer.buffer;
-            def.material = s.material.get();
+            def.material = material.get();
             def.transform = localToWorld.value;
             def.vertexBufferAddress = drawable.mesh->meshBuffers->vertexBufferAddress;
 

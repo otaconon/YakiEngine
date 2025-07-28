@@ -14,7 +14,7 @@ void CameraSystem::Update(float dt)
             camera.projection = perspectiveProjection(camera);
         else
             camera.projection = orthographicProjection(camera);
-        camera.viewProjection = camera.view * camera.projection;
+        camera.viewProjection = camera.projection * camera.view;
     });
 }
 

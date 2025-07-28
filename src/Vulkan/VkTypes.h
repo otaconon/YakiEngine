@@ -44,67 +44,27 @@ struct FrameData
 struct Vertex
 {
     glm::vec3 position;
-    float _pad0;
+    float uv_x;
     glm::vec3 normal;
-    float _pad1;
-    glm::vec3 color;
-    float _pad2;
-    glm::vec2 uv;
-    float _pad3[2];
+    float uv_y;
+    glm::vec4 color;
 
     Vertex()
-        : position{}, _pad0{},
-        normal{}, _pad1{},
-        color{}, _pad2{},
-        uv{}, _pad3{}
+        : position{},
+        uv_x{},
+        normal{},
+        color{},
+        uv_y{}
     {}
 
-    Vertex(const glm::vec3& p, const glm::vec3 n, const glm::vec3& c, const glm::vec2& t)
-        : position{p}, _pad0{0.f},
-        normal{n}, _pad1{0.f},
-        color{c}, _pad2{0.f},
-        uv{t}, _pad3{0.0f, 0.0f}
+    Vertex(const glm::vec3& p, const glm::vec3 n, const glm::vec4& c, const glm::vec2& t)
+        : position{p},
+        uv_x{t.x},
+        normal{n},
+        color{c},
+        uv_y{t.y}
     {}
-
-    static VkVertexInputBindingDescription getBindingDescription() {
-        VkVertexInputBindingDescription bindingDescription{};
-        bindingDescription.binding = 0;
-        bindingDescription.stride = sizeof(Vertex);
-        bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
-        return bindingDescription;
-    }
-
-    static std::array<VkVertexInputAttributeDescription, 4> getAttributeDescriptions() {
-        std::array<VkVertexInputAttributeDescription, 4> attributeDescriptions{};
-        attributeDescriptions[0] = {
-            .location = 0,
-            .binding = 0,
-            .format = VK_FORMAT_R32G32B32_SFLOAT,
-            .offset = offsetof(Vertex, position)
-        };
-        attributeDescriptions[1] = {
-            .location = 1,
-            .binding = 0,
-            .format = VK_FORMAT_R32G32B32_SFLOAT,
-            .offset = offsetof(Vertex, normal)
-        };
-        attributeDescriptions[2] = {
-            .location = 2,
-            .binding = 0,
-            .format = VK_FORMAT_R32G32B32_SFLOAT,
-            .offset = offsetof(Vertex, color)
-        };
-        attributeDescriptions[3] = {
-            .location = 3,
-            .binding = 0,
-            .format = VK_FORMAT_R32G32B32_SFLOAT,
-            .offset = offsetof(Vertex, uv)
-        };
-
-        return attributeDescriptions;
-    }
 };
-static_assert(sizeof(Vertex) == 64);
 
 struct GPUMeshBuffers
 {

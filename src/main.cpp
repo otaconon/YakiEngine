@@ -39,7 +39,7 @@ int main() {
 	ecs.AddSingletonComponent(InputEvents{});
 
 	auto allMeshes = renderer.LoadGltfMeshes("../assets/meshes/basicmesh.glb").value();
-	std::shared_ptr<Mesh> monkeyMesh = allMeshes[0];
+	std::shared_ptr<Mesh> monkeyMesh = allMeshes[2];
 	Drawable drawable = create_drawable(monkeyMesh);
 
 	// Create monkey entity

@@ -587,10 +587,10 @@ std::optional<std::vector<std::shared_ptr<Mesh>>> Renderer::LoadGltfMeshes(const
                     [&](glm::vec3 v, size_t index) {
                         Vertex newVertex;
                         newVertex.position = v;
-                    	newVertex.uv_x = 0;
                         newVertex.normal = { 1, 0, 0 };
-                        newVertex.uv_y = 0;
                         newVertex.color = glm::vec4 { 1.f };
+                    	newVertex.uv_x = 0;
+                        newVertex.uv_y = 0;
                         vertices[initial_vtx + index] = newVertex;
                     });
             }

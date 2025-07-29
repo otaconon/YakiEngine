@@ -1,24 +1,19 @@
 #pragma once
 
-#include <vector>
-#include <vulkan/vulkan_core.h>
-
-#include "Swapchain.h"
+#include "Descriptors/DescriptorLayoutBuilder.h"
+#include "VkInit.h"
 #include "VulkanContext.h"
 
-#include "Descriptors/DescriptorAllocator.h"
-#include "Descriptors/DescriptorLayoutBuilder.h"
-#include "Descriptors/DescriptorWriter.h"
-
-constexpr int MAX_FRAMES_IN_FLIGHT = 3;
-
-// TODO: For now this class does not own the VkPipeline not taking responsibility of its destruction, this should be changed.
-class GraphicsPipeline {
+class PipelineBuilder
+{
 public:
-    GraphicsPipeline(const std::shared_ptr<VulkanContext>& ctx, Swapchain& swapchain);
-    ~GraphicsPipeline();
+    PipelineBuilder(std::shared_ptr<VulkanContext> ctx);
 
-    VkPipeline CreateGraphicsPipeline();
+    VkPipeline CreatePipeline();
+
+    [[nodiscard]] VkPipeline GetPipeline() const;
+    [[nodiscard]] VkPipelineLayout GetPipelineLayout() const;
+    [[nodiscard]] DescriptorAllocator& GetDescriptorAllocator();
 
     void SetLayout(VkPipelineLayout layout);
     void SetShaders(VkShaderModule vertexShader, VkShaderModule fragmentShader);
@@ -31,21 +26,16 @@ public:
 
     void EnableDepthTest(bool depthWriteEnable);
     void EnableBlendingAdditive();
-    void EnableBlendingAlphablend();
+    void EnableBlendingAlphaBlend();
 
     void DisableBlending();
     void DisableDepthTest();
 
-    [[nodiscard]] VkPipeline GetGraphicsPipeline() const;
-    [[nodiscard]] VkPipelineLayout GetPipelineLayout() const;
-    [[nodiscard]] DescriptorAllocator& GetDescriptorAllocator();
-
 private:
     std::shared_ptr<VulkanContext> m_ctx;
-
-    VkPipeline m_pipeline{};
     DescriptorAllocator m_descriptorAllocator{};
 
+    VkPipeline m_pipeline{};
     std::vector<VkPipelineShaderStageCreateInfo> m_shaderStages;
     VkPipelineInputAssemblyStateCreateInfo m_inputAssembly;
     VkPipelineRasterizationStateCreateInfo m_rasterizer;
@@ -55,12 +45,4 @@ private:
     VkPipelineColorBlendAttachmentState m_colorBlendAttachment{};
     VkFormat m_colorAttachmentFormat{};
     VkPipelineLayout m_pipelineLayout{};
-
-    VkDescriptorSet m_drawImageDescriptors{};
-    VkDescriptorSetLayout m_drawImageDescriptorLayout{};
-
-    DeletionQueue m_deletionQueue;
-
-private:
-    void initDescriptors(Swapchain& swapchain);
 };

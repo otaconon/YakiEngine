@@ -20,12 +20,12 @@
 #include "ImGuiStyles.h"
 #include "VkInit.h"
 #include "../Ecs.h"
+#include "Descriptors/DescriptorLayoutBuilder.h"
 
 Renderer::Renderer(SDL_Window* window, const std::shared_ptr<VulkanContext>& ctx)
     : m_window(window),
     m_ctx(ctx),
     m_swapchain(ctx, window),
-	m_graphicsPipeline(ctx, m_swapchain),
     m_currentFrame(0),
 	m_metalRoughMaterial(ctx)
 {
@@ -44,6 +44,7 @@ Renderer::Renderer(SDL_Window* window, const std::shared_ptr<VulkanContext>& ctx
 	initCommands();
 	initSyncObjects();
 	initImgui();
+	initDescriptorAllocator();
 
 	{
 		DescriptorLayoutBuilder builder;
@@ -216,6 +217,32 @@ void Renderer::initGraphicsPipeline()
 	m_metalRoughMaterial.BuildPipelines(m_swapchain, m_gpuSceneDataDescriptorLayout);
 }
 
+void Renderer::initDescriptorAllocator()
+{
+	std::vector<DescriptorAllocator::PoolSizeRatio> sizes {
+	        { VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 1 }
+	};
+
+	m_descriptorAllocator.Init(m_ctx->GetDevice(), 10, sizes);
+
+	{
+		DescriptorLayoutBuilder builder;
+		builder.AddBinding(0, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE);
+		m_drawImageDescriptorLayout = builder.Build(m_ctx->GetDevice(), VK_SHADER_STAGE_COMPUTE_BIT);
+	}
+
+	m_drawImageDescriptors = m_descriptorAllocator.Allocate(m_ctx->GetDevice(),m_drawImageDescriptorLayout);
+
+	DescriptorWriter writer;
+	writer.WriteImage(0, m_swapchain.GetDrawImage().GetView(), VK_NULL_HANDLE, VK_IMAGE_LAYOUT_GENERAL, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE);
+	writer.UpdateSet(m_ctx->GetDevice(), m_drawImageDescriptors);
+
+	m_deletionQueue.PushFunction([&] {
+		m_descriptorAllocator.DestroyPools(m_ctx->GetDevice());
+		vkDestroyDescriptorSetLayout(m_ctx->GetDevice(), m_drawImageDescriptorLayout, nullptr);
+	});
+}
+
 void Renderer::initDefaultData()
 {
 	Buffer materialConstants(m_allocator, sizeof(MaterialConstants), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU);
@@ -238,7 +265,7 @@ void Renderer::initDefaultData()
 		buffer->Cleanup();
 	});
 
-	m_defaultData = m_metalRoughMaterial.WriteMaterial(MaterialPass::MainColor, materialResources, m_graphicsPipeline.GetDescriptorAllocator());
+	m_defaultData = m_metalRoughMaterial.WriteMaterial(MaterialPass::MainColor, materialResources, m_descriptorAllocator);
 
 	auto& ecs = Ecs::GetInstance();
 	ecs.AddSingletonComponent(GPUSceneData{});

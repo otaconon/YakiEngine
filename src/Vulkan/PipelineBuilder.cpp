@@ -1,28 +1,16 @@
-#include "GraphicsPipeline.h"
+#include "PipelineBuilder.h"
 
-#include <stdexcept>
 
-#include "Swapchain.h"
-#include "VkInit.h"
-#include "VulkanContext.h"
-
-GraphicsPipeline::GraphicsPipeline(const std::shared_ptr<VulkanContext>& ctx, Swapchain& swapchain)
-    : m_ctx(ctx),
+PipelineBuilder::PipelineBuilder(std::shared_ptr<VulkanContext> ctx)
+    : m_ctx(std::move(ctx)),
     m_inputAssembly{.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO},
     m_rasterizer{.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO},
     m_multisampling{.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO},
     m_depthStencil{.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO},
     m_renderInfo{.sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO}
-{
-    initDescriptors(swapchain);
-}
+{}
 
-GraphicsPipeline::~GraphicsPipeline()
-{
-    m_deletionQueue.Flush();
-}
-
-VkPipeline GraphicsPipeline::CreateGraphicsPipeline()
+VkPipeline PipelineBuilder::CreatePipeline()
 {
     VkPipelineVertexInputStateCreateInfo vertexInputInfo { .sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO };
 
@@ -76,70 +64,40 @@ VkPipeline GraphicsPipeline::CreateGraphicsPipeline()
         throw std::runtime_error("failed to create graphics pipeline!");
 
     return m_pipeline;
-
-    //m_deletionQueue.PushFunction([&] {
-    //    vkDestroyPipeline(m_ctx->GetDevice(), m_pipeline, nullptr);
-    //});
 }
 
-void GraphicsPipeline::SetLayout(VkPipelineLayout layout) { m_pipelineLayout = layout; }
+void PipelineBuilder::SetLayout(VkPipelineLayout layout) { m_pipelineLayout = layout; }
 
-VkPipeline GraphicsPipeline::GetGraphicsPipeline() const { return m_pipeline; }
-VkPipelineLayout GraphicsPipeline::GetPipelineLayout() const { return m_pipelineLayout; }
-DescriptorAllocator& GraphicsPipeline::GetDescriptorAllocator() { return m_descriptorAllocator; }
+VkPipeline PipelineBuilder::GetPipeline() const { return m_pipeline; }
+VkPipelineLayout PipelineBuilder::GetPipelineLayout() const { return m_pipelineLayout; }
+DescriptorAllocator& PipelineBuilder::GetDescriptorAllocator() { return m_descriptorAllocator; }
 
-void GraphicsPipeline::initDescriptors(Swapchain& swapchain)
-{
-    std::vector<DescriptorAllocator::PoolSizeRatio> sizes {
-        { VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 1 }
-    };
-
-    m_descriptorAllocator.Init(m_ctx->GetDevice(), 10, sizes);
-
-    {
-        DescriptorLayoutBuilder builder;
-        builder.AddBinding(0, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE);
-        m_drawImageDescriptorLayout = builder.Build(m_ctx->GetDevice(), VK_SHADER_STAGE_COMPUTE_BIT);
-    }
-
-    m_drawImageDescriptors = m_descriptorAllocator.Allocate(m_ctx->GetDevice(), m_drawImageDescriptorLayout);
-
-    DescriptorWriter writer;
-    writer.WriteImage(0, swapchain.GetDrawImage().GetView(), VK_NULL_HANDLE, VK_IMAGE_LAYOUT_GENERAL, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE);
-    writer.UpdateSet(m_ctx->GetDevice(), m_drawImageDescriptors);
-
-    m_deletionQueue.PushFunction([&] {
-        m_descriptorAllocator.DestroyPools(m_ctx->GetDevice());
-        vkDestroyDescriptorSetLayout(m_ctx->GetDevice(), m_drawImageDescriptorLayout, nullptr);
-    });
-}
-
-void GraphicsPipeline::SetShaders(VkShaderModule vertexShader, VkShaderModule fragmentShader)
+void PipelineBuilder::SetShaders(VkShaderModule vertexShader, VkShaderModule fragmentShader)
 {
     m_shaderStages.clear();
     m_shaderStages.push_back(VkInit::pipeline_shader_stage_create_info(VK_SHADER_STAGE_VERTEX_BIT, vertexShader));
     m_shaderStages.push_back(VkInit::pipeline_shader_stage_create_info(VK_SHADER_STAGE_FRAGMENT_BIT, fragmentShader));
 }
 
-void GraphicsPipeline::SetInputTopology(VkPrimitiveTopology topology)
+void PipelineBuilder::SetInputTopology(VkPrimitiveTopology topology)
 {
     m_inputAssembly.topology = topology;
     m_inputAssembly.primitiveRestartEnable = VK_FALSE;
 }
 
-void GraphicsPipeline::SetPolygonMode(VkPolygonMode mode)
+void PipelineBuilder::SetPolygonMode(VkPolygonMode mode)
 {
     m_rasterizer.polygonMode = mode;
     m_rasterizer.lineWidth = 1.f;
 }
 
-void GraphicsPipeline::SetCullMode(VkCullModeFlags cullMode, VkFrontFace frontFace)
+void PipelineBuilder::SetCullMode(VkCullModeFlags cullMode, VkFrontFace frontFace)
 {
     m_rasterizer.cullMode = cullMode;
     m_rasterizer.frontFace = frontFace;
 }
 
-void GraphicsPipeline::SetMultisamplingNone()
+void PipelineBuilder::SetMultisamplingNone()
 {
     m_multisampling.sampleShadingEnable = VK_FALSE;
     m_multisampling.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
@@ -149,19 +107,19 @@ void GraphicsPipeline::SetMultisamplingNone()
     m_multisampling.alphaToOneEnable = VK_FALSE;
 }
 
-void GraphicsPipeline::SetColorAttachmentFormat(VkFormat format)
+void PipelineBuilder::SetColorAttachmentFormat(VkFormat format)
 {
     m_colorAttachmentFormat = format;
     m_renderInfo.colorAttachmentCount = 1;
     m_renderInfo.pColorAttachmentFormats = &m_colorAttachmentFormat;
 }
 
-void GraphicsPipeline::SetDepthFormat(VkFormat format)
+void PipelineBuilder::SetDepthFormat(VkFormat format)
 {
     m_renderInfo.depthAttachmentFormat = format;
 }
 
-void GraphicsPipeline::EnableDepthTest(bool depthWriteEnable)
+void PipelineBuilder::EnableDepthTest(bool depthWriteEnable)
 {
     m_depthStencil.depthTestEnable = VK_TRUE;
     m_depthStencil.depthWriteEnable = depthWriteEnable;
@@ -174,7 +132,7 @@ void GraphicsPipeline::EnableDepthTest(bool depthWriteEnable)
     m_depthStencil.maxDepthBounds = 1.f;
 }
 
-void GraphicsPipeline::EnableBlendingAdditive()
+void PipelineBuilder::EnableBlendingAdditive()
 {
     m_colorBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
     m_colorBlendAttachment.blendEnable = VK_TRUE;
@@ -186,7 +144,7 @@ void GraphicsPipeline::EnableBlendingAdditive()
     m_colorBlendAttachment.alphaBlendOp = VK_BLEND_OP_ADD;
 }
 
-void GraphicsPipeline::EnableBlendingAlphablend()
+void PipelineBuilder::EnableBlendingAlphaBlend()
 {
     m_colorBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
     m_colorBlendAttachment.blendEnable = VK_TRUE;
@@ -198,13 +156,13 @@ void GraphicsPipeline::EnableBlendingAlphablend()
     m_colorBlendAttachment.alphaBlendOp = VK_BLEND_OP_ADD;
 }
 
-void GraphicsPipeline::DisableBlending()
+void PipelineBuilder::DisableBlending()
 {
     m_colorBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
     m_colorBlendAttachment.blendEnable = VK_FALSE;
 }
 
-void GraphicsPipeline::DisableDepthTest()
+void PipelineBuilder::DisableDepthTest()
 {
     m_depthStencil.depthTestEnable = VK_FALSE;
     m_depthStencil.depthWriteEnable = VK_FALSE;
@@ -216,9 +174,3 @@ void GraphicsPipeline::DisableDepthTest()
     m_depthStencil.minDepthBounds = 0.f;
     m_depthStencil.maxDepthBounds = 1.f;
 }
-
-
-
-
-
-

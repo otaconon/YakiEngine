@@ -1,6 +1,5 @@
 #pragma once
 
-#include "GraphicsPipeline.h"
 #include "MetallicRoughnessMaterial.h"
 #include "Swapchain.h"
 #include "VkTypes.h"
@@ -28,8 +27,9 @@ private:
     VmaAllocator m_allocator{};
     DeletionQueue m_deletionQueue;
 
-    VkPipelineLayout m_graphicsPipelineLayout{};
-    GraphicsPipeline m_graphicsPipeline;
+    DescriptorAllocator m_descriptorAllocator;
+    VkDescriptorSet m_drawImageDescriptors{};
+    VkDescriptorSetLayout m_drawImageDescriptorLayout{};
 
     std::array<FrameData, 2> m_frames;
     uint32_t m_currentFrame;
@@ -49,6 +49,7 @@ private:
     void initImgui();
     void initSyncObjects();
     void initGraphicsPipeline();
+    void initDescriptorAllocator();
     void initDefaultData();
 
     void recordCommandBuffer(VkCommandBuffer cmd, uint32_t imageIndex, std::vector<RenderObject>& objects);

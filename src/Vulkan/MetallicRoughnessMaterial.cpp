@@ -1,6 +1,6 @@
 #include "MetallicRoughnessMaterial.h"
 
-#include "GraphicsPipeline.h"
+#include "PipelineBuilder.h"
 #include "Swapchain.h"
 #include "Descriptors/DescriptorLayoutBuilder.h"
 
@@ -55,22 +55,22 @@ void MetallicRoughnessMaterial::BuildPipelines(Swapchain& swapchain, VkDescripto
     m_opaquePipeline.layout = newLayout;
     m_transparentPipeline.layout = newLayout;
 
-	GraphicsPipeline pipeline(m_ctx, swapchain);
-	pipeline.SetShaders(meshVertexShader, meshFragShader);
-	pipeline.SetInputTopology(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
-	pipeline.SetPolygonMode(VK_POLYGON_MODE_FILL);
-	pipeline.SetCullMode(VK_CULL_MODE_NONE, VK_FRONT_FACE_CLOCKWISE);
-	pipeline.SetMultisamplingNone();
-	pipeline.DisableBlending();
-	pipeline.EnableDepthTest(true);
-	pipeline.SetColorAttachmentFormat(swapchain.GetDrawImage().GetFormat());
-	pipeline.SetDepthFormat(swapchain.GetDepthImage().GetFormat());
-	pipeline.SetLayout(newLayout);
-	m_opaquePipeline.pipeline = pipeline.CreateGraphicsPipeline();
+	PipelineBuilder pipelineBuilder(m_ctx);
+	pipelineBuilder.SetShaders(meshVertexShader, meshFragShader);
+	pipelineBuilder.SetInputTopology(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
+	pipelineBuilder.SetPolygonMode(VK_POLYGON_MODE_FILL);
+	pipelineBuilder.SetCullMode(VK_CULL_MODE_NONE, VK_FRONT_FACE_CLOCKWISE);
+	pipelineBuilder.SetMultisamplingNone();
+	pipelineBuilder.DisableBlending();
+	pipelineBuilder.EnableDepthTest(true);
+	pipelineBuilder.SetColorAttachmentFormat(swapchain.GetDrawImage().GetFormat());
+	pipelineBuilder.SetDepthFormat(swapchain.GetDepthImage().GetFormat());
+	pipelineBuilder.SetLayout(newLayout);
+	m_opaquePipeline.pipeline = pipelineBuilder.CreatePipeline();
 
-	pipeline.EnableBlendingAdditive();
-	pipeline.EnableDepthTest(false);
-	m_transparentPipeline.pipeline = pipeline.CreateGraphicsPipeline();
+	pipelineBuilder.EnableBlendingAdditive();
+	pipelineBuilder.EnableDepthTest(false);
+	m_transparentPipeline.pipeline = pipelineBuilder.CreatePipeline();
 
 	vkDestroyShaderModule(m_ctx->GetDevice(), meshFragShader, nullptr);
 	vkDestroyShaderModule(m_ctx->GetDevice(), meshVertexShader, nullptr);

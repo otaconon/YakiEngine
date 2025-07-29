@@ -1,7 +1,8 @@
 #pragma once
-#include <vk_mem_alloc.h>
 
-#include "VkUtils.h"
+#include "VkCheck.h"
+
+#include <vk_mem_alloc.h>
 
 struct Buffer
 {

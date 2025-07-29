@@ -1,7 +1,6 @@
 file(GLOB_RECURSE SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp")
 file(GLOB_RECURSE HEADERS "${CMAKE_CURRENT_SOURCE_DIR}/*.h")
-
-add_executable(YakiEngine ${SOURCES} ${HEADERS} "Vulkan/stb_image_impl.cpp")
+add_executable(YakiEngine ${SOURCES} ${HEADERS} "Vulkan/Impl/stb_image_impl.cpp")
 
 find_package(HECS)
 find_package(glad REQUIRED)

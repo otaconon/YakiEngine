@@ -1,5 +1,7 @@
 #include "Image.h"
 
+#include "VkUtils.h"
+
 Image::Image() = default;
 
 Image::Image(VulkanContext* ctx, VmaAllocator allocator, void* data, VkExtent3D size, VkFormat format, VkImageUsageFlags usage, bool mipmapped)

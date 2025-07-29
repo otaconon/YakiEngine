@@ -2,6 +2,7 @@
 
 
 #include <vulkan/vulkan_core.h>
+#include <glm/glm.hpp>
 
 #include "Buffer.h"
 #include "Descriptors/DescriptorAllocator.h"

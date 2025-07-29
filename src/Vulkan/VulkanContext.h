@@ -18,6 +18,7 @@ public:
     [[nodiscard]] VkDevice GetDevice() const;
     [[nodiscard]] VkPhysicalDevice GetPhysicalDevice() const;
     [[nodiscard]] VkSurfaceKHR GetSurface() const;
+    [[nodiscard]] VmaAllocator GetAllocator() const;
     [[nodiscard]] VkQueue GetGraphicsQueue() const;
     [[nodiscard]] VkQueue GetPresentQueue() const;
     [[nodiscard]] VkPhysicalDeviceProperties GetGpuProperties() const;
@@ -29,7 +30,7 @@ private:
     VkDevice m_device{};
     VkPhysicalDevice m_physicalDevice{};
     VkSurfaceKHR m_surface{};
-    VkPhysicalDeviceProperties m_gpuProperties{};
+    VmaAllocator m_allocator{};
 
     VkQueue m_graphicsQueue{};
     VkQueue m_presentQueue{};
@@ -40,6 +41,7 @@ private:
     VkCommandBuffer m_immCommandBuffer{};
     VkCommandPool m_immCommandPool{};
 
+    VkPhysicalDeviceProperties m_gpuProperties{};
     VkDebugUtilsMessengerEXT m_debugMessenger{};
 
     void createInstance();

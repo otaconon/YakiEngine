@@ -15,6 +15,7 @@
 #include "Systems/TransformSystem.h"
 #include "Systems/CameraSystem.h"
 #include "Components/Components.h"
+#include "Vulkan/Gltf/GltfUtils.h"
 
 Drawable create_drawable(std::shared_ptr<Mesh> mesh)
 {
@@ -26,7 +27,8 @@ int main() {
     auto& ecs = Ecs::GetInstance();
 
 	Window mainWindow;
-	Renderer renderer(mainWindow.window());
+	VulkanContext ctx{mainWindow.window()};
+	Renderer renderer(mainWindow.window(), &ctx);
 	ecs.AddSystem<CameraSystem>(CameraSystem());
 	ecs.AddSystem<ControllerSystem>(ControllerSystem());
 	ecs.AddSystem<MovementSystem>(MovementSystem());
@@ -36,7 +38,7 @@ int main() {
 
 	ecs.AddSingletonComponent(InputEvents{});
 
-	auto allMeshes = renderer.LoadGltfMeshes("../assets/meshes/basicmesh.glb").value();
+	auto allMeshes = GltfUtils::load_gltf_meshes(&ctx, "../assets/meshes/basicmesh.glb").value();
 	std::shared_ptr<Mesh> monkeyMesh = allMeshes[2];
 	Drawable drawable = create_drawable(monkeyMesh);
 
@@ -46,8 +48,6 @@ int main() {
 
 	// Create camera entity
 	Hori::Entity camera = ecs.CreateEntity();
-	//Transform camTrans{{0.f, -10.f, -10.f}, glm::vec3{0.f}, glm::vec3{1.f}};
-	//camTrans.LookAt({0.f, 0.f, 0.f});
 	ecs.AddComponents(camera, Camera{}, Controller{}, RayData{});
 	ecs.AddComponents(camera, Translation{{0, -10.f, -10.f}}, Rotation{}, Scale{}, LocalToWorld{}, LocalToParent{}, ParentToLocal{});
 

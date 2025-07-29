@@ -24,6 +24,18 @@ VulkanContext::VulkanContext(SDL_Window* window)
     pickPhysicalDevice();
     createLogicalDevice();
 
+    VmaAllocatorCreateInfo allocatorInfo {
+        .flags = VMA_ALLOCATOR_CREATE_BUFFER_DEVICE_ADDRESS_BIT,
+        .physicalDevice = m_physicalDevice,
+        .device = m_device,
+        .instance = m_instance,
+    };
+    vmaCreateAllocator(&allocatorInfo, &m_allocator);
+
+    m_deletionQueue.PushFunction([&] {
+        vmaDestroyAllocator(m_allocator);
+    });
+
 	VkFenceCreateInfo fenceCreateInfo = VkInit::fence_create_info(VK_FENCE_CREATE_SIGNALED_BIT);
     VK_CHECK(vkCreateFence(m_device, &fenceCreateInfo, nullptr, &m_immFence));
 
@@ -57,6 +69,7 @@ VkInstance VulkanContext::GetInstance() const { return m_instance; }
 VkDevice VulkanContext::GetDevice() const { return m_device; }
 VkPhysicalDevice VulkanContext::GetPhysicalDevice() const { return m_physicalDevice; }
 VkSurfaceKHR VulkanContext::GetSurface() const { return m_surface; }
+VmaAllocator VulkanContext::GetAllocator() const { return m_allocator; }
 VkQueue VulkanContext::GetGraphicsQueue() const { return m_graphicsQueue; }
 VkQueue VulkanContext::GetPresentQueue() const { return m_presentQueue; }
 VkPhysicalDeviceProperties VulkanContext::GetGpuProperties() const { return m_gpuProperties; }

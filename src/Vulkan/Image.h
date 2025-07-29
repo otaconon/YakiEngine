@@ -11,8 +11,8 @@ class Image
 {
 public:
     Image();
-    Image(std::shared_ptr<VulkanContext>& ctx, VmaAllocator allocator, void* data, VkExtent3D size, VkFormat format, VkImageUsageFlags usage, bool mipmapped);
-    Image(std::shared_ptr<VulkanContext>& ctx, VmaAllocator allocator, VkExtent3D size, VkFormat format, VkImageUsageFlags usage, bool mipmapped);
+    Image(VulkanContext* ctx, VmaAllocator allocator, void* data, VkExtent3D size, VkFormat format, VkImageUsageFlags usage, bool mipmapped);
+    Image(VulkanContext* ctx, VmaAllocator allocator, VkExtent3D size, VkFormat format, VkImageUsageFlags usage, bool mipmapped);
 
     ~Image();
     void Cleanup();
@@ -28,7 +28,7 @@ public:
     [[nodiscard]] VkFormat GetFormat() const;
 
 private:
-    std::shared_ptr<VulkanContext> m_ctx;
+    VulkanContext* m_ctx;
     VmaAllocator m_allocator;
     VmaAllocation m_allocation{};
 

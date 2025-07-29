@@ -1,8 +1,8 @@
 #include "PipelineBuilder.h"
 
 
-PipelineBuilder::PipelineBuilder(std::shared_ptr<VulkanContext> ctx)
-    : m_ctx(std::move(ctx)),
+PipelineBuilder::PipelineBuilder(VulkanContext* ctx)
+    : m_ctx(ctx),
     m_inputAssembly{.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO},
     m_rasterizer{.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO},
     m_multisampling{.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO},

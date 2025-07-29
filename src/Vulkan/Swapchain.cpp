@@ -9,7 +9,7 @@
 #include "VkInit.h"
 #include "VkUtils.h"
 
-Swapchain::Swapchain(const std::shared_ptr<VulkanContext>& ctx, SDL_Window* window)
+Swapchain::Swapchain(VulkanContext* ctx, SDL_Window* window)
     : m_ctx{ctx},
     m_window{window},
     m_renderScale{1.f},

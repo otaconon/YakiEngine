@@ -12,10 +12,11 @@ constexpr uint32_t FRAME_OVERLAP = 2;
 
 class Renderer {
 public:
-    Renderer(SDL_Window* window, const std::shared_ptr<VulkanContext>& ctx);
+    Renderer(SDL_Window* window);
     ~Renderer();
 
     void DrawFrame(std::vector<RenderObject>& objects);
+    void WaitIdle();
 
     [[nodiscard]] std::shared_ptr<GPUMeshBuffers> UploadMesh(const std::span<uint32_t> indices, const std::span<Vertex> vertices) const;
     [[nodiscard]] std::optional<std::vector<std::shared_ptr<Mesh>>> LoadGltfMeshes(const std::filesystem::path& filePath) const;
@@ -23,7 +24,7 @@ public:
 private:
     SDL_Window* m_window;
 
-	std::shared_ptr<VulkanContext> m_ctx;
+	VulkanContext m_ctx;
     Swapchain m_swapchain;
 
     VmaAllocator m_allocator{};

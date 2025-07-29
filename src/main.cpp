@@ -26,9 +26,7 @@ int main() {
     auto& ecs = Ecs::GetInstance();
 
 	Window mainWindow;
-	auto vk = std::make_shared<VulkanContext>(mainWindow.window());
-
-	Renderer renderer(mainWindow.window(), vk);
+	Renderer renderer(mainWindow.window());
 	ecs.AddSystem<CameraSystem>(CameraSystem());
 	ecs.AddSystem<ControllerSystem>(ControllerSystem());
 	ecs.AddSystem<MovementSystem>(MovementSystem());
@@ -94,7 +92,7 @@ int main() {
 		}
 
 		ecs.UpdateSystems(dt);
-		vkDeviceWaitIdle(vk->GetDevice());
+		renderer.WaitIdle();
 		ecs.GetSingletonComponent<InputEvents>()->Clear();
 		prevTime = currentTime;
 		std::cout.flush();

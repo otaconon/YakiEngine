@@ -22,18 +22,18 @@
 #include "../Ecs.h"
 #include "Descriptors/DescriptorLayoutBuilder.h"
 
-Renderer::Renderer(SDL_Window* window, const std::shared_ptr<VulkanContext>& ctx)
+Renderer::Renderer(SDL_Window* window)
     : m_window{window},
-    m_ctx{ctx},
-    m_swapchain{ctx, window},
+    m_ctx{window},
+    m_swapchain{&m_ctx, window},
     m_currentFrame{0},
-	m_metalRoughMaterial{ctx}
+	m_metalRoughMaterial{&m_ctx}
 {
 	VmaAllocatorCreateInfo allocatorInfo {
 		.flags = VMA_ALLOCATOR_CREATE_BUFFER_DEVICE_ADDRESS_BIT,
-		.physicalDevice = m_ctx->GetPhysicalDevice(),
-		.device = m_ctx->GetDevice(),
-		.instance = m_ctx->GetInstance(),
+		.physicalDevice = m_ctx.GetPhysicalDevice(),
+		.device = m_ctx.GetDevice(),
+		.instance = m_ctx.GetInstance(),
 	};
 	vmaCreateAllocator(&allocatorInfo, &m_allocator);
 
@@ -54,7 +54,7 @@ Renderer::Renderer(SDL_Window* window, const std::shared_ptr<VulkanContext>& ctx
 
 Renderer::~Renderer()
 {
-    VkDevice device = m_ctx->GetDevice();
+    VkDevice device = m_ctx.GetDevice();
     vkDeviceWaitIdle(device);
 
     for (size_t i = 0; i < FRAME_OVERLAP; i++)
@@ -72,14 +72,14 @@ Renderer::~Renderer()
 
 void Renderer::initCommands()
 {
-	auto [graphicsFamily, presentFamily] = VkUtil::find_queue_families(m_ctx->GetPhysicalDevice(), m_ctx->GetSurface());
+	auto [graphicsFamily, presentFamily] = VkUtil::find_queue_families(m_ctx.GetPhysicalDevice(), m_ctx.GetSurface());
 	VkCommandPoolCreateInfo commandPoolInfo = VkInit::command_pool_create_info(graphicsFamily.value(), VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT);
 
 	for (int i = 0; i < FRAME_OVERLAP; i++)
 	{
-		VK_CHECK(vkCreateCommandPool(m_ctx->GetDevice(), &commandPoolInfo, nullptr, &m_frames[i].commandPool));
+		VK_CHECK(vkCreateCommandPool(m_ctx.GetDevice(), &commandPoolInfo, nullptr, &m_frames[i].commandPool));
 		VkCommandBufferAllocateInfo cmdAllocInfo = VkInit::command_buffer_allocate_info(m_frames[i].commandPool, 1);
-		VK_CHECK(vkAllocateCommandBuffers(m_ctx->GetDevice(), &cmdAllocInfo, &m_frames[i].commandBuffer));
+		VK_CHECK(vkAllocateCommandBuffers(m_ctx.GetDevice(), &cmdAllocInfo, &m_frames[i].commandBuffer));
 	}
 }
 
@@ -107,17 +107,17 @@ void Renderer::initImgui()
 	};
 
 	VkDescriptorPool imguiPool;
-	VK_CHECK(vkCreateDescriptorPool(m_ctx->GetDevice(), &pool_info, nullptr, &imguiPool));
+	VK_CHECK(vkCreateDescriptorPool(m_ctx.GetDevice(), &pool_info, nullptr, &imguiPool));
 
 	ImGui::CreateContext();
 
 	ImGui_ImplSDL3_InitForVulkan(m_window);
 
 	ImGui_ImplVulkan_InitInfo init_info {
-		.Instance = m_ctx->GetInstance(),
-		.PhysicalDevice = m_ctx->GetPhysicalDevice(),
-		.Device = m_ctx->GetDevice(),
-		.Queue = m_ctx->GetGraphicsQueue(),
+		.Instance = m_ctx.GetInstance(),
+		.PhysicalDevice = m_ctx.GetPhysicalDevice(),
+		.Device = m_ctx.GetDevice(),
+		.Queue = m_ctx.GetGraphicsQueue(),
 		.DescriptorPool = imguiPool,
 		.MinImageCount = 3,
 		.ImageCount = 3,
@@ -136,7 +136,7 @@ void Renderer::initImgui()
 
 	m_deletionQueue.PushFunction([this, imguiPool] {
 		ImGui_ImplVulkan_Shutdown();
-		vkDestroyDescriptorPool(m_ctx->GetDevice(), imguiPool, nullptr);
+		vkDestroyDescriptorPool(m_ctx.GetDevice(), imguiPool, nullptr);
 	});
 }
 
@@ -146,9 +146,9 @@ void Renderer::initSyncObjects()
 	VkSemaphoreCreateInfo semaphoreCreateInfo = VkInit::semaphore_create_info();
 
 	for (int i = 0; i < FRAME_OVERLAP; i++) {
-		VK_CHECK(vkCreateFence(m_ctx->GetDevice(), &fenceCreateInfo, nullptr, &m_frames[i].renderFence));
-		VK_CHECK(vkCreateSemaphore(m_ctx->GetDevice(), &semaphoreCreateInfo, nullptr, &m_frames[i].swapchainSemaphore));
-		VK_CHECK(vkCreateSemaphore(m_ctx->GetDevice(), &semaphoreCreateInfo, nullptr, &m_frames[i].renderSemaphore));
+		VK_CHECK(vkCreateFence(m_ctx.GetDevice(), &fenceCreateInfo, nullptr, &m_frames[i].renderFence));
+		VK_CHECK(vkCreateSemaphore(m_ctx.GetDevice(), &semaphoreCreateInfo, nullptr, &m_frames[i].swapchainSemaphore));
+		VK_CHECK(vkCreateSemaphore(m_ctx.GetDevice(), &semaphoreCreateInfo, nullptr, &m_frames[i].renderSemaphore));
 	}
 }
 
@@ -163,23 +163,23 @@ void Renderer::initDescriptorAllocator()
 	        { VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 1 }
 	};
 
-	m_descriptorAllocator.Init(m_ctx->GetDevice(), 10, sizes);
+	m_descriptorAllocator.Init(m_ctx.GetDevice(), 10, sizes);
 
 	{
 		DescriptorLayoutBuilder builder;
 		builder.AddBinding(0, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE);
-		m_drawImageDescriptorLayout = builder.Build(m_ctx->GetDevice(), VK_SHADER_STAGE_COMPUTE_BIT);
+		m_drawImageDescriptorLayout = builder.Build(m_ctx.GetDevice(), VK_SHADER_STAGE_COMPUTE_BIT);
 	}
 
-	m_drawImageDescriptors = m_descriptorAllocator.Allocate(m_ctx->GetDevice(),m_drawImageDescriptorLayout);
+	m_drawImageDescriptors = m_descriptorAllocator.Allocate(m_ctx.GetDevice(),m_drawImageDescriptorLayout);
 
 	DescriptorWriter writer;
 	writer.WriteImage(0, m_swapchain.GetDrawImage().GetView(), VK_NULL_HANDLE, VK_IMAGE_LAYOUT_GENERAL, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE);
-	writer.UpdateSet(m_ctx->GetDevice(), m_drawImageDescriptors);
+	writer.UpdateSet(m_ctx.GetDevice(), m_drawImageDescriptors);
 
 	m_deletionQueue.PushFunction([&] {
-		m_descriptorAllocator.DestroyPools(m_ctx->GetDevice());
-		vkDestroyDescriptorSetLayout(m_ctx->GetDevice(), m_drawImageDescriptorLayout, nullptr);
+		m_descriptorAllocator.DestroyPools(m_ctx.GetDevice());
+		vkDestroyDescriptorSetLayout(m_ctx.GetDevice(), m_drawImageDescriptorLayout, nullptr);
 	});
 }
 
@@ -188,9 +188,9 @@ void Renderer::initDescriptors()
 	{
 		DescriptorLayoutBuilder builder;
 		builder.AddBinding(0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER);
-		m_singleImageDescriptorLayout = builder.Build(m_ctx->GetDevice(), VK_SHADER_STAGE_FRAGMENT_BIT);
+		m_singleImageDescriptorLayout = builder.Build(m_ctx.GetDevice(), VK_SHADER_STAGE_FRAGMENT_BIT);
 		m_deletionQueue.PushFunction([this] {
-			vkDestroyDescriptorSetLayout(m_ctx->GetDevice(), m_singleImageDescriptorLayout, nullptr);
+			vkDestroyDescriptorSetLayout(m_ctx.GetDevice(), m_singleImageDescriptorLayout, nullptr);
 		});
 	}
 
@@ -203,19 +203,19 @@ void Renderer::initDescriptors()
 			{ VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 4 },
 		};
 
-		m_frames[i].frameDescriptors.Init(m_ctx->GetDevice(), 1000, frame_sizes);
+		m_frames[i].frameDescriptors.Init(m_ctx.GetDevice(), 1000, frame_sizes);
 
 		m_deletionQueue.PushFunction([&, i]() {
-			m_frames[i].frameDescriptors.DestroyPools(m_ctx->GetDevice());
+			m_frames[i].frameDescriptors.DestroyPools(m_ctx.GetDevice());
 		});
 	}
 
 	{
 		DescriptorLayoutBuilder builder;
 		builder.AddBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER);
-		m_gpuSceneDataDescriptorLayout = builder.Build(m_ctx->GetDevice(), VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT);
+		m_gpuSceneDataDescriptorLayout = builder.Build(m_ctx.GetDevice(), VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT);
 		m_deletionQueue.PushFunction([&] {
-			vkDestroyDescriptorSetLayout(m_ctx->GetDevice(), m_gpuSceneDataDescriptorLayout, nullptr);
+			vkDestroyDescriptorSetLayout(m_ctx.GetDevice(), m_gpuSceneDataDescriptorLayout, nullptr);
 		});
 	}
 }
@@ -225,21 +225,21 @@ void Renderer::initSamplers()
 	VkSamplerCreateInfo sampler = {.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO};
 	sampler.magFilter = VK_FILTER_NEAREST;
 	sampler.minFilter = VK_FILTER_NEAREST;
-	vkCreateSampler(m_ctx->GetDevice(), &sampler, nullptr, &m_defaultSamplerNearest);
+	vkCreateSampler(m_ctx.GetDevice(), &sampler, nullptr, &m_defaultSamplerNearest);
 	sampler.magFilter = VK_FILTER_LINEAR;
 	sampler.minFilter = VK_FILTER_LINEAR;
-	vkCreateSampler(m_ctx->GetDevice(), &sampler, nullptr, &m_defaultSamplerLinear);
+	vkCreateSampler(m_ctx.GetDevice(), &sampler, nullptr, &m_defaultSamplerLinear);
 
 	m_deletionQueue.PushFunction([&]() {
-		vkDestroySampler(m_ctx->GetDevice(), m_defaultSamplerNearest,nullptr);
-		vkDestroySampler(m_ctx->GetDevice(), m_defaultSamplerLinear,nullptr);
+		vkDestroySampler(m_ctx.GetDevice(), m_defaultSamplerNearest,nullptr);
+		vkDestroySampler(m_ctx.GetDevice(), m_defaultSamplerLinear,nullptr);
 	});
 }
 
 void Renderer::initDefaultTextures()
 {
 	uint32_t white = glm::packUnorm4x8(glm::vec4(1, 1, 1, 1));
-	m_whiteImage = std::make_shared<Image>(m_ctx, m_allocator, (void*)&white, VkExtent3D{1, 1, 1}, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_USAGE_SAMPLED_BIT, false);
+	m_whiteImage = std::make_shared<Image>(&m_ctx, m_allocator, (void*)&white, VkExtent3D{1, 1, 1}, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_USAGE_SAMPLED_BIT, false);
 
 	uint32_t black = glm::packUnorm4x8(glm::vec4(0, 0, 0, 0));
 	uint32_t magenta = glm::packUnorm4x8(glm::vec4(1, 0, 1, 1));
@@ -248,7 +248,7 @@ void Renderer::initDefaultTextures()
 		for (int y = 0; y < 16; y++)
 			pixels[y*16 + x] = ((x % 2) ^ (y % 2)) ? magenta : black;
 
-	m_errorImage = std::make_shared<Image>(m_ctx, m_allocator, pixels.data(), VkExtent3D{16, 16, 1}, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_USAGE_SAMPLED_BIT, false);
+	m_errorImage = std::make_shared<Image>(&m_ctx, m_allocator, pixels.data(), VkExtent3D{16, 16, 1}, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_USAGE_SAMPLED_BIT, false);
 	m_deletionQueue.PushFunction([this] {
 		m_whiteImage->Cleanup();
 		m_errorImage->Cleanup();
@@ -345,7 +345,7 @@ VkCommandBuffer Renderer::beginSingleTimeCommands(VkCommandPool& commandPool) co
 	};
 
 	VkCommandBuffer commandBuffer;
-	vkAllocateCommandBuffers(m_ctx->GetDevice(), &allocInfo, &commandBuffer);
+	vkAllocateCommandBuffers(m_ctx.GetDevice(), &allocInfo, &commandBuffer);
 
 	VkCommandBufferBeginInfo beginInfo {
 		.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
@@ -367,10 +367,10 @@ void Renderer::endSingleTimeCommands(VkCommandPool& commandPool, VkCommandBuffer
 		.pCommandBuffers = &commandBuffer
 	};
 
-	vkQueueSubmit(m_ctx->GetGraphicsQueue(), 1, &submitInfo, VK_NULL_HANDLE);
-	vkQueueWaitIdle(m_ctx->GetGraphicsQueue());
+	vkQueueSubmit(m_ctx.GetGraphicsQueue(), 1, &submitInfo, VK_NULL_HANDLE);
+	vkQueueWaitIdle(m_ctx.GetGraphicsQueue());
 
-	vkFreeCommandBuffers(m_ctx->GetDevice(), commandPool, 1, &commandBuffer);
+	vkFreeCommandBuffers(m_ctx.GetDevice(), commandPool, 1, &commandBuffer);
 }
 
 void Renderer::drawImgui(VkCommandBuffer cmd, VkImageView targetImageView) const
@@ -397,12 +397,12 @@ void Renderer::drawObjects(VkCommandBuffer cmd, std::vector<RenderObject>& objec
 	Buffer gpuSceneDataBuffer(m_allocator, sizeof(GPUSceneData), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU);
 	GPUSceneData* sceneUniformData = static_cast<GPUSceneData*>(gpuSceneDataBuffer.allocation->GetMappedData());
 	*sceneUniformData = *Ecs::GetInstance().GetSingletonComponent<GPUSceneData>();
-	VkDescriptorSet globalDescriptor = getCurrentFrame().frameDescriptors.Allocate(m_ctx->GetDevice(), m_gpuSceneDataDescriptorLayout);
+	VkDescriptorSet globalDescriptor = getCurrentFrame().frameDescriptors.Allocate(m_ctx.GetDevice(), m_gpuSceneDataDescriptorLayout);
 
 	{
 		DescriptorWriter writer;
 		writer.WriteBuffer(0, gpuSceneDataBuffer.buffer, sizeof(GPUSceneData), 0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER);
-		writer.UpdateSet(m_ctx->GetDevice(), globalDescriptor);
+		writer.UpdateSet(m_ctx.GetDevice(), globalDescriptor);
 	}
 
 	m_deletionQueue.PushBuffer(std::move(gpuSceneDataBuffer));
@@ -449,11 +449,11 @@ VkRenderingAttachmentInfo Renderer::attachmentInfo(VkImageView view, VkClearValu
 
 void Renderer::DrawFrame(std::vector<RenderObject>& objects)
 {
-    VK_CHECK(vkWaitForFences(m_ctx->GetDevice(), 1, &getCurrentFrame().renderFence, true, UINT64_MAX));
+    VK_CHECK(vkWaitForFences(m_ctx.GetDevice(), 1, &getCurrentFrame().renderFence, true, UINT64_MAX));
 
 	getCurrentFrame().deletionQueue.Flush();
-	getCurrentFrame().frameDescriptors.ClearPools(m_ctx->GetDevice());
-	VK_CHECK(vkResetFences(m_ctx->GetDevice(), 1, &getCurrentFrame().renderFence));
+	getCurrentFrame().frameDescriptors.ClearPools(m_ctx.GetDevice());
+	VK_CHECK(vkResetFences(m_ctx.GetDevice(), 1, &getCurrentFrame().renderFence));
 
 	getCurrentFrame().deletionQueue.Flush();
 
@@ -464,7 +464,7 @@ void Renderer::DrawFrame(std::vector<RenderObject>& objects)
 	}
 
     uint32_t imageIndex;
-    VkResult result = vkAcquireNextImageKHR(m_ctx->GetDevice(), m_swapchain.GetSwapchain(), UINT64_MAX, getCurrentFrame().swapchainSemaphore, VK_NULL_HANDLE, &imageIndex);
+    VkResult result = vkAcquireNextImageKHR(m_ctx.GetDevice(), m_swapchain.GetSwapchain(), UINT64_MAX, getCurrentFrame().swapchainSemaphore, VK_NULL_HANDLE, &imageIndex);
     if (result == VK_ERROR_OUT_OF_DATE_KHR)
     {
         m_swapchain.SetResized(true);
@@ -473,7 +473,7 @@ void Renderer::DrawFrame(std::vector<RenderObject>& objects)
     if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR)
         throw std::runtime_error("failed to acquire swap chain image!");
 
-	VK_CHECK(vkResetFences(m_ctx->GetDevice(), 1, &getCurrentFrame().renderFence));
+	VK_CHECK(vkResetFences(m_ctx.GetDevice(), 1, &getCurrentFrame().renderFence));
 	VK_CHECK(vkResetCommandBuffer(getCurrentFrame().commandBuffer, 0));
 
 	ImGui_ImplVulkan_NewFrame();
@@ -492,7 +492,7 @@ void Renderer::DrawFrame(std::vector<RenderObject>& objects)
 
 	VkSubmitInfo2 submit = VkInit::submit_info(&cmdInfo,&signalInfo,&waitInfo);
 
-	VK_CHECK(vkQueueSubmit2(m_ctx->GetGraphicsQueue(), 1, &submit, getCurrentFrame().renderFence));
+	VK_CHECK(vkQueueSubmit2(m_ctx.GetGraphicsQueue(), 1, &submit, getCurrentFrame().renderFence));
 
 	VkPresentInfoKHR presentInfo {
 		.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
@@ -504,13 +504,18 @@ void Renderer::DrawFrame(std::vector<RenderObject>& objects)
 		.pImageIndices = &imageIndex
 	};
 
-    result = vkQueuePresentKHR(m_ctx->GetPresentQueue(), &presentInfo);
+    result = vkQueuePresentKHR(m_ctx.GetPresentQueue(), &presentInfo);
     if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || m_swapchain.IsResized())
     	m_swapchain.SetResized(true);
     else if (result != VK_SUCCESS)
         throw std::runtime_error("failed to present swap chain image!");
 
     m_currentFrame = (m_currentFrame + 1) % FRAME_OVERLAP;
+}
+
+void Renderer::WaitIdle()
+{
+	vkDeviceWaitIdle(m_ctx.GetDevice());
 }
 
 std::shared_ptr<GPUMeshBuffers> Renderer::UploadMesh(const std::span<uint32_t> indices, const std::span<Vertex> vertices) const
@@ -529,7 +534,7 @@ std::shared_ptr<GPUMeshBuffers> Renderer::UploadMesh(const std::span<uint32_t> i
 	std::shared_ptr<GPUMeshBuffers> newSurface = std::make_shared<GPUMeshBuffers> (
 		std::move(vertexBuffer),
 		std::move(indexBuffer),
-		vkGetBufferDeviceAddress(m_ctx->GetDevice(), &deviceAddressInfo)
+		vkGetBufferDeviceAddress(m_ctx.GetDevice(), &deviceAddressInfo)
 		);
 
 	Buffer staging(m_allocator, vertexBufferSize + indexBufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VMA_MEMORY_USAGE_CPU_ONLY);
@@ -541,7 +546,7 @@ std::shared_ptr<GPUMeshBuffers> Renderer::UploadMesh(const std::span<uint32_t> i
 	memcpy(static_cast<char*>(data) + vertexBufferSize, indices.data(), indexBufferSize);
 
 	// TODO: put on a background thread
-	m_ctx->ImmediateSubmit([&](VkCommandBuffer cmd) {
+	m_ctx.ImmediateSubmit([&](VkCommandBuffer cmd) {
 		VkBufferCopy vertexCopy {
 			.srcOffset = 0,
 			.dstOffset = 0,

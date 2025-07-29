@@ -8,7 +8,7 @@
 class PipelineBuilder
 {
 public:
-    explicit PipelineBuilder(std::shared_ptr<VulkanContext> ctx);
+    explicit PipelineBuilder(VulkanContext* ctx);
 
     VkPipeline CreatePipeline();
 
@@ -33,7 +33,7 @@ public:
     void DisableDepthTest();
 
 private:
-    std::shared_ptr<VulkanContext> m_ctx;
+    VulkanContext* m_ctx;
     DescriptorAllocator m_descriptorAllocator{};
 
     VkPipeline m_pipeline{};

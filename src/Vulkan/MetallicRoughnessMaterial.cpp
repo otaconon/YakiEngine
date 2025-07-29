@@ -4,8 +4,8 @@
 #include "Swapchain.h"
 #include "Descriptors/DescriptorLayoutBuilder.h"
 
-MetallicRoughnessMaterial::MetallicRoughnessMaterial(std::shared_ptr<VulkanContext> ctx)
-	: m_ctx(std::move(ctx))
+MetallicRoughnessMaterial::MetallicRoughnessMaterial(VulkanContext* ctx)
+	: m_ctx(ctx)
 {
 
 }

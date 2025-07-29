@@ -2,7 +2,7 @@
 
 Image::Image() = default;
 
-Image::Image(std::shared_ptr<VulkanContext>& ctx, VmaAllocator allocator, void* data, VkExtent3D size, VkFormat format, VkImageUsageFlags usage, bool mipmapped)
+Image::Image(VulkanContext* ctx, VmaAllocator allocator, void* data, VkExtent3D size, VkFormat format, VkImageUsageFlags usage, bool mipmapped)
     : m_ctx{ctx},
     m_allocator{allocator},
     m_extent{size},
@@ -35,7 +35,7 @@ Image::Image(std::shared_ptr<VulkanContext>& ctx, VmaAllocator allocator, void* 
     });
 }
 
-Image::Image(std::shared_ptr<VulkanContext>& ctx, VmaAllocator allocator, VkExtent3D size, VkFormat format, VkImageUsageFlags usage, bool mipmapped)
+Image::Image(VulkanContext* ctx, VmaAllocator allocator, VkExtent3D size, VkFormat format, VkImageUsageFlags usage, bool mipmapped)
     : m_ctx{ctx},
     m_allocator{allocator},
     m_extent{size},

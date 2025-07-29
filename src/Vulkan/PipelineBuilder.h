@@ -1,13 +1,14 @@
 #pragma once
 
-#include "Descriptors/DescriptorLayoutBuilder.h"
+#include <array>
+
 #include "VkInit.h"
 #include "VulkanContext.h"
 
 class PipelineBuilder
 {
 public:
-    PipelineBuilder(std::shared_ptr<VulkanContext> ctx);
+    explicit PipelineBuilder(std::shared_ptr<VulkanContext> ctx);
 
     VkPipeline CreatePipeline();
 

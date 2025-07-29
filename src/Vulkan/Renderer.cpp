@@ -23,11 +23,11 @@
 #include "Descriptors/DescriptorLayoutBuilder.h"
 
 Renderer::Renderer(SDL_Window* window, const std::shared_ptr<VulkanContext>& ctx)
-    : m_window(window),
-    m_ctx(ctx),
-    m_swapchain(ctx, window),
-    m_currentFrame(0),
-	m_metalRoughMaterial(ctx)
+    : m_window{window},
+    m_ctx{ctx},
+    m_swapchain{ctx, window},
+    m_currentFrame{0},
+	m_metalRoughMaterial{ctx}
 {
 	VmaAllocatorCreateInfo allocatorInfo {
 		.flags = VMA_ALLOCATOR_CREATE_BUFFER_DEVICE_ADDRESS_BIT,
@@ -238,16 +238,20 @@ void Renderer::initSamplers()
 
 void Renderer::initDefaultTextures()
 {
+	uint32_t white = glm::packUnorm4x8(glm::vec4(1, 1, 1, 1));
+	m_whiteImage = std::make_shared<Image>(m_ctx, m_allocator, (void*)&white, VkExtent3D{1, 1, 1}, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_USAGE_SAMPLED_BIT, false);
+
 	uint32_t black = glm::packUnorm4x8(glm::vec4(0, 0, 0, 0));
 	uint32_t magenta = glm::packUnorm4x8(glm::vec4(1, 0, 1, 1));
-	std::array<uint32_t, 16*16 > pixels;
+	std::array<uint32_t, 16*16> pixels{};
 	for (int x = 0; x < 16; x++)
 		for (int y = 0; y < 16; y++)
 			pixels[y*16 + x] = ((x % 2) ^ (y % 2)) ? magenta : black;
 
-	m_errorTexture = std::make_shared<Image>(m_ctx, m_allocator, pixels.data(), VkExtent3D{16, 16, 1}, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_USAGE_SAMPLED_BIT, false);
+	m_errorImage = std::make_shared<Image>(m_ctx, m_allocator, pixels.data(), VkExtent3D{16, 16, 1}, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_USAGE_SAMPLED_BIT, false);
 	m_deletionQueue.PushFunction([this] {
-		m_errorTexture->Cleanup();
+		m_whiteImage->Cleanup();
+		m_errorImage->Cleanup();
 	});
 }
 
@@ -260,9 +264,9 @@ void Renderer::initDefaultData()
 	sceneUniformData->metal_rough_factors = glm::vec4{1,0.5,0,0};
 
 	MaterialResources materialResources {
-		.colorImage = m_errorTexture,
+		.colorImage = m_whiteImage,
 		.colorSampler = m_defaultSamplerLinear,
-		.metalRoughImage = m_errorTexture,
+		.metalRoughImage = m_whiteImage,
 		.metalRoughSampler = m_defaultSamplerLinear,
 		.dataBuffer = materialConstants.buffer,
 		.dataBufferOffset = 0

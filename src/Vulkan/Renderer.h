@@ -1,5 +1,7 @@
 #pragma once
 
+#include <array>
+
 #include "MetallicRoughnessMaterial.h"
 #include "Swapchain.h"
 #include "VkTypes.h"
@@ -27,21 +29,23 @@ private:
     VmaAllocator m_allocator{};
     DeletionQueue m_deletionQueue;
 
-    DescriptorAllocator m_descriptorAllocator;
-    VkDescriptorSet m_drawImageDescriptors{};
-    VkDescriptorSetLayout m_drawImageDescriptorLayout{};
-
     std::array<FrameData, 2> m_frames;
     uint32_t m_currentFrame;
 
-    std::shared_ptr<Image> m_errorTexture{};
-    VkSampler m_defaultSamplerLinear;
-    VkSampler m_defaultSamplerNearest;
-    VkDescriptorSetLayout m_singleImageDescriptorLayout;
+    DescriptorAllocator m_descriptorAllocator;
+    VkDescriptorSet m_drawImageDescriptors{};
 
-    VkDescriptorSetLayout m_gpuSceneDataDescriptorLayout; //TODO: Doesnt this belong to graphics pipeline?
+    VkDescriptorSetLayout m_drawImageDescriptorLayout{};
+    VkDescriptorSetLayout m_singleImageDescriptorLayout{};
+    VkDescriptorSetLayout m_gpuSceneDataDescriptorLayout{};
 
-    MaterialInstance m_defaultData;
+    std::shared_ptr<Image> m_whiteImage{};
+    std::shared_ptr<Image> m_errorImage{};
+
+    VkSampler m_defaultSamplerLinear{};
+    VkSampler m_defaultSamplerNearest{};
+
+    MaterialInstance m_defaultData{};
     MetallicRoughnessMaterial m_metalRoughMaterial;
 
 private:

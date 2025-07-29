@@ -268,11 +268,7 @@ void Renderer::initDefaultData()
 		.dataBufferOffset = 0
 	};
 
-	// TODO: Change this
-	m_deletionQueue.PushFunction([buffer = std::make_shared<Buffer>(std::move(materialConstants))]() mutable {
-		buffer->Cleanup();
-	});
-
+	m_deletionQueue.PushBuffer(std::move(materialConstants));
 	m_defaultData = m_metalRoughMaterial.WriteMaterial(MaterialPass::MainColor, materialResources, m_descriptorAllocator);
 
 	auto& ecs = Ecs::GetInstance();
@@ -405,10 +401,7 @@ void Renderer::drawObjects(VkCommandBuffer cmd, std::vector<RenderObject>& objec
 		writer.UpdateSet(m_ctx->GetDevice(), globalDescriptor);
 	}
 
-	//TODO: Fix this so that no shared_ptr necessary (probably upgrade the deletion queue)
-	getCurrentFrame().deletionQueue.PushFunction([buffer = std::make_shared<Buffer>(std::move(gpuSceneDataBuffer))]() mutable {
-		buffer->Cleanup();
-	});
+	m_deletionQueue.PushBuffer(std::move(gpuSceneDataBuffer));
 
 	for (auto& [indexCount, firstIndex, indexBuffer, material, transform, vertexBufferAddress] : objects)
 	{

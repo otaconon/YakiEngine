@@ -1,33 +1,11 @@
 #pragma once
 
-#include <array>
-#include <deque>
-#include <functional>
-#include <span>
-#include <vulkan/vulkan_core.h>
 
-#include <vk_mem_alloc.h>
+#include <vulkan/vulkan_core.h>
 
 #include "Buffer.h"
 #include "Descriptors/DescriptorAllocator.h"
-
-// TODO: Improve the deletion queue, so that for each vk type it holds separate collection
-struct DeletionQueue
-{
-    std::deque<std::function<void()>> deletors;
-
-    void PushFunction(std::function<void()>&& function) {
-        deletors.push_back(function);
-    }
-
-    void Flush() {
-        for (auto it = deletors.rbegin(); it != deletors.rend(); it++) {
-            (*it)();
-        }
-
-        deletors.clear();
-    }
-};
+#include "DeletionQueue.h"
 
 struct FrameData
 {

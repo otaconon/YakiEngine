@@ -51,7 +51,6 @@ void MetallicRoughnessMaterial::BuildPipelines(Swapchain& swapchain, VkDescripto
 
 	VkPipelineLayout newLayout;
 	VK_CHECK(vkCreatePipelineLayout(m_ctx->GetDevice(), &mesh_layout_info, nullptr, &newLayout));
-
     m_opaquePipeline.layout = newLayout;
     m_transparentPipeline.layout = newLayout;
 

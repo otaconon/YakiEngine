@@ -50,6 +50,9 @@ private:
     void initSyncObjects();
     void initGraphicsPipeline();
     void initDescriptorAllocator();
+    void initDescriptors();
+    void initSamplers();
+    void initDefaultTextures();
     void initDefaultData();
 
     void recordCommandBuffer(VkCommandBuffer cmd, uint32_t imageIndex, std::vector<RenderObject>& objects);

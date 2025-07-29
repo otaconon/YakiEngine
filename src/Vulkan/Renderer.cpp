@@ -45,70 +45,10 @@ Renderer::Renderer(SDL_Window* window, const std::shared_ptr<VulkanContext>& ctx
 	initSyncObjects();
 	initImgui();
 	initDescriptorAllocator();
-
-	{
-		DescriptorLayoutBuilder builder;
-		builder.AddBinding(0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER);
-		m_singleImageDescriptorLayout = builder.Build(m_ctx->GetDevice(), VK_SHADER_STAGE_FRAGMENT_BIT);
-		m_deletionQueue.PushFunction([this] {
-			vkDestroyDescriptorSetLayout(m_ctx->GetDevice(), m_singleImageDescriptorLayout, nullptr);
-		});
-	}
-
-	// TODO: Move this from here
-	for (int i = 0; i < FRAME_OVERLAP; i++) {
-		std::vector<DescriptorAllocator::PoolSizeRatio> frame_sizes = {
-			{ VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 3 },
-			{ VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 3 },
-			{ VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 3 },
-			{ VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 4 },
-		};
-
-		m_frames[i].frameDescriptors.Init(m_ctx->GetDevice(), 1000, frame_sizes);
-
-		m_deletionQueue.PushFunction([&, i]() {
-			m_frames[i].frameDescriptors.DestroyPools(m_ctx->GetDevice());
-		});
-	}
-
-	{
-		DescriptorLayoutBuilder builder;
-		builder.AddBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER);
-		m_gpuSceneDataDescriptorLayout = builder.Build(m_ctx->GetDevice(), VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT);
-		m_deletionQueue.PushFunction([&] {
-			vkDestroyDescriptorSetLayout(m_ctx->GetDevice(), m_gpuSceneDataDescriptorLayout, nullptr);
-		});
-	}
-
+	initDescriptors();
+	initSamplers();
+	initDefaultTextures();
 	initGraphicsPipeline();
-
-	uint32_t black = glm::packUnorm4x8(glm::vec4(0, 0, 0, 0));
-	uint32_t magenta = glm::packUnorm4x8(glm::vec4(1, 0, 1, 1));
-	std::array<uint32_t, 16*16 > pixels;
-	for (int x = 0; x < 16; x++) {
-		for (int y = 0; y < 16; y++) {
-			pixels[y*16 + x] = ((x % 2) ^ (y % 2)) ? magenta : black;
-		}
-	}
-
-	m_errorTexture = std::make_shared<Image>(m_ctx, m_allocator, pixels.data(), VkExtent3D{16, 16, 1}, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_USAGE_SAMPLED_BIT, false);
-	m_deletionQueue.PushFunction([this] {
-		m_errorTexture->Cleanup();
-	});
-
-	VkSamplerCreateInfo sampl = {.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO};
-	sampl.magFilter = VK_FILTER_NEAREST;
-	sampl.minFilter = VK_FILTER_NEAREST;
-	vkCreateSampler(m_ctx->GetDevice(), &sampl, nullptr, &m_defaultSamplerNearest);
-	sampl.magFilter = VK_FILTER_LINEAR;
-	sampl.minFilter = VK_FILTER_LINEAR;
-	vkCreateSampler(m_ctx->GetDevice(), &sampl, nullptr, &m_defaultSamplerLinear);
-
-	m_deletionQueue.PushFunction([&](){
-		vkDestroySampler(m_ctx->GetDevice(), m_defaultSamplerNearest,nullptr);
-		vkDestroySampler(m_ctx->GetDevice(), m_defaultSamplerLinear,nullptr);
-	});
-
 	initDefaultData();
 }
 
@@ -240,6 +180,74 @@ void Renderer::initDescriptorAllocator()
 	m_deletionQueue.PushFunction([&] {
 		m_descriptorAllocator.DestroyPools(m_ctx->GetDevice());
 		vkDestroyDescriptorSetLayout(m_ctx->GetDevice(), m_drawImageDescriptorLayout, nullptr);
+	});
+}
+
+void Renderer::initDescriptors()
+{
+	{
+		DescriptorLayoutBuilder builder;
+		builder.AddBinding(0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER);
+		m_singleImageDescriptorLayout = builder.Build(m_ctx->GetDevice(), VK_SHADER_STAGE_FRAGMENT_BIT);
+		m_deletionQueue.PushFunction([this] {
+			vkDestroyDescriptorSetLayout(m_ctx->GetDevice(), m_singleImageDescriptorLayout, nullptr);
+		});
+	}
+
+	for (int i = 0; i < FRAME_OVERLAP; i++)
+	{
+		std::vector<DescriptorAllocator::PoolSizeRatio> frame_sizes = {
+			{ VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 3 },
+			{ VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 3 },
+			{ VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 3 },
+			{ VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 4 },
+		};
+
+		m_frames[i].frameDescriptors.Init(m_ctx->GetDevice(), 1000, frame_sizes);
+
+		m_deletionQueue.PushFunction([&, i]() {
+			m_frames[i].frameDescriptors.DestroyPools(m_ctx->GetDevice());
+		});
+	}
+
+	{
+		DescriptorLayoutBuilder builder;
+		builder.AddBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER);
+		m_gpuSceneDataDescriptorLayout = builder.Build(m_ctx->GetDevice(), VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT);
+		m_deletionQueue.PushFunction([&] {
+			vkDestroyDescriptorSetLayout(m_ctx->GetDevice(), m_gpuSceneDataDescriptorLayout, nullptr);
+		});
+	}
+}
+
+void Renderer::initSamplers()
+{
+	VkSamplerCreateInfo sampler = {.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO};
+	sampler.magFilter = VK_FILTER_NEAREST;
+	sampler.minFilter = VK_FILTER_NEAREST;
+	vkCreateSampler(m_ctx->GetDevice(), &sampler, nullptr, &m_defaultSamplerNearest);
+	sampler.magFilter = VK_FILTER_LINEAR;
+	sampler.minFilter = VK_FILTER_LINEAR;
+	vkCreateSampler(m_ctx->GetDevice(), &sampler, nullptr, &m_defaultSamplerLinear);
+
+	m_deletionQueue.PushFunction([&]() {
+		vkDestroySampler(m_ctx->GetDevice(), m_defaultSamplerNearest,nullptr);
+		vkDestroySampler(m_ctx->GetDevice(), m_defaultSamplerLinear,nullptr);
+	});
+}
+
+void Renderer::initDefaultTextures()
+{
+	uint32_t black = glm::packUnorm4x8(glm::vec4(0, 0, 0, 0));
+	uint32_t magenta = glm::packUnorm4x8(glm::vec4(1, 0, 1, 1));
+	std::array<uint32_t, 16*16 > pixels;
+	for (int x = 0; x < 16; x++)
+		for (int y = 0; y < 16; y++)
+			pixels[y*16 + x] = ((x % 2) ^ (y % 2)) ? magenta : black;
+
+	m_errorTexture = std::make_shared<Image>(m_ctx, m_allocator, pixels.data(), VkExtent3D{16, 16, 1}, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_USAGE_SAMPLED_BIT, false);
+	m_deletionQueue.PushFunction([this] {
+		m_errorTexture->Cleanup();
 	});
 }
 

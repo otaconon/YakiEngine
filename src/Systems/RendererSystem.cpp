@@ -2,6 +2,9 @@
 #include "../Components/Camera.h"
 
 #define GLM_ENABLE_EXPERIMENTAL
+#include <imgui.h>
+#include <imgui_impl_sdl3.h>
+#include <imgui_impl_vulkan.h>
 #include <glm/glm.hpp>
 #include <glm/ext/matrix_transform.hpp>
 #include <glm/gtx/quaternion.hpp>
@@ -53,5 +56,21 @@ void RenderSystem::renderDrawables()
 
 void RenderSystem::renderGui()
 {
+
+    auto& ecs = Ecs::GetInstance();
+
+    ImGui_ImplVulkan_NewFrame();
+    ImGui_ImplSDL3_NewFrame();
+    ImGui::NewFrame();
+    ImGui::ShowDemoWindow();
+
+    ImGui::Begin("Editor");
+    ecs.Each<Button>([](Hori::Entity, Button& button) {
+        if (ImGui::Button((button.label.c_str())))
+            button.onClick();
+    });
+    ImGui::End();
+
+    ImGui::Render();
     m_renderer->RenderImGui();
 }

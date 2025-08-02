@@ -53,6 +53,171 @@ Renderer::~Renderer()
 	m_deletionQueue.Flush();
 }
 
+void Renderer::BeginRendering()
+{
+	VK_CHECK(vkWaitForFences(m_ctx->GetDevice(), 1, &getCurrentFrame().renderFence, true, UINT64_MAX));
+
+	getCurrentFrame().deletionQueue.Flush();
+	getCurrentFrame().frameDescriptors.ClearPools(m_ctx->GetDevice());
+	VK_CHECK(vkResetFences(m_ctx->GetDevice(), 1, &getCurrentFrame().renderFence));
+
+	getCurrentFrame().deletionQueue.Flush();
+
+	if (m_swapchain.IsResized())
+	{
+		m_swapchain.RecreateSwapchain();
+		m_swapchain.SetResized(false);
+	}
+
+	VkResult result = vkAcquireNextImageKHR(m_ctx->GetDevice(), m_swapchain.GetSwapchain(), UINT64_MAX, getCurrentFrame().swapchainSemaphore, VK_NULL_HANDLE, &m_currentImageIndex);
+	if (result == VK_ERROR_OUT_OF_DATE_KHR)
+	{
+		m_swapchain.SetResized(true);
+		return;
+	}
+	if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR)
+		throw std::runtime_error("failed to acquire swap chain image!");
+
+	VK_CHECK(vkResetFences(m_ctx->GetDevice(), 1, &getCurrentFrame().renderFence));
+	VK_CHECK(vkResetCommandBuffer(getCurrentFrame().commandBuffer, 0));
+
+	VkCommandBuffer cmd = getCurrentFrame().commandBuffer;
+	VkCommandBufferBeginInfo cmdBeginInfo = VkInit::command_buffer_begin_info(VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
+	VK_CHECK(vkBeginCommandBuffer(cmd, &cmdBeginInfo));
+
+	VkViewport viewport {
+		.x = 0.0f,
+		.y = 0.0f,
+		.width = static_cast<float>(m_swapchain.GetExtent().width),
+		.height = static_cast<float>(m_swapchain.GetExtent().height),
+		.minDepth = 0.0f,
+		.maxDepth = 1.0f
+	};
+	vkCmdSetViewport(cmd, 0, 1, &viewport);
+
+	VkRect2D scissor {
+		.offset = {0, 0},
+		.extent = m_swapchain.GetExtent()
+	};
+	vkCmdSetScissor(cmd, 0, 1, &scissor);
+
+	// Setup image layout
+	VkUtil::transition_image(cmd, m_swapchain.GetDrawImage().GetImage(), VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_GENERAL);
+	VkUtil::transition_image(cmd, m_swapchain.GetDepthImage().GetImage(), VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL);
+
+	std::array<VkClearValue, 2> clearValues{};
+	clearValues[0].color = {{0.0f, 0.0f, 0.0f, 1.0f}};
+	clearValues[1].depthStencil = {1.0f, 0};
+	VkImageSubresourceRange clearRange = VkInit::image_subresource_range(VK_IMAGE_ASPECT_COLOR_BIT);
+	vkCmdClearColorImage(cmd, m_swapchain.GetDrawImage().GetImage(), VK_IMAGE_LAYOUT_GENERAL, &clearValues[0].color, 1, &clearRange);
+}
+
+void Renderer::RenderObjects(std::vector<RenderObject>& objects)
+{
+	VkCommandBuffer cmd = getCurrentFrame().commandBuffer;
+	VkRenderingAttachmentInfo colorAttachment = VkInit::color_attachment_info(m_swapchain.GetDrawImage().GetView(), nullptr, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+	VkRenderingAttachmentInfo depthAttachment = VkInit::depth_attachment_info(m_swapchain.GetDepthImage().GetView(), VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL);
+
+	VkExtent2D drawExtent = {m_swapchain.GetDrawImage().GetExtent().width, m_swapchain.GetDrawImage().GetExtent().height};
+	VkRenderingInfo renderInfo = VkInit::rendering_info(drawExtent, &colorAttachment, &depthAttachment);
+	vkCmdBeginRendering(cmd, &renderInfo);
+
+	Buffer gpuSceneDataBuffer(m_ctx->GetAllocator(), sizeof(GPUSceneData), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU);
+	GPUSceneData* sceneUniformData;
+	vmaMapMemory(gpuSceneDataBuffer.allocator, gpuSceneDataBuffer.allocation, (void**)&sceneUniformData);
+	*sceneUniformData = *Ecs::GetInstance().GetSingletonComponent<GPUSceneData>();
+	vmaUnmapMemory(gpuSceneDataBuffer.allocator, gpuSceneDataBuffer.allocation);
+
+	VkDescriptorSet globalDescriptor = getCurrentFrame().frameDescriptors.Allocate(m_ctx->GetDevice(), m_gpuSceneDataDescriptorLayout);
+	{
+		DescriptorWriter writer;
+		writer.WriteBuffer(0, gpuSceneDataBuffer.buffer, sizeof(GPUSceneData), 0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER);
+		writer.UpdateSet(m_ctx->GetDevice(), globalDescriptor);
+	}
+
+	m_deletionQueue.PushBuffer(std::move(gpuSceneDataBuffer));
+
+	for (auto& [indexCount, firstIndex, indexBuffer, material, transform, vertexBufferAddress] : objects)
+	{
+		material = &m_defaultData; // TODO: This is not the right way to do this
+		vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, material->pipeline->pipeline);
+		vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, material->pipeline->layout, 0, 1, &globalDescriptor, 0, nullptr );
+		vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, material->pipeline->layout, 1, 1, &material->materialSet, 0, nullptr );
+
+		vkCmdBindIndexBuffer(cmd, indexBuffer, 0, VK_INDEX_TYPE_UINT32);
+
+		GPUDrawPushConstants pushConstants {
+			.worldMatrix = transform,
+			.vertexBuffer = vertexBufferAddress
+		};
+		vkCmdPushConstants(cmd, material->pipeline->layout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(GPUDrawPushConstants), &pushConstants);
+
+		vkCmdDrawIndexed(cmd, indexCount, 1, firstIndex, 0, 0);
+	}
+
+	vkCmdEndRendering(cmd);
+
+	VkUtil::transition_image(cmd, m_swapchain.GetDrawImage().GetImage(), VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
+	VkUtil::transition_image(cmd, m_swapchain.GetImage(m_currentImageIndex), VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+}
+
+void Renderer::RenderImGui()
+{
+	VkCommandBuffer cmd = getCurrentFrame().commandBuffer;
+	VkExtent2D drawExtent = {
+		.width = static_cast<uint32_t>(std::min(m_swapchain.GetExtent().width, m_swapchain.GetDrawImage().GetExtent().width) * m_swapchain.GetRenderScale()),
+		.height = static_cast<uint32_t>(std::min(m_swapchain.GetExtent().height, m_swapchain.GetDrawImage().GetExtent().height) * m_swapchain.GetRenderScale())
+	};
+
+	VkUtil::copy_image_to_image(cmd, m_swapchain.GetDrawImage().GetImage(), m_swapchain.GetImage(m_currentImageIndex), drawExtent, m_swapchain.GetExtent());
+	VkUtil::transition_image(cmd, m_swapchain.GetImage(m_currentImageIndex), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+
+	VkRenderingAttachmentInfo colorAttachment = VkInit::color_attachment_info(m_swapchain.GetImageView(m_currentImageIndex), nullptr, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+	VkRenderingInfo renderInfo = VkInit::rendering_info(m_swapchain.GetExtent(), &colorAttachment, nullptr);
+
+	ImGui_ImplVulkan_NewFrame();
+	ImGui_ImplSDL3_NewFrame();
+	ImGui::NewFrame();
+	ImGui::ShowDemoWindow();
+	ImGui::Render();
+
+	vkCmdBeginRendering(cmd, &renderInfo);
+	ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), cmd);
+	vkCmdEndRendering(cmd);
+}
+
+void Renderer::EndRendering()
+{
+	VkCommandBuffer cmd = getCurrentFrame().commandBuffer;
+	VkUtil::transition_image(cmd, m_swapchain.GetImage(m_currentImageIndex), VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
+	VK_CHECK(vkEndCommandBuffer(cmd));
+	VkCommandBufferSubmitInfo cmdInfo = VkInit::command_buffer_submit_info(getCurrentFrame().commandBuffer);
+
+	VkSemaphoreSubmitInfo waitInfo = VkInit::semaphore_submit_info(VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT_KHR,getCurrentFrame().swapchainSemaphore);
+	VkSemaphoreSubmitInfo signalInfo = VkInit::semaphore_submit_info(VK_PIPELINE_STAGE_2_ALL_GRAPHICS_BIT, getCurrentFrame().renderSemaphore);
+	VkSubmitInfo2 submit = VkInit::submit_info(&cmdInfo,&signalInfo,&waitInfo);
+
+	VK_CHECK(vkQueueSubmit2(m_ctx->GetGraphicsQueue(), 1, &submit, getCurrentFrame().renderFence));
+
+	VkPresentInfoKHR presentInfo {
+		.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
+		.pNext = nullptr,
+		.waitSemaphoreCount = 1,
+		.pWaitSemaphores = &getCurrentFrame().renderSemaphore,
+		.swapchainCount = 1,
+		.pSwapchains = &m_swapchain.GetSwapchain(),
+		.pImageIndices = &m_currentImageIndex
+	};
+
+	VkResult result = vkQueuePresentKHR(m_ctx->GetPresentQueue(), &presentInfo);
+	if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || m_swapchain.IsResized())
+		m_swapchain.SetResized(true);
+	else if (result != VK_SUCCESS)
+		throw std::runtime_error("failed to present swap chain image!");
+
+	m_currentFrame = (m_currentFrame + 1) % FRAME_OVERLAP;
+}
+
 void Renderer::initCommands()
 {
 	auto [graphicsFamily, presentFamily] = VkUtil::find_queue_families(m_ctx->GetPhysicalDevice(), m_ctx->GetSurface());
@@ -268,58 +433,6 @@ void Renderer::initDefaultData()
 	sceneData->sunlightDirection = glm::vec4(0,1,0.5,1.f);
 }
 
-void Renderer::recordCommandBuffer(VkCommandBuffer cmd, uint32_t imageIndex, std::vector<RenderObject>& objects)
-{
-	// Setup
-	VkCommandBufferBeginInfo cmdBeginInfo = VkInit::command_buffer_begin_info(VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
-	VK_CHECK(vkBeginCommandBuffer(cmd, &cmdBeginInfo));
-
-    std::array<VkClearValue, 2> clearValues{};
-    clearValues[0].color = {{0.0f, 0.0f, 0.0f, 1.0f}};
-    clearValues[1].depthStencil = {1.0f, 0};
-
-    VkViewport viewport {
-    	.x = 0.0f,
-    	.y = 0.0f,
-    	.width = static_cast<float>(m_swapchain.GetExtent().width),
-    	.height = static_cast<float>(m_swapchain.GetExtent().height),
-    	.minDepth = 0.0f,
-    	.maxDepth = 1.0f
-    };
-    vkCmdSetViewport(cmd, 0, 1, &viewport);
-
-    VkRect2D scissor {
-    	.offset = {0, 0},
-    	.extent = m_swapchain.GetExtent()
-    };
-	vkCmdSetScissor(cmd, 0, 1, &scissor);
-
-	// Record draw commands
-	VkUtil::transition_image(cmd, m_swapchain.GetDrawImage().GetImage(), VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_GENERAL);
-	VkUtil::transition_image(cmd, m_swapchain.GetDepthImage().GetImage(), VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL);
-
-	VkImageSubresourceRange clearRange = VkInit::image_subresource_range(VK_IMAGE_ASPECT_COLOR_BIT);
-	vkCmdClearColorImage(cmd, m_swapchain.GetDrawImage().GetImage(), VK_IMAGE_LAYOUT_GENERAL, &clearValues[0].color, 1, &clearRange);
-	drawObjects(cmd, objects);
-
-	VkUtil::transition_image(cmd, m_swapchain.GetDrawImage().GetImage(), VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
-	VkUtil::transition_image(cmd, m_swapchain.GetImage(imageIndex), VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-
-	VkExtent2D drawExtent {
-		.width = static_cast<uint32_t>(std::min(m_swapchain.GetExtent().width, m_swapchain.GetDrawImage().GetExtent().width) * m_swapchain.GetRenderScale()),
-		.height = static_cast<uint32_t>(std::min(m_swapchain.GetExtent().height, m_swapchain.GetDrawImage().GetExtent().height) * m_swapchain.GetRenderScale())
-	};
-	VkUtil::copy_image_to_image(cmd, m_swapchain.GetDrawImage().GetImage(), m_swapchain.GetImage(imageIndex), drawExtent, m_swapchain.GetExtent());
-
-	// Imgui
-	VkUtil::copy_image_to_image(cmd, m_swapchain.GetDrawImage().GetImage(), m_swapchain.GetImage(imageIndex), drawExtent, m_swapchain.GetExtent());
-	VkUtil::transition_image(cmd, m_swapchain.GetImage(imageIndex), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
-	drawImgui(cmd, m_swapchain.GetImageView(imageIndex));
-
-	VkUtil::transition_image(cmd, m_swapchain.GetImage(imageIndex), VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
-	VK_CHECK(vkEndCommandBuffer(cmd));
-}
-
 VkCommandBuffer Renderer::beginSingleTimeCommands(VkCommandPool& commandPool) const
 {
 	VkCommandBufferAllocateInfo allocInfo {
@@ -358,63 +471,6 @@ void Renderer::endSingleTimeCommands(VkCommandPool& commandPool, VkCommandBuffer
 	vkFreeCommandBuffers(m_ctx->GetDevice(), commandPool, 1, &commandBuffer);
 }
 
-void Renderer::drawImgui(VkCommandBuffer cmd, VkImageView targetImageView) const
-{
-	VkRenderingAttachmentInfo colorAttachment = VkInit::color_attachment_info(targetImageView, nullptr, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
-	VkRenderingInfo renderInfo = VkInit::rendering_info(m_swapchain.GetExtent(), &colorAttachment, nullptr);
-
-	vkCmdBeginRendering(cmd, &renderInfo);
-
-	ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), cmd);
-
-	vkCmdEndRendering(cmd);
-}
-
-void Renderer::drawObjects(VkCommandBuffer cmd, std::vector<RenderObject>& objects)
-{
-	VkRenderingAttachmentInfo colorAttachment = VkInit::color_attachment_info(m_swapchain.GetDrawImage().GetView(), nullptr, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
-	VkRenderingAttachmentInfo depthAttachment = VkInit::depth_attachment_info(m_swapchain.GetDepthImage().GetView(), VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL);
-
-	VkExtent2D drawExtent = {m_swapchain.GetDrawImage().GetExtent().width, m_swapchain.GetDrawImage().GetExtent().height};
-	VkRenderingInfo renderInfo = VkInit::rendering_info(drawExtent, &colorAttachment, &depthAttachment);
-	vkCmdBeginRendering(cmd, &renderInfo);
-
-	Buffer gpuSceneDataBuffer(m_ctx->GetAllocator(), sizeof(GPUSceneData), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU);
-	GPUSceneData* sceneUniformData;
-	vmaMapMemory(gpuSceneDataBuffer.allocator, gpuSceneDataBuffer.allocation, (void**)&sceneUniformData);
-	*sceneUniformData = *Ecs::GetInstance().GetSingletonComponent<GPUSceneData>();
-	vmaUnmapMemory(gpuSceneDataBuffer.allocator, gpuSceneDataBuffer.allocation);
-
-	VkDescriptorSet globalDescriptor = getCurrentFrame().frameDescriptors.Allocate(m_ctx->GetDevice(), m_gpuSceneDataDescriptorLayout);
-	{
-		DescriptorWriter writer;
-		writer.WriteBuffer(0, gpuSceneDataBuffer.buffer, sizeof(GPUSceneData), 0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER);
-		writer.UpdateSet(m_ctx->GetDevice(), globalDescriptor);
-	}
-
-	m_deletionQueue.PushBuffer(std::move(gpuSceneDataBuffer));
-
-	for (auto& [indexCount, firstIndex, indexBuffer, material, transform, vertexBufferAddress] : objects)
-	{
-		material = &m_defaultData; // TODO: This is not the right way to do this
-		vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, material->pipeline->pipeline);
-		vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, material->pipeline->layout, 0, 1, &globalDescriptor, 0, nullptr );
-		vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, material->pipeline->layout, 1, 1, &material->materialSet, 0, nullptr );
-
-		vkCmdBindIndexBuffer(cmd, indexBuffer, 0, VK_INDEX_TYPE_UINT32);
-
-		GPUDrawPushConstants pushConstants {
-			.worldMatrix = transform,
-			.vertexBuffer = vertexBufferAddress
-		};
-		vkCmdPushConstants(cmd, material->pipeline->layout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(GPUDrawPushConstants), &pushConstants);
-
-		vkCmdDrawIndexed(cmd, indexCount, 1, firstIndex, 0, 0);
-	}
-
-	vkCmdEndRendering(cmd);
-}
-
 FrameData& Renderer::getCurrentFrame() { return m_frames[m_currentFrame % FRAME_OVERLAP]; }
 
 VkRenderingAttachmentInfo Renderer::attachmentInfo(VkImageView view, VkClearValue* clear, VkImageLayout layout)
@@ -432,72 +488,6 @@ VkRenderingAttachmentInfo Renderer::attachmentInfo(VkImageView view, VkClearValu
 		colorAttachment.clearValue = *clear;
 
 	return colorAttachment;
-}
-
-void Renderer::DrawFrame(std::vector<RenderObject>& objects)
-{
-    VK_CHECK(vkWaitForFences(m_ctx->GetDevice(), 1, &getCurrentFrame().renderFence, true, UINT64_MAX));
-
-	getCurrentFrame().deletionQueue.Flush();
-	getCurrentFrame().frameDescriptors.ClearPools(m_ctx->GetDevice());
-	VK_CHECK(vkResetFences(m_ctx->GetDevice(), 1, &getCurrentFrame().renderFence));
-
-	getCurrentFrame().deletionQueue.Flush();
-
-	if (m_swapchain.IsResized())
-	{
-		m_swapchain.RecreateSwapchain();
-		m_swapchain.SetResized(false);
-	}
-
-    uint32_t imageIndex;
-    VkResult result = vkAcquireNextImageKHR(m_ctx->GetDevice(), m_swapchain.GetSwapchain(), UINT64_MAX, getCurrentFrame().swapchainSemaphore, VK_NULL_HANDLE, &imageIndex);
-    if (result == VK_ERROR_OUT_OF_DATE_KHR)
-    {
-        m_swapchain.SetResized(true);
-        return;
-    }
-    if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR)
-        throw std::runtime_error("failed to acquire swap chain image!");
-
-	VK_CHECK(vkResetFences(m_ctx->GetDevice(), 1, &getCurrentFrame().renderFence));
-	VK_CHECK(vkResetCommandBuffer(getCurrentFrame().commandBuffer, 0));
-
-	ImGui_ImplVulkan_NewFrame();
-	ImGui_ImplSDL3_NewFrame();
-	ImGui::NewFrame();
-	ImGui::ShowDemoWindow();
-	ImGui::Render();
-
-	VkCommandBuffer cmd = getCurrentFrame().commandBuffer;
-	recordCommandBuffer(cmd, imageIndex, objects);
-
-	VkCommandBufferSubmitInfo cmdInfo = VkInit::command_buffer_submit_info(cmd);
-
-	VkSemaphoreSubmitInfo waitInfo = VkInit::semaphore_submit_info(VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT_KHR,getCurrentFrame().swapchainSemaphore);
-	VkSemaphoreSubmitInfo signalInfo = VkInit::semaphore_submit_info(VK_PIPELINE_STAGE_2_ALL_GRAPHICS_BIT, getCurrentFrame().renderSemaphore);
-
-	VkSubmitInfo2 submit = VkInit::submit_info(&cmdInfo,&signalInfo,&waitInfo);
-
-	VK_CHECK(vkQueueSubmit2(m_ctx->GetGraphicsQueue(), 1, &submit, getCurrentFrame().renderFence));
-
-	VkPresentInfoKHR presentInfo {
-		.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
-		.pNext = nullptr,
-		.waitSemaphoreCount = 1,
-		.pWaitSemaphores = &getCurrentFrame().renderSemaphore,
-		.swapchainCount = 1,
-		.pSwapchains = &m_swapchain.GetSwapchain(),
-		.pImageIndices = &imageIndex
-	};
-
-    result = vkQueuePresentKHR(m_ctx->GetPresentQueue(), &presentInfo);
-    if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || m_swapchain.IsResized())
-    	m_swapchain.SetResized(true);
-    else if (result != VK_SUCCESS)
-        throw std::runtime_error("failed to present swap chain image!");
-
-    m_currentFrame = (m_currentFrame + 1) % FRAME_OVERLAP;
 }
 
 void Renderer::WaitIdle()

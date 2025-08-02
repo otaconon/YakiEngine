@@ -1,7 +1,7 @@
 #include "GuiSystem.h"
 
 #include "../Ecs.h"
-#include "../Components/gui.h"
+#include "../Components/Button.h"
 
 #include <imgui.h>
 

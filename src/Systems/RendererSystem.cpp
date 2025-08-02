@@ -13,7 +13,6 @@ RenderSystem::RenderSystem(Renderer& renderer)
 void RenderSystem::Update(float dt)
 {
     auto& ecs = Ecs::GetInstance();
-
     Camera camera;
     ecs.Each<Camera>([&camera](Hori::Entity e, const Camera& cam) {
         camera = cam;
@@ -24,7 +23,15 @@ void RenderSystem::Update(float dt)
     sceneData->view = camera.view;
     sceneData-> viewproj = camera.viewProjection;
 
-    // TODO: Fix this not very fast
+    m_renderer->BeginRendering();
+    renderDrawables();
+    renderGui();
+    m_renderer->EndRendering();
+}
+
+void RenderSystem::renderDrawables()
+{
+    auto& ecs = Ecs::GetInstance();
     std::vector<RenderObject> objects;
     ecs.Each<Drawable, LocalToWorld>([&](Hori::Entity, Drawable& drawable, LocalToWorld& localToWorld) {
         for (auto& [startIndex, count, material] : drawable.mesh->surfaces)
@@ -41,5 +48,10 @@ void RenderSystem::Update(float dt)
         }
     });
 
-    m_renderer->DrawFrame(objects);
+    m_renderer->RenderObjects(objects);
+}
+
+void RenderSystem::renderGui()
+{
+    m_renderer->RenderImGui();
 }

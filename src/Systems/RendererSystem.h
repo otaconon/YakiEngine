@@ -16,4 +16,7 @@ public:
 
 private:
     Renderer* m_renderer;
+
+    void renderDrawables();
+    void renderGui();
 };

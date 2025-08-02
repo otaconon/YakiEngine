@@ -15,7 +15,10 @@ public:
     Renderer(SDL_Window* window, VulkanContext* ctx);
     ~Renderer();
 
-    void DrawFrame(std::vector<RenderObject>& objects);
+    void BeginRendering();
+    void RenderObjects(std::vector<RenderObject>& objects);
+    void RenderImGui();
+    void EndRendering();
     void WaitIdle();
 
 private:
@@ -28,6 +31,7 @@ private:
 
     std::array<FrameData, 2> m_frames;
     uint32_t m_currentFrame;
+    uint32_t m_currentImageIndex;
 
     DescriptorAllocator m_descriptorAllocator;
     VkDescriptorSet m_drawImageDescriptors{};
@@ -56,13 +60,8 @@ private:
     void initDefaultTextures();
     void initDefaultData();
 
-    void recordCommandBuffer(VkCommandBuffer cmd, uint32_t imageIndex, std::vector<RenderObject>& objects);
-
     VkCommandBuffer beginSingleTimeCommands(VkCommandPool& commandPool) const;
     void endSingleTimeCommands(VkCommandPool& commandPool, VkCommandBuffer& commandBuffer) const;
-
-    void drawImgui(VkCommandBuffer cmd, VkImageView targetImageView) const;
-    void drawObjects(VkCommandBuffer cmd, std::vector<RenderObject>& objects);
 
     FrameData& getCurrentFrame();
 

@@ -13,3 +13,5 @@
 #include "ParentToLocal.h"
 #include "Children.h"
 #include "LocalToWorld.h"
+#include "ObjectInfo.h"
+#include "RayTagged.h"

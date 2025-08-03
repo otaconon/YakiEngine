@@ -422,9 +422,9 @@ void Renderer::initDefaultData()
 	auto& ecs = Ecs::GetInstance();
 	ecs.AddSingletonComponent(GPUSceneData{});
 	auto sceneData = ecs.GetSingletonComponent<GPUSceneData>();
-	sceneData->ambientColor = glm::vec4(.1f);
+	sceneData->ambientColor = glm::vec4(.1f, .1f, .1f, 1.f);
 	sceneData->sunlightColor = glm::vec4(1.f);
-	sceneData->sunlightDirection = glm::vec4(0,1,0.5,1.f);
+	sceneData->sunlightDirection = glm::vec4(0, 1, 0.5, 1.f);
 }
 
 VkCommandBuffer Renderer::beginSingleTimeCommands(VkCommandPool& commandPool) const

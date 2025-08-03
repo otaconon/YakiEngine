@@ -63,21 +63,33 @@ void RenderSystem::renderGui()
     ImGui_ImplVulkan_NewFrame();
     ImGui_ImplSDL3_NewFrame();
     ImGui::NewFrame();
-    ImGui::ShowDemoWindow();
-
-    ImGui::Begin("Editor");
-    ecs.Each<Button>([](Hori::Entity, Button& button) {
-        if (ImGui::Button((button.label.c_str())))
-            button.onClick();
-    });
-    ImGui::End();
 
     ImGui::Begin("Object info");
     ecs.Each<RayTagged>([&ecs](Hori::Entity e, RayTagged) {
         if (ecs.HasComponents<Translation>(e))
         {
-            glm::vec3 translation = ecs.GetComponent<Translation>(e)->value;
-            ImGui::Text(std::format("Translation: {}, {}, {}", translation.x, translation.y, translation.z).c_str());
+            ImGui::Text("Translation");
+            glm::vec3& translation = ecs.GetComponent<Translation>(e)->value;
+            ImGui::InputFloat("x##translation.x", &translation.x);
+            ImGui::InputFloat("y##translation.y", &translation.y);
+            ImGui::InputFloat("z##translation.z", &translation.z);
+        }
+        if (ecs.HasComponents<Rotation>(e))
+        {
+            ImGui::Text("Rotation");
+            glm::quat& rotation = ecs.GetComponent<Rotation>(e)->value;
+            ImGui::InputFloat("x##rotation.x", &rotation.x);
+            ImGui::InputFloat("y##rotation.y", &rotation.y);
+            ImGui::InputFloat("z##rotation.z", &rotation.z);
+            ImGui::InputFloat("w##rotation.w", &rotation.w);
+        }
+        if (ecs.HasComponents<Translation>(e))
+        {
+            ImGui::Text("Scale");
+            glm::vec3& scale = ecs.GetComponent<Scale>(e)->value;
+            ImGui::InputFloat("x##scale.x", &scale.x);
+            ImGui::InputFloat("y##scale.y", &scale.y);
+            ImGui::InputFloat("z##scale.z", &scale.z);
         }
     });
     ImGui::End();

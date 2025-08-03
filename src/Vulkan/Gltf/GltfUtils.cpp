@@ -109,7 +109,7 @@ std::optional<std::vector<std::shared_ptr<Mesh>>> GltfUtils::load_gltf_meshes(Vu
 
         if (constexpr bool OverrideColors = true) {
             for (Vertex& vtx : vertices) {
-                vtx.color = glm::vec4(vtx.normal, 1.f);
+                vtx.color = glm::vec4(vtx.normal * 0.5f + 0.5f, 1.f);
             }
         }
 

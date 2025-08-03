@@ -10,6 +10,7 @@
 #include <glm/gtx/quaternion.hpp>
 
 #include "../Components/RayTagged.h"
+#include "../ImGuiUtils.h"
 
 RenderSystem::RenderSystem(Renderer& renderer)
     : m_renderer(&renderer)
@@ -67,30 +68,13 @@ void RenderSystem::renderGui()
     ImGui::Begin("Object info");
     ecs.Each<RayTagged>([&ecs](Hori::Entity e, RayTagged) {
         if (ecs.HasComponents<Translation>(e))
-        {
-            ImGui::Text("Translation");
-            glm::vec3& translation = ecs.GetComponent<Translation>(e)->value;
-            ImGui::InputFloat("x##translation.x", &translation.x);
-            ImGui::InputFloat("y##translation.y", &translation.y);
-            ImGui::InputFloat("z##translation.z", &translation.z);
-        }
+            ImGui::InputFloat3("Translation", glm::value_ptr(ecs.GetComponent<Translation>(e)->value));
+
         if (ecs.HasComponents<Rotation>(e))
-        {
-            ImGui::Text("Rotation");
-            glm::quat& rotation = ecs.GetComponent<Rotation>(e)->value;
-            ImGui::InputFloat("x##rotation.x", &rotation.x);
-            ImGui::InputFloat("y##rotation.y", &rotation.y);
-            ImGui::InputFloat("z##rotation.z", &rotation.z);
-            ImGui::InputFloat("w##rotation.w", &rotation.w);
-        }
+            ImGui::InputFloat4("Rotation", glm::value_ptr(ecs.GetComponent<Rotation>(e)->value));
+
         if (ecs.HasComponents<Translation>(e))
-        {
-            ImGui::Text("Scale");
-            glm::vec3& scale = ecs.GetComponent<Scale>(e)->value;
-            ImGui::InputFloat("x##scale.x", &scale.x);
-            ImGui::InputFloat("y##scale.y", &scale.y);
-            ImGui::InputFloat("z##scale.z", &scale.z);
-        }
+            ImGui::InputFloat3("Scale", glm::value_ptr(ecs.GetComponent<Scale>(e)->value));
     });
     ImGui::End();
 

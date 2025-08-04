@@ -39,15 +39,11 @@ int main() {
 	ecs.AddSingletonComponent(InputEvents{});
 
 	auto allMeshes = GltfUtils::load_gltf_meshes(&ctx, "../assets/meshes/basicmesh.glb").value();
-	std::shared_ptr<Mesh> monkeyMesh = allMeshes[2];
-	Drawable drawable = create_drawable(monkeyMesh);
-
-	// Create monkey entity
-	Hori::Entity monkey = ecs.CreateEntity();
-	ecs.AddComponents(monkey, std::move(drawable), Translation{{1.f, 1.f, 1.f}}, Rotation{}, Scale{{1.f, 1.f, 1.f}}, LocalToWorld{}, LocalToParent{}, ParentToLocal{}, BoxCollider{{0.5f, 0.5f, 0.5f}, true});
-
-	Hori::Entity cube = ecs.CreateEntity();
-	ecs.AddComponents(cube, create_drawable(allMeshes[0]), Translation{{4.f, 4.f, 1.f}}, Rotation{}, Scale{{1.f, 1.f, 1.f}}, LocalToWorld{}, LocalToParent{}, ParentToLocal{}, BoxCollider{{0.5f, 0.5f, 0.5f}, true});
+	for (auto [idx, mesh] : std::views::enumerate(allMeshes))
+	{
+		Hori::Entity e = ecs.CreateEntity();
+		ecs.AddComponents(e, create_drawable(mesh), Translation{{3.f * idx, 1.f, 1.f}}, Rotation{}, Scale{{1.f, 1.f, 1.f}}, LocalToWorld{}, LocalToParent{}, ParentToLocal{}, BoxCollider{{0.5f, 0.5f, 0.5f}, true});
+	}
 
 	// Create camera entity
 	Hori::Entity camera = ecs.CreateEntity();

@@ -67,6 +67,11 @@ void RenderSystem::renderGui()
 
     ImGui::Begin("Object info");
     ecs.Each<RayTagged>([&ecs](Hori::Entity e, RayTagged) {
+        if (ecs.GetComponentArray<RayTagged>().Size() > 1)
+        {
+            ecs.RemoveComponents<RayTagged>(e);
+            return;
+        }
         if (ecs.HasComponents<Translation>(e))
             ImGui::InputFloat3("Translation", glm::value_ptr(ecs.GetComponent<Translation>(e)->value));
 

@@ -15,6 +15,7 @@
 #include "Systems/TransformSystem.h"
 #include "Systems/CameraSystem.h"
 #include "Components/Components.h"
+#include "Components/DirectionalLight.h"
 #include "Vulkan/Gltf/GltfUtils.h"
 
 Drawable create_drawable(std::shared_ptr<Mesh> mesh)
@@ -38,6 +39,7 @@ int main() {
 
 	ecs.AddSingletonComponent(InputEvents{});
 
+	// Create object entities
 	auto allMeshes = GltfUtils::load_gltf_meshes(&ctx, "../assets/meshes/basicmesh.glb").value();
 	for (auto [idx, mesh] : std::views::enumerate(allMeshes))
 	{
@@ -49,6 +51,10 @@ int main() {
 	Hori::Entity camera = ecs.CreateEntity();
 	ecs.AddComponents(camera, Camera{}, Controller{}, RayData{});
 	ecs.AddComponents(camera, Translation{{0, -10.f, -10.f}}, Rotation{}, Scale{}, LocalToWorld{}, LocalToParent{}, ParentToLocal{});
+
+	// Create light entity
+	Hori::Entity light = ecs.CreateEntity();
+	ecs.AddComponents(light, DirectionalLight({0.5f, 0.3f, 0.2f, 1.f}, {1.0f, 0.0f, 0.0f}), AmbientLight({0.7, 0.3, 0.3, 0.1f}));
 
 	auto prevTime = std::chrono::high_resolution_clock::now();
 	bool running = true;

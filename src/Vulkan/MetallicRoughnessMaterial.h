@@ -25,7 +25,7 @@ struct MaterialResources {
 
 class MetallicRoughnessMaterial {
 public:
-    MetallicRoughnessMaterial(VulkanContext* ctx);
+    explicit MetallicRoughnessMaterial(VulkanContext* ctx);
     ~MetallicRoughnessMaterial();
 
     void BuildPipelines(Swapchain& swapchain, VkDescriptorSetLayout gpuSceneDataDescriptorLayout);

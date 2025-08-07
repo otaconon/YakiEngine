@@ -11,6 +11,7 @@
 
 #include "../Components/RayTagged.h"
 #include "../ImGuiUtils.h"
+#include "../Components/DirectionalLight.h"
 
 RenderSystem::RenderSystem(Renderer& renderer)
     : m_renderer(&renderer)
@@ -23,6 +24,18 @@ void RenderSystem::Update(float dt)
     ecs.Each<Camera>([&camera](Hori::Entity e, const Camera& cam) {
         camera = cam;
     });
+
+    // Assumes there is only one light of each type in the scene (idk how to handle more yet)
+    ecs.Each<DirectionalLight>([&ecs](Hori::Entity, DirectionalLight& light) {
+        auto sceneData = ecs.GetSingletonComponent<GPUSceneData>();
+        sceneData->sunlightColor = light.color;
+        sceneData->sunlightDirection = glm::vec4(light.direction, 1.f);
+    });
+
+    ecs.Each<AmbientLight>([&ecs](Hori::Entity, AmbientLight& light) {
+       auto sceneData = ecs.GetSingletonComponent<GPUSceneData>();
+        sceneData->ambientColor = light.color;
+   });
 
     auto sceneData = ecs.GetSingletonComponent<GPUSceneData>();
     sceneData->proj = camera.projection;
@@ -64,6 +77,22 @@ void RenderSystem::renderGui()
     ImGui_ImplVulkan_NewFrame();
     ImGui_ImplSDL3_NewFrame();
     ImGui::NewFrame();
+
+    ImGui::Begin("Light info");
+    ecs.Each<DirectionalLight>([](Hori::Entity, DirectionalLight& light) {
+        ImGui::PushID("Directional light");
+        ImGui::Text("Directional light");
+        ImGui::InputFloat4("Color", glm::value_ptr(light.color));
+        ImGui::InputFloat3("Direction", glm::value_ptr(light.direction));
+        ImGui::PopID();
+    });
+    ecs.Each<AmbientLight>([](Hori::Entity, AmbientLight& light) {
+        ImGui::PushID("Ambient light");
+        ImGui::Text("Ambient light");
+        ImGui::InputFloat4("Color", glm::value_ptr(light.color));
+        ImGui::PopID();
+    });
+    ImGui::End();
 
     ImGui::Begin("Object info");
     ecs.Each<RayTagged>([&ecs](Hori::Entity e, RayTagged) {

@@ -21,21 +21,9 @@ void RenderSystem::Update(float dt)
 {
     auto& ecs = Ecs::GetInstance();
     Camera camera;
-    ecs.Each<Camera>([&camera](Hori::Entity e, const Camera& cam) {
+    ecs.Each<Camera>([&camera](Hori::Entity, const Camera& cam) {
         camera = cam;
     });
-
-    // Assumes there is only one light of each type in the scene (idk how to handle more yet)
-    ecs.Each<DirectionalLight>([&ecs](Hori::Entity, DirectionalLight& light) {
-        auto sceneData = ecs.GetSingletonComponent<GPUSceneData>();
-        sceneData->sunlightColor = light.color;
-        sceneData->sunlightDirection = glm::vec4(light.direction, 1.f);
-    });
-
-    ecs.Each<AmbientLight>([&ecs](Hori::Entity, AmbientLight& light) {
-       auto sceneData = ecs.GetSingletonComponent<GPUSceneData>();
-        sceneData->ambientColor = light.color;
-   });
 
     auto sceneData = ecs.GetSingletonComponent<GPUSceneData>();
     sceneData->proj = camera.projection;
@@ -78,6 +66,11 @@ void RenderSystem::renderGui()
     ImGui_ImplSDL3_NewFrame();
     ImGui::NewFrame();
 
+    ImGui::Begin("SceneData");
+    auto sceneData = ecs.GetSingletonComponent<GPUSceneData>();
+    ImGui::InputFloat4("Ambient color", glm::value_ptr(sceneData->ambientColor));
+    ImGui::End();
+
     ImGui::Begin("Light info");
     ecs.Each<DirectionalLight>([](Hori::Entity, DirectionalLight& light) {
         ImGui::PushID("Directional light");
@@ -86,29 +79,20 @@ void RenderSystem::renderGui()
         ImGui::InputFloat3("Direction", glm::value_ptr(light.direction));
         ImGui::PopID();
     });
-    ecs.Each<AmbientLight>([](Hori::Entity, AmbientLight& light) {
-        ImGui::PushID("Ambient light");
-        ImGui::Text("Ambient light");
-        ImGui::InputFloat4("Color", glm::value_ptr(light.color));
-        ImGui::PopID();
-    });
     ImGui::End();
 
     ImGui::Begin("Object info");
-    ecs.Each<RayTagged>([&ecs](Hori::Entity e, RayTagged) {
+    ecs.Each<RayTagged, Translation, Rotation, Scale, Property<Translation>, Property<Rotation>, Property<Scale>>
+    ([&ecs](Hori::Entity e, RayTagged, Translation& translation, Rotation& rotation, Scale& scale, Property<Translation>& pTranslation, Property<Rotation>& pRotation, Property<Scale>& pScale) {
         if (ecs.GetComponentArray<RayTagged>().Size() > 1)
         {
             ecs.RemoveComponents<RayTagged>(e);
             return;
         }
-        if (ecs.HasComponents<Translation>(e))
-            ImGui::InputFloat3("Translation", glm::value_ptr(ecs.GetComponent<Translation>(e)->value));
 
-        if (ecs.HasComponents<Rotation>(e))
-            ImGui::InputFloat4("Rotation", glm::value_ptr(ecs.GetComponent<Rotation>(e)->value));
-
-        if (ecs.HasComponents<Translation>(e))
-            ImGui::InputFloat3("Scale", glm::value_ptr(ecs.GetComponent<Scale>(e)->value));
+        ImGui::InputFloat3(pTranslation.label.c_str(), glm::value_ptr(translation.value));
+        ImGui::InputFloat3(pRotation.label.c_str(), glm::value_ptr(rotation.value));
+        ImGui::InputFloat3(pScale.label.c_str(), glm::value_ptr(scale.value));
     });
     ImGui::End();
 

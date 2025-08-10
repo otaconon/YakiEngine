@@ -40,6 +40,10 @@ private:
     VkDescriptorSetLayout m_singleImageDescriptorLayout{};
     VkDescriptorSetLayout m_gpuSceneDataDescriptorLayout{};
 
+    // Move from here
+    Buffer* m_lightBuffer = nullptr;
+    void* m_lightBufferMapped = nullptr;
+
     std::shared_ptr<Image> m_whiteImage{};
     std::shared_ptr<Image> m_errorImage{};
 
@@ -59,6 +63,7 @@ private:
     void initSamplers();
     void initDefaultTextures();
     void initDefaultData();
+    void initLightBuffer();
 
     VkCommandBuffer beginSingleTimeCommands(VkCommandPool& commandPool) const;
     void endSingleTimeCommands(VkCommandPool& commandPool, VkCommandBuffer& commandBuffer) const;

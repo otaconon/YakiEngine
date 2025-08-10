@@ -16,3 +16,4 @@
 #include "RayTagged.h"
 #include "DirectionalLight.h"
 #include "AmbientLight.h"
+#include "Property.h"

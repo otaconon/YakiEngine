@@ -122,7 +122,6 @@ std::optional<std::vector<std::shared_ptr<Mesh>>> GltfUtils::load_gltf_meshes(Vu
 
 std::shared_ptr<GPUMeshBuffers> GltfUtils::upload_mesh(VulkanContext* ctx, std::vector<Vertex> vertices, std::vector<uint32_t> indices)
 {
-
 	const size_t vertexBufferSize = vertices.size() * sizeof(Vertex);
 	const size_t indexBufferSize = indices.size() * sizeof(uint32_t);
 

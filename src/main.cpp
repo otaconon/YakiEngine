@@ -17,6 +17,8 @@
 #include "Components/Components.h"
 #include "Components/DirectionalLight.h"
 #include "Vulkan/Gltf/GltfUtils.h"
+#include "PropertyRegistry.h"
+#include "Systems/LightingSystem.h"
 
 Drawable create_drawable(std::shared_ptr<Mesh> mesh)
 {
@@ -34,10 +36,13 @@ int main() {
 	ecs.AddSystem<ControllerSystem>(ControllerSystem());
 	ecs.AddSystem<MovementSystem>(MovementSystem());
 	ecs.AddSystem<TransformSystem>(TransformSystem());
+	ecs.AddSystem<LightingSystem>(LightingSystem());
 	ecs.AddSystem<RenderSystem>(renderer);
 	ecs.AddSystem<PhysicsSystem>(PhysicsSystem());
 
 	ecs.AddSingletonComponent(InputEvents{});
+	ecs.AddSingletonComponent(GPUSceneData{});
+	ecs.AddSingletonComponent(GPULightData{});
 
 	// Create object entities
 	auto allMeshes = GltfUtils::load_gltf_meshes(&ctx, "../assets/meshes/basicmesh.glb").value();
@@ -45,6 +50,9 @@ int main() {
 	{
 		Hori::Entity e = ecs.CreateEntity();
 		ecs.AddComponents(e, create_drawable(mesh), Translation{{3.f * idx, 1.f, 1.f}}, Rotation{}, Scale{{1.f, 1.f, 1.f}}, LocalToWorld{}, LocalToParent{}, ParentToLocal{}, BoxCollider{{0.5f, 0.5f, 0.5f}, true});
+		register_property<Translation>(e, "Translation");
+		register_property<Rotation>(e, "Rotation");
+		register_property<Scale>(e, "Scale");
 	}
 
 	// Create camera entity
@@ -54,7 +62,11 @@ int main() {
 
 	// Create light entity
 	Hori::Entity light = ecs.CreateEntity();
-	ecs.AddComponents(light, DirectionalLight({0.5f, 0.3f, 0.2f, 1.f}, {1.0f, 0.0f, 0.0f}), AmbientLight({0.7, 0.3, 0.3, 0.1f}));
+	ecs.AddComponents(light, DirectionalLight({0.5f, 0.3f, 0.2f, 1.f}, {1.0f, 0.0f, 0.0f}));
+
+	// Initialize scene
+	auto sceneData = ecs.GetSingletonComponent<GPUSceneData>();
+	sceneData->ambientColor = glm::vec4(.1f, .1f, .1f, 1.f);
 
 	auto prevTime = std::chrono::high_resolution_clock::now();
 	bool running = true;

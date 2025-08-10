@@ -3,10 +3,13 @@
 
 #include <vulkan/vulkan_core.h>
 #include <glm/glm.hpp>
+#include <array>
 
 #include "Buffer.h"
 #include "Descriptors/DescriptorAllocator.h"
 #include "DeletionQueue.h"
+#include "../Components/DirectionalLight.h"
+#include "../Components/PointLight.h"
 
 struct FrameData
 {
@@ -62,10 +65,15 @@ struct GPUSceneData
     glm::mat4 view;
     glm::mat4 proj;
     glm::mat4 viewproj;
-
     glm::vec4 ambientColor;
-    glm::vec4 sunlightDirection;
-    glm::vec4 sunlightColor;
+};
+
+static constexpr uint32_t MAX_DIRECTIONAL_LIGHTS = 1;
+static constexpr uint32_t MAX_POINT_LIGHTS = 1;
+struct GPULightData
+{
+    std::array<DirectionalLight, MAX_DIRECTIONAL_LIGHTS> directionalLights;
+    std::array<PointLight, MAX_POINT_LIGHTS> pointLights;
 };
 
 enum class MaterialPass :uint8_t {

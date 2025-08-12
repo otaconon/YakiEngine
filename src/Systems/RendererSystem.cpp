@@ -20,15 +20,15 @@ RenderSystem::RenderSystem(Renderer& renderer)
 void RenderSystem::Update(float dt)
 {
     auto& ecs = Ecs::GetInstance();
-    Camera camera;
-    ecs.Each<Camera>([&camera](Hori::Entity, const Camera& cam) {
-        camera = cam;
-    });
-
     auto sceneData = ecs.GetSingletonComponent<GPUSceneData>();
+    Camera camera;
+    ecs.Each<Camera, Translation>([&camera, &sceneData](Hori::Entity, Camera& cam, Translation& pos) {
+        camera = cam;
+        sceneData->eyePos = pos.value;
+    });
     sceneData->proj = camera.projection;
     sceneData->view = camera.view;
-    sceneData-> viewproj = camera.viewProjection;
+    sceneData->viewproj = camera.viewProjection;
 
     m_renderer->BeginRendering();
     renderDrawables();
@@ -79,7 +79,14 @@ void RenderSystem::renderGui()
         ImGui::InputFloat3("Direction", glm::value_ptr(light.direction));
         ImGui::PopID();
     });
+    ecs.Each<PointLight>([](Hori::Entity, PointLight& light) {
+       ImGui::PushID("Point light");
+       ImGui::Text("Point light");
+       ImGui::InputFloat4("Color", glm::value_ptr(light.color));
+       ImGui::PopID();
+   });
     ImGui::End();
+
 
     ImGui::Begin("Object info");
     ecs.Each<RayTagged, Translation, Rotation, Scale, Property<Translation>, Property<Rotation>, Property<Scale>>

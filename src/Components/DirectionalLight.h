@@ -5,5 +5,5 @@
 struct DirectionalLight
 {
     glm::vec4 color;
-    glm::vec3 direction;
+    glm::vec4 direction;
 };

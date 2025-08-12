@@ -66,6 +66,7 @@ struct GPUSceneData
     glm::mat4 proj;
     glm::mat4 viewproj;
     glm::vec4 ambientColor;
+    glm::vec3 eyePos;
 };
 
 static constexpr uint32_t MAX_DIRECTIONAL_LIGHTS = 1;

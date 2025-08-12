@@ -1,23 +1,22 @@
-const int MAX_DIRECTIONAL = 1;
-const int MAX_POINT = 1;
+#define MAX_DIRECTIONAL 1
+#define MAX_POINT 1
 
 struct DirectionalLight {
     vec4 color;
-    vec3 direction;
+    vec4 direction;
 };
 
 struct PointLight {
     vec4 color;
-    vec3 position;
-    float rMin;
-    float rMax;};
+    vec4 position;
+};
 
 layout(set = 0, binding = 0) uniform  SceneData {
     mat4 view;
     mat4 proj;
     mat4 viewproj;
     vec4 ambientColor;
-    vec3 eyePosition;
+    vec4 eyePosition;
 } sceneData;
 
 layout (std430, set = 0, binding = 1) restrict readonly buffer LightBuffer {

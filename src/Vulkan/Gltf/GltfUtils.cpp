@@ -93,7 +93,6 @@ std::optional<std::vector<std::shared_ptr<Mesh>>> GltfUtils::load_gltf_meshes(Vu
                     });
             }
 
-
         	// load vertex colors
         	auto colors = p.findAttribute("COLOR_0");
         	if (colors != p.attributes.end()) {

@@ -3,6 +3,8 @@
 #include "../Ecs.h"
 #include "../Components/DirectionalLight.h"
 #include "../Vulkan/VkTypes.h"
+#include "../Components/Translation.h"
+
 
 LightingSystem::LightingSystem() = default;
 
@@ -20,7 +22,9 @@ void LightingSystem::Update(float dt)
         directionalLights[idx++] = dirLight;
     });
     idx = 0;
-    ecs.Each<PointLight>([&pointLights, &idx](Hori::Entity, PointLight& pointLight) {
-        pointLights[idx++] = pointLight;
+    ecs.Each<PointLight, Translation>([&pointLights, &idx](Hori::Entity, PointLight& pointLight, Translation& pos) {
+        pointLights[idx].color = pointLight.color;
+        pointLights[idx].position = glm::vec4(pos.value, 1.f);
+        idx++;
     });
 }

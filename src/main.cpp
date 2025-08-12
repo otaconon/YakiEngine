@@ -62,7 +62,12 @@ int main() {
 
 	// Create light entity
 	Hori::Entity light = ecs.CreateEntity();
-	ecs.AddComponents(light, DirectionalLight({0.5f, 0.3f, 0.2f, 1.f}, {1.0f, 0.0f, 0.0f}));
+	ecs.AddComponents(light, DirectionalLight({0.5f, 0.3f, 0.2f, 1.f}, {1.0f, 0.0f, 0.0f, 1.f}));
+	ecs.AddComponents(light, PointLight({0.5f, 0.3f, 0.2f, 1.f}, {1.0f, 0.0f, 0.0f, 1.f}));
+	ecs.AddComponents(light, create_drawable(allMeshes[1]), Translation{{10.f, 10.f, 1.f}}, Rotation{}, Scale{{1.f, 1.f, 1.f}}, LocalToWorld{}, LocalToParent{}, ParentToLocal{}, BoxCollider{{0.5f, 0.5f, 0.5f}, true});
+	register_property<Translation>(light, "Translation");
+	register_property<Rotation>(light, "Rotation");
+	register_property<Scale>(light, "Scale");
 
 	// Initialize scene
 	auto sceneData = ecs.GetSingletonComponent<GPUSceneData>();

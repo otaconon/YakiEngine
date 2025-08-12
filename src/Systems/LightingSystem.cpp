@@ -4,10 +4,7 @@
 #include "../Components/DirectionalLight.h"
 #include "../Vulkan/VkTypes.h"
 
-LightingSystem::LightingSystem()
-{
-
-}
+LightingSystem::LightingSystem() = default;
 
 void LightingSystem::Update(float dt)
 {

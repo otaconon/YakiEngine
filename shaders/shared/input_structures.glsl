@@ -17,6 +17,7 @@ layout(set = 0, binding = 0) uniform  SceneData {
     mat4 proj;
     mat4 viewproj;
     vec4 ambientColor;
+    vec3 eyePosition;
 } sceneData;
 
 layout (std430, set = 0, binding = 1) restrict readonly buffer LightBuffer {

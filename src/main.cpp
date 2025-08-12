@@ -11,20 +11,14 @@
 #include "InputData.h"
 #include "Raycast.h"
 #include "Systems/PhysicsSystem.h"
-#include "Systems/GuiSystem.h"
 #include "Systems/TransformSystem.h"
 #include "Systems/CameraSystem.h"
 #include "Components/Components.h"
-#include "Components/DirectionalLight.h"
 #include "Vulkan/Gltf/GltfUtils.h"
-#include "PropertyRegistry.h"
 #include "Systems/LightingSystem.h"
 
-Drawable create_drawable(std::shared_ptr<Mesh> mesh)
-{
-	Drawable drawable{mesh, {}, {}, {glm::mat4{1.f}, glm::mat4{}, glm::mat4{}}};
-	return drawable;
-}
+constexpr uint32_t numDirectionalLights = 0;
+constexpr uint32_t numPointLights = 2;
 
 int main() {
     auto& ecs = Ecs::GetInstance();
@@ -49,10 +43,7 @@ int main() {
 	for (auto [idx, mesh] : std::views::enumerate(allMeshes))
 	{
 		Hori::Entity e = ecs.CreateEntity();
-		ecs.AddComponents(e, create_drawable(mesh), Translation{{3.f * idx, 1.f, 1.f}}, Rotation{}, Scale{{1.f, 1.f, 1.f}}, LocalToWorld{}, LocalToParent{}, ParentToLocal{}, BoxCollider{{0.5f, 0.5f, 0.5f}, true});
-		register_property<Translation>(e, "Translation");
-		register_property<Rotation>(e, "Rotation");
-		register_property<Scale>(e, "Scale");
+		register_object(e, mesh, Translation{{3.f * idx, 0.f, 0.f}});
 	}
 
 	// Create camera entity
@@ -60,14 +51,19 @@ int main() {
 	ecs.AddComponents(camera, Camera{}, Controller{}, RayData{});
 	ecs.AddComponents(camera, Translation{{0, -10.f, -10.f}}, Rotation{}, Scale{}, LocalToWorld{}, LocalToParent{}, ParentToLocal{});
 
+	// Init lights data
+	auto lightData = ecs.GetSingletonComponent<GPULightData>();
+	lightData->numDirectionalLights = numDirectionalLights;
+	lightData->numPointLights = numPointLights;
+
 	// Create light entity
-	Hori::Entity light = ecs.CreateEntity();
-	ecs.AddComponents(light, DirectionalLight({0.5f, 0.3f, 0.2f, 1.f}, {1.0f, 0.0f, 0.0f, 1.f}));
-	ecs.AddComponents(light, PointLight({0.5f, 0.3f, 0.2f, 1.f}, {1.0f, 0.0f, 0.0f, 1.f}));
-	ecs.AddComponents(light, create_drawable(allMeshes[1]), Translation{{10.f, 10.f, 1.f}}, Rotation{}, Scale{{1.f, 1.f, 1.f}}, LocalToWorld{}, LocalToParent{}, ParentToLocal{}, BoxCollider{{0.5f, 0.5f, 0.5f}, true});
-	register_property<Translation>(light, "Translation");
-	register_property<Rotation>(light, "Rotation");
-	register_property<Scale>(light, "Scale");
+	std::array<Hori::Entity, numPointLights> lights;
+	for (auto& e : lights)
+	{
+		e = ecs.CreateEntity();
+		ecs.AddComponents(e, PointLight({0.5f, 0.3f, 0.2f, 1.f}, {1.0f, 0.0f, 0.0f, 1.f}));
+		register_object(e, allMeshes[1], Translation{{10.f, 10.f, 1.f}});
+	}
 
 	// Initialize scene
 	auto sceneData = ecs.GetSingletonComponent<GPUSceneData>();
@@ -79,7 +75,7 @@ int main() {
 	while (running)
 	{
 		auto currentTime = std::chrono::high_resolution_clock::now();
-		float dt = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - prevTime).count();
+		float dt = std::chrono::duration<float>(currentTime - prevTime).count();
 
 		while (SDL_PollEvent(&event)) {
 			switch (event.type) {

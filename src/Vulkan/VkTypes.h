@@ -69,10 +69,13 @@ struct GPUSceneData
     glm::vec3 eyePos;
 };
 
-static constexpr uint32_t MAX_DIRECTIONAL_LIGHTS = 1;
-static constexpr uint32_t MAX_POINT_LIGHTS = 1;
+static constexpr uint32_t MAX_DIRECTIONAL_LIGHTS = 10;
+static constexpr uint32_t MAX_POINT_LIGHTS = 10;
 struct GPULightData
 {
+    uint32_t numDirectionalLights;
+    uint32_t numPointLights;
+
     std::array<DirectionalLight, MAX_DIRECTIONAL_LIGHTS> directionalLights;
     std::array<PointLight, MAX_POINT_LIGHTS> pointLights;
 };

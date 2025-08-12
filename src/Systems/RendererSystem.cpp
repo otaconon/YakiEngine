@@ -71,22 +71,22 @@ void RenderSystem::renderGui()
     ImGui::InputFloat4("Ambient color", glm::value_ptr(sceneData->ambientColor));
     ImGui::End();
 
+    uint32_t id = 0;
     ImGui::Begin("Light info");
-    ecs.Each<DirectionalLight>([](Hori::Entity, DirectionalLight& light) {
-        ImGui::PushID("Directional light");
+    ecs.Each<DirectionalLight>([&id](Hori::Entity, DirectionalLight& light) {
+        ImGui::PushID(std::format("Directional light##{}", id++).c_str());
         ImGui::Text("Directional light");
         ImGui::InputFloat4("Color", glm::value_ptr(light.color));
         ImGui::InputFloat3("Direction", glm::value_ptr(light.direction));
         ImGui::PopID();
     });
-    ecs.Each<PointLight>([](Hori::Entity, PointLight& light) {
-       ImGui::PushID("Point light");
-       ImGui::Text("Point light");
-       ImGui::InputFloat4("Color", glm::value_ptr(light.color));
-       ImGui::PopID();
+    ecs.Each<PointLight>([&id](Hori::Entity, PointLight& light) {
+        ImGui::PushID(std::format("Point light##{}", id++).c_str());
+        ImGui::Text("Point light");
+        ImGui::InputFloat4("Color", glm::value_ptr(light.color));
+        ImGui::PopID();
    });
     ImGui::End();
-
 
     ImGui::Begin("Object info");
     ecs.Each<RayTagged, Translation, Rotation, Scale, Property<Translation>, Property<Rotation>, Property<Scale>>

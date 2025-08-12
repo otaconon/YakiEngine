@@ -26,7 +26,7 @@ void main()
     vec3 ambient = color * sceneData.ambientColor.xyz;
 
     outFragColor = vec4(0.f, 0.f, 0.f, 1.0f);
-    for (uint i = 0u; i < MAX_POINT; i++) {
+    for (uint i = 0u; i < lightBuffer.numPointLights; i++) {
         vec3 l = normalize(lightBuffer.pointLights[i].position.xyz - vPosition);
         float NdL = clamp(dot(n, l), 0.0f, 1.0f);
         outFragColor.rgb += NdL * lightBuffer.pointLights[i].color.rgb * lit(l, n, v);

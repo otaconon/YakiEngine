@@ -1,5 +1,5 @@
-#define MAX_DIRECTIONAL 1
-#define MAX_POINT 1
+#define MAX_DIRECTIONAL 10
+#define MAX_POINT 10
 
 struct DirectionalLight {
     vec4 color;
@@ -20,6 +20,9 @@ layout(set = 0, binding = 0) uniform  SceneData {
 } sceneData;
 
 layout (std430, set = 0, binding = 1) restrict readonly buffer LightBuffer {
+    uint numDirectionalLights;
+    uint numPointLights;
+
     DirectionalLight directionalLights[MAX_DIRECTIONAL];
     PointLight pointLights[MAX_POINT];
 } lightBuffer;

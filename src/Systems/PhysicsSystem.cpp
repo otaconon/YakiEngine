@@ -126,7 +126,10 @@ void PhysicsSystem::Update(float dt)
         });
 
         if (ray.hit.e.Valid())
+        {
             std::print("Ray had hit an entity: {}\n", ray.hit.e.id);
+            ecs.AddComponents(ray.hit.e, RayTagged{});
+        }
 
         ray.hit.e.id = 0;
         ray.active = false;

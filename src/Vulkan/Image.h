@@ -34,7 +34,6 @@ private:
 
     VkImage m_image{};
     VkImageView m_view{};
-
     VkExtent3D m_extent{};
     VkFormat m_format{};
 

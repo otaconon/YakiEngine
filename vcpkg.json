@@ -1,0 +1,15 @@
+{
+  "name": "yaki-engine",
+  "version-string": "0.0.1",
+  "dependencies": [
+    "glad",
+    "glm",
+    "freetype",
+    "vulkan",
+    "sdl3",
+    "stb",
+    "imgui",
+    "vulkan-memory-allocator",
+    "fastgltf"
+  ]
+}

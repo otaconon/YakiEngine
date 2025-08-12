@@ -13,3 +13,7 @@
 #include "ParentToLocal.h"
 #include "Children.h"
 #include "LocalToWorld.h"
+#include "RayTagged.h"
+#include "DirectionalLight.h"
+#include "AmbientLight.h"
+#include "Property.h"

@@ -1,6 +1,9 @@
 #version 450
 #extension GL_EXT_buffer_reference : require
 
+const int MAX_DIRECTIONAL_LIGHTS = 1;
+const int MAX_PUNCTUAL_LIGHTS = 1;
+
 struct Vertex {
 
     vec3 position;
@@ -13,7 +16,7 @@ layout(buffer_reference, std430) readonly buffer VertexBuffer{
     Vertex vertices[];
 };
 
-layout( push_constant ) uniform constants
+layout(push_constant) uniform constants
 {
     mat4 model;
     mat4 view;

@@ -93,7 +93,6 @@ std::optional<std::vector<std::shared_ptr<Mesh>>> GltfUtils::load_gltf_meshes(Vu
                     });
             }
 
-
         	// load vertex colors
         	auto colors = p.findAttribute("COLOR_0");
         	if (colors != p.attributes.end()) {
@@ -107,9 +106,9 @@ std::optional<std::vector<std::shared_ptr<Mesh>>> GltfUtils::load_gltf_meshes(Vu
             newMesh.surfaces.push_back(newSurface);
         }
 
-        if (constexpr bool OverrideColors = true) {
+        if (constexpr bool OverrideColors = false) {
             for (Vertex& vtx : vertices) {
-                vtx.color = glm::vec4(vtx.normal, 1.f);
+                vtx.color = glm::vec4(vtx.normal * 0.5f + 0.5f, 1.f);
             }
         }
 
@@ -122,7 +121,6 @@ std::optional<std::vector<std::shared_ptr<Mesh>>> GltfUtils::load_gltf_meshes(Vu
 
 std::shared_ptr<GPUMeshBuffers> GltfUtils::upload_mesh(VulkanContext* ctx, std::vector<Vertex> vertices, std::vector<uint32_t> indices)
 {
-
 	const size_t vertexBufferSize = vertices.size() * sizeof(Vertex);
 	const size_t indexBufferSize = indices.size() * sizeof(uint32_t);
 

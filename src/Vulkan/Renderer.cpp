@@ -16,6 +16,7 @@
 #include "VkInit.h"
 #include "../Ecs.h"
 #include "Descriptors/DescriptorLayoutBuilder.h"
+#include "../Components/Components.h"
 
 Renderer::Renderer(SDL_Window* window, VulkanContext* ctx)
     : m_window{window},
@@ -122,20 +123,30 @@ void Renderer::RenderObjects(std::vector<RenderObject>& objects)
 	VkRenderingInfo renderInfo = VkInit::rendering_info(drawExtent, &colorAttachment, &depthAttachment);
 	vkCmdBeginRendering(cmd, &renderInfo);
 
+	// Scene data
 	Buffer gpuSceneDataBuffer(m_ctx->GetAllocator(), sizeof(GPUSceneData), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU);
 	GPUSceneData* sceneUniformData;
-	vmaMapMemory(gpuSceneDataBuffer.allocator, gpuSceneDataBuffer.allocation, (void**)&sceneUniformData);
+	vmaMapMemory(gpuSceneDataBuffer.allocator, gpuSceneDataBuffer.allocation, reinterpret_cast<void**>(&sceneUniformData));
 	*sceneUniformData = *Ecs::GetInstance().GetSingletonComponent<GPUSceneData>();
 	vmaUnmapMemory(gpuSceneDataBuffer.allocator, gpuSceneDataBuffer.allocation);
+
+	// Light buffer
+	Buffer lightBuffer(m_ctx->GetAllocator(), sizeof(GPULightData), VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU);
+	auto lightData = *Ecs::GetInstance().GetSingletonComponent<GPULightData>();
+	GPULightData* mappedLightData;
+	vmaMapMemory(lightBuffer.allocator, lightBuffer.allocation, reinterpret_cast<void**>(&mappedLightData));
+	*mappedLightData = lightData;
+	vmaUnmapMemory(lightBuffer.allocator, lightBuffer.allocation);
 
 	VkDescriptorSet globalDescriptor = getCurrentFrame().frameDescriptors.Allocate(m_ctx->GetDevice(), m_gpuSceneDataDescriptorLayout);
 	{
 		DescriptorWriter writer;
 		writer.WriteBuffer(0, gpuSceneDataBuffer.buffer, sizeof(GPUSceneData), 0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER);
+		writer.WriteBuffer(1, lightBuffer.buffer, sizeof(GPULightData), 0, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER);
 		writer.UpdateSet(m_ctx->GetDevice(), globalDescriptor);
 	}
-
 	m_deletionQueue.PushBuffer(std::move(gpuSceneDataBuffer));
+	m_deletionQueue.PushBuffer(std::move(lightBuffer));
 
 	for (auto& [indexCount, firstIndex, indexBuffer, material, transform, vertexBufferAddress] : objects)
 	{
@@ -355,6 +366,7 @@ void Renderer::initDescriptors()
 	{
 		DescriptorLayoutBuilder builder;
 		builder.AddBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER);
+		builder.AddBinding(1, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER);
 		m_gpuSceneDataDescriptorLayout = builder.Build(m_ctx->GetDevice(), VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT);
 		m_deletionQueue.PushFunction([&] {
 			vkDestroyDescriptorSetLayout(m_ctx->GetDevice(), m_gpuSceneDataDescriptorLayout, nullptr);
@@ -402,7 +414,7 @@ void Renderer::initDefaultData()
 	Buffer materialConstants(m_ctx->GetAllocator(), sizeof(MaterialConstants), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU);
 
 	MaterialConstants* sceneUniformData;
-	vmaMapMemory(materialConstants.allocator, materialConstants.allocation, (void**)&sceneUniformData);
+	vmaMapMemory(materialConstants.allocator, materialConstants.allocation, reinterpret_cast<void**>(&sceneUniformData));
 	sceneUniformData->colorFactors = glm::vec4{1,1,1,1};
 	sceneUniformData->metal_rough_factors = glm::vec4{1,0.5,0,0};
 	vmaUnmapMemory(materialConstants.allocator, materialConstants.allocation);
@@ -418,15 +430,12 @@ void Renderer::initDefaultData()
 
 	m_deletionQueue.PushBuffer(std::move(materialConstants));
 	m_defaultData = m_metalRoughMaterial.WriteMaterial(MaterialPass::MainColor, materialResources, m_descriptorAllocator);
-
-	auto& ecs = Ecs::GetInstance();
-	ecs.AddSingletonComponent(GPUSceneData{});
-	auto sceneData = ecs.GetSingletonComponent<GPUSceneData>();
-	sceneData->ambientColor = glm::vec4(.1f);
-	sceneData->sunlightColor = glm::vec4(1.f);
-	sceneData->sunlightDirection = glm::vec4(0,1,0.5,1.f);
 }
 
+void Renderer::initLightBuffer()
+{
+
+}
 VkCommandBuffer Renderer::beginSingleTimeCommands(VkCommandPool& commandPool) const
 {
 	VkCommandBufferAllocateInfo allocInfo {

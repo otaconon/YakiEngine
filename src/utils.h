@@ -1,10 +1,16 @@
 #pragma once
 
+#include <Entity.h>
 #include <filesystem>
 #include <fstream>
 #include <print>
 
-static std::vector<char> readFile(const std::filesystem::path& filepath)
+#include "Ecs.h"
+#include "PropertyRegistry.h"
+#include "Vulkan/VkTypes.h"
+#include "Components/Components.h"
+
+inline std::vector<char> read_file(const std::filesystem::path& filepath)
 {
     if (!std::filesystem::exists(filepath))
     {
@@ -19,11 +25,26 @@ static std::vector<char> readFile(const std::filesystem::path& filepath)
         return {};
     }
 
-    size_t fileSize = (size_t)file.tellg();
+    size_t fileSize = file.tellg();
     std::vector<char> buffer(fileSize);
     file.seekg(0);
     file.read(buffer.data(), fileSize);
 
     file.close();
     return buffer;
+}
+
+inline Drawable create_drawable(std::shared_ptr<Mesh> mesh)
+{
+    Drawable drawable{mesh, {}, {}, {glm::mat4{1.f}, glm::mat4{}, glm::mat4{}}};
+    return drawable;
+}
+
+inline void register_object(Hori::Entity e, std::shared_ptr<Mesh> mesh, Translation pos)
+{
+    auto& ecs = Ecs::GetInstance();
+    ecs.AddComponents(e, create_drawable(mesh), std::move(pos), Rotation{}, Scale{{1.f, 1.f, 1.f}}, LocalToWorld{}, LocalToParent{}, ParentToLocal{}, BoxCollider{{0.5f, 0.5f, 0.5f}, true});
+    register_property<Translation>(e, "Translation");
+    register_property<Rotation>(e, "Rotation");
+    register_property<Scale>(e, "Scale");
 }

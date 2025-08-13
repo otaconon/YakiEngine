@@ -6,18 +6,28 @@
 #include "../InputData.h"
 #include "../Components/Controller.h"
 
+ControllerSystem::ControllerSystem(SDL_Window* window)
+    : m_window(window)
+{
+}
+
 void ControllerSystem::Update(float dt)
 {
     auto& ecs = Ecs::GetInstance();
 
-    ecs.Each<Controller>([&ecs](Hori::Entity, Controller& controller) {
+    ecs.Each<Controller>([&ecs, this](Hori::Entity, Controller& controller) {
+        controller.direction = {};
         controller.dx = 0.f;
         controller.dy = 0.f;
 
         SDL_GetMouseState(&controller.mouseX, &controller.mouseY);
 
         if (controller.mouseMode == MouseMode::EDITOR)
+        {
+            controller.lockX = controller.mouseX;
+            controller.lockY = controller.mouseY;
             return;
+        }
 
         glm::vec3 dir{};
         const auto* keyboard = SDL_GetKeyboardState(nullptr);
@@ -40,5 +50,7 @@ void ControllerSystem::Update(float dt)
             dir = glm::normalize(dir);
 
         controller.direction = dir;
+
+        SDL_WarpMouseInWindow(m_window, controller.lockX, controller.lockY); // Make sure the mouse doesn't move when rotating camera
     });
 }

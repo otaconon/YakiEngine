@@ -28,7 +28,7 @@ int main() {
 	VulkanContext ctx{mainWindow.window()};
 	Renderer renderer(mainWindow.window(), &ctx);
 	ecs.AddSystem<CameraSystem>(CameraSystem());
-	ecs.AddSystem<ControllerSystem>(ControllerSystem());
+	ecs.AddSystem<ControllerSystem>(ControllerSystem(mainWindow.window()));
 	ecs.AddSystem<MovementSystem>(MovementSystem());
 	ecs.AddSystem<TransformSystem>(TransformSystem());
 	ecs.AddSystem<LightingSystem>(LightingSystem());
@@ -79,6 +79,7 @@ int main() {
 		float dt = std::chrono::duration<float>(currentTime - prevTime).count();
 
 		while (SDL_PollEvent(&event)) {
+			auto controller = ecs.GetComponent<Controller>(camera);
 			switch (event.type) {
 				case SDL_EVENT_QUIT:
 					running = false;
@@ -88,18 +89,32 @@ int main() {
 					{
 						SDL_SetWindowRelativeMouseMode(mainWindow.window(), false);
 						SDL_CaptureMouse(false);
-						ecs.GetComponent<Controller>(camera)->mouseMode = MouseMode::EDITOR;
+						controller->mouseMode = MouseMode::EDITOR;
 					}
 					else if (event.key.key == SDLK_SPACE)
 					{
 						SDL_SetWindowRelativeMouseMode(mainWindow.window(), true);
 						SDL_CaptureMouse(true);
-						ecs.GetComponent<Controller>(camera)->mouseMode = MouseMode::GAME;
+						controller->mouseMode = MouseMode::GAME;
 					}
-					else
+					break;
 				case SDL_EVENT_MOUSE_BUTTON_DOWN:
-						ecs.GetSingletonComponent<InputEvents>()->mouseButton.push_back(event.button);
-						break;
+					if (controller->mouseMode == MouseMode::EDITOR && event.button.button == SDL_BUTTON_RIGHT)
+					{
+						SDL_SetWindowRelativeMouseMode(mainWindow.window(), true);
+						SDL_CaptureMouse(true);
+						controller->mouseMode = MouseMode::EDITOR_CAMERA;
+					}
+					ecs.GetSingletonComponent<InputEvents>()->mouseButton.push_back(event.button);
+					break;
+				case SDL_EVENT_MOUSE_BUTTON_UP:
+					if (controller->mouseMode == MouseMode::EDITOR_CAMERA && event.button.button == SDL_BUTTON_RIGHT)
+					{
+						SDL_SetWindowRelativeMouseMode(mainWindow.window(), false);
+						SDL_CaptureMouse(false);
+						controller->mouseMode = MouseMode::EDITOR;
+					}
+					break;
 				case SDL_EVENT_MOUSE_MOTION:
 					ecs.GetSingletonComponent<InputEvents>()->mouseMotion.push_back(event.motion);
 					break;
@@ -109,9 +124,6 @@ int main() {
 
 			ImGui_ImplSDL3_ProcessEvent(&event);
 		}
-
-
-
 
 		ecs.UpdateSystems(dt);
 		renderer.WaitIdle();

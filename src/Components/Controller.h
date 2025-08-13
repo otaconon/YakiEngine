@@ -4,7 +4,7 @@
 
 enum class MouseMode
 {
-	EDITOR, GAME
+	EDITOR, EDITOR_CAMERA, GAME
 };
 
 struct Controller
@@ -13,5 +13,6 @@ struct Controller
 	float speed = 10.f;
 	float mouseX = 0.f, mouseY = 0.f;
 	float dx = 0.f, dy = 0.f;
+	float lockX = 0.f, lockY = 0.f;
 	MouseMode mouseMode = MouseMode::EDITOR;
 };

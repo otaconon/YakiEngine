@@ -17,3 +17,4 @@
 #include "DirectionalLight.h"
 #include "AmbientLight.h"
 #include "Property.h"
+#include "InputQueue.h"

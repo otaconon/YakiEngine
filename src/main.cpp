@@ -15,6 +15,7 @@
 #include "Systems/TransformSystem.h"
 #include "Systems/CameraSystem.h"
 #include "Components/Components.h"
+#include "Systems/InputSystem.h"
 #include "Vulkan/Gltf/GltfUtils.h"
 #include "Systems/LightingSystem.h"
 
@@ -27,6 +28,7 @@ int main() {
 	Window mainWindow;
 	VulkanContext ctx{mainWindow.window()};
 	Renderer renderer(mainWindow.window(), &ctx);
+	ecs.AddSystem<InputSystem>(InputSystem(mainWindow.window()));
 	ecs.AddSystem<CameraSystem>(CameraSystem());
 	ecs.AddSystem<ControllerSystem>(ControllerSystem(mainWindow.window()));
 	ecs.AddSystem<MovementSystem>(MovementSystem());
@@ -38,6 +40,7 @@ int main() {
 	ecs.AddSingletonComponent(InputEvents{});
 	ecs.AddSingletonComponent(GPUSceneData{});
 	ecs.AddSingletonComponent(GPULightData{});
+	ecs.AddSingletonComponent(MouseMode{});
 
 	// Create object entities
 	auto allMeshes = GltfUtils::load_gltf_meshes(&ctx, "../assets/meshes/basicmesh.glb").value();
@@ -70,6 +73,10 @@ int main() {
 	auto sceneData = ecs.GetSingletonComponent<GPUSceneData>();
 	sceneData->ambientColor = glm::vec4(.1f, .1f, .1f, 1.f);
 
+	// Initialize input singleton components
+	ecs.AddSingletonComponent(InputQueue<SDL_KeyboardEvent>());
+	ecs.AddSingletonComponent(InputQueue<SDL_MouseButtonEvent>());
+
 	auto prevTime = std::chrono::high_resolution_clock::now();
 	bool running = true;
 	SDL_Event event;
@@ -78,42 +85,21 @@ int main() {
 		auto currentTime = std::chrono::high_resolution_clock::now();
 		float dt = std::chrono::duration<float>(currentTime - prevTime).count();
 
+		auto keyboardQueue = ecs.GetSingletonComponent<InputQueue<SDL_KeyboardEvent>>();
+		auto mouseQueue = ecs.GetSingletonComponent<InputQueue<SDL_MouseButtonEvent>>();
 		while (SDL_PollEvent(&event)) {
-			auto controller = ecs.GetComponent<Controller>(camera);
 			switch (event.type) {
 				case SDL_EVENT_QUIT:
 					running = false;
 					break;
 				case SDL_EVENT_KEY_DOWN:
-					if (event.key.key == SDLK_ESCAPE)
-					{
-						SDL_SetWindowRelativeMouseMode(mainWindow.window(), false);
-						SDL_CaptureMouse(false);
-						controller->mouseMode = MouseMode::EDITOR;
-					}
-					else if (event.key.key == SDLK_SPACE)
-					{
-						SDL_SetWindowRelativeMouseMode(mainWindow.window(), true);
-						SDL_CaptureMouse(true);
-						controller->mouseMode = MouseMode::GAME;
-					}
+					keyboardQueue->queue.push_back(event.key);
 					break;
 				case SDL_EVENT_MOUSE_BUTTON_DOWN:
-					if (controller->mouseMode == MouseMode::EDITOR && event.button.button == SDL_BUTTON_RIGHT)
-					{
-						SDL_SetWindowRelativeMouseMode(mainWindow.window(), true);
-						SDL_CaptureMouse(true);
-						controller->mouseMode = MouseMode::EDITOR_CAMERA;
-					}
-					ecs.GetSingletonComponent<InputEvents>()->mouseButton.push_back(event.button);
+					mouseQueue->queue.push_back(event.button);
 					break;
 				case SDL_EVENT_MOUSE_BUTTON_UP:
-					if (controller->mouseMode == MouseMode::EDITOR_CAMERA && event.button.button == SDL_BUTTON_RIGHT)
-					{
-						SDL_SetWindowRelativeMouseMode(mainWindow.window(), false);
-						SDL_CaptureMouse(false);
-						controller->mouseMode = MouseMode::EDITOR;
-					}
+					mouseQueue->queue.push_back(event.button);
 					break;
 				case SDL_EVENT_MOUSE_MOTION:
 					ecs.GetSingletonComponent<InputEvents>()->mouseMotion.push_back(event.motion);

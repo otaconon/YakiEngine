@@ -16,5 +16,7 @@ private:
     SDL_Window* m_window;
 
     void processKeyboardEvents(Controller& controller);
-    void processMouseEvents(Controller& controller);
+    void processMouseButtonEvents(Controller& controller);
+    void processMouseMotionEvents(Controller& controller);
+    void processKeyboardState(Controller& controller);
 };

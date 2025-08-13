@@ -7,9 +7,7 @@
 #include "Vulkan/Renderer.h"
 #include "Window.h"
 #include "Systems/RendererSystem.h"
-#include "Systems/ControllerSystem.h"
 #include "Systems/MovementSystem.h"
-#include "InputData.h"
 #include "Raycast.h"
 #include "Systems/PhysicsSystem.h"
 #include "Systems/TransformSystem.h"
@@ -30,14 +28,12 @@ int main() {
 	Renderer renderer(mainWindow.window(), &ctx);
 	ecs.AddSystem<InputSystem>(InputSystem(mainWindow.window()));
 	ecs.AddSystem<CameraSystem>(CameraSystem());
-	ecs.AddSystem<ControllerSystem>(ControllerSystem(mainWindow.window()));
 	ecs.AddSystem<MovementSystem>(MovementSystem());
 	ecs.AddSystem<TransformSystem>(TransformSystem());
 	ecs.AddSystem<LightingSystem>(LightingSystem());
 	ecs.AddSystem<RenderSystem>(renderer);
 	ecs.AddSystem<PhysicsSystem>(PhysicsSystem());
 
-	ecs.AddSingletonComponent(InputEvents{});
 	ecs.AddSingletonComponent(GPUSceneData{});
 	ecs.AddSingletonComponent(GPULightData{});
 	ecs.AddSingletonComponent(MouseMode{});
@@ -76,6 +72,7 @@ int main() {
 	// Initialize input singleton components
 	ecs.AddSingletonComponent(InputQueue<SDL_KeyboardEvent>());
 	ecs.AddSingletonComponent(InputQueue<SDL_MouseButtonEvent>());
+	ecs.AddSingletonComponent(InputQueue<SDL_MouseMotionEvent>());
 
 	auto prevTime = std::chrono::high_resolution_clock::now();
 	bool running = true;
@@ -86,7 +83,8 @@ int main() {
 		float dt = std::chrono::duration<float>(currentTime - prevTime).count();
 
 		auto keyboardQueue = ecs.GetSingletonComponent<InputQueue<SDL_KeyboardEvent>>();
-		auto mouseQueue = ecs.GetSingletonComponent<InputQueue<SDL_MouseButtonEvent>>();
+		auto mouseButtonQueue = ecs.GetSingletonComponent<InputQueue<SDL_MouseButtonEvent>>();
+		auto mouseMotionQueue = ecs.GetSingletonComponent<InputQueue<SDL_MouseMotionEvent>>();
 		while (SDL_PollEvent(&event)) {
 			switch (event.type) {
 				case SDL_EVENT_QUIT:
@@ -96,13 +94,13 @@ int main() {
 					keyboardQueue->queue.push_back(event.key);
 					break;
 				case SDL_EVENT_MOUSE_BUTTON_DOWN:
-					mouseQueue->queue.push_back(event.button);
+					mouseButtonQueue->queue.push_back(event.button);
 					break;
 				case SDL_EVENT_MOUSE_BUTTON_UP:
-					mouseQueue->queue.push_back(event.button);
+					mouseButtonQueue->queue.push_back(event.button);
 					break;
 				case SDL_EVENT_MOUSE_MOTION:
-					ecs.GetSingletonComponent<InputEvents>()->mouseMotion.push_back(event.motion);
+					mouseMotionQueue->queue.push_back(event.motion);
 					break;
 				default:
 					break;
@@ -113,7 +111,6 @@ int main() {
 
 		ecs.UpdateSystems(dt);
 		renderer.WaitIdle();
-		ecs.GetSingletonComponent<InputEvents>()->Clear();
 		prevTime = currentTime;
 		std::cout.flush();
 	}

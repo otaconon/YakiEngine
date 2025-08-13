@@ -9,7 +9,6 @@
 #include "../Ecs.h"
 #include "../Raycast.h"
 #include "../Components/Components.h"
-#include "../InputData.h"
 #include "../Components/Camera.h"
 
 PhysicsSystem::PhysicsSystem() = default;
@@ -20,46 +19,41 @@ void PhysicsSystem::Update(float dt)
 
     Camera camera;
     glm::mat4 cameraTransform;
-    bool castRay = false;
-
-    for (auto& button : ecs.GetSingletonComponent<InputEvents>()->mouseButton)
-        if (button.button == SDL_BUTTON_LEFT)
-            castRay = true;
-
     ecs.Each<Camera, Translation, Rotation, LocalToParent, Controller, RayData>(
         [&](Hori::Entity, Camera& cam, Translation& t, Rotation& r, LocalToParent localToParent, Controller& controller, RayData& ray) {
-        camera = cam;
-        cameraTransform = localToParent.value;
+            bool castRay = controller.mouseButtonLeftPressed;
+            camera = cam;
+            cameraTransform = localToParent.value;
 
-        if (castRay && controller.mouseMode == MouseMode::GAME)
-        {
-            ray.active = true;
-            ray.origin = t.value;
-            ray.dir = r.value * glm::vec3{0.f, 0.f, -1.f};
-            ray.hit = RayHit{};
-        }
-        else if (castRay && controller.mouseMode == MouseMode::EDITOR)
-        {
-            glm::ivec2 aspectRatio = cam.aspectRatio;
-            float ndcX =  (2.0f * controller.mouseX) / static_cast<float>(aspectRatio.x) - 1.f;
-            float ndcY =  (2.0f * controller.mouseY) / static_cast<float>(aspectRatio.y) - 1.f;
+            if (castRay && controller.mouseMode == MouseMode::GAME)
+            {
+                ray.active = true;
+                ray.origin = t.value;
+                ray.dir = r.value * glm::vec3{0.f, 0.f, -1.f};
+                ray.hit = RayHit{};
+            }
+            else if (castRay && controller.mouseMode == MouseMode::EDITOR)
+            {
+                glm::ivec2 aspectRatio = cam.aspectRatio;
+                float ndcX =  (2.0f * controller.mouseX) / static_cast<float>(aspectRatio.x) - 1.f;
+                float ndcY =  (2.0f * controller.mouseY) / static_cast<float>(aspectRatio.y) - 1.f;
 
-            glm::vec4 clipNear = glm::vec4(ndcX, ndcY, 0.0f, 1.0f);
-            glm::vec4 clipFar  = glm::vec4(ndcX, ndcY, 1.0f, 1.0f);
+                glm::vec4 clipNear = glm::vec4(ndcX, ndcY, 0.0f, 1.0f);
+                glm::vec4 clipFar  = glm::vec4(ndcX, ndcY, 1.0f, 1.0f);
 
-            glm::mat4 invViewProj = glm::inverse(camera.projection * camera.view);
+                glm::mat4 invViewProj = glm::inverse(camera.projection * camera.view);
 
-            glm::vec4 pNear = invViewProj * clipNear;
-            pNear /= pNear.w;
+                glm::vec4 pNear = invViewProj * clipNear;
+                pNear /= pNear.w;
 
-            glm::vec4 pFar  = invViewProj * clipFar;
-            pFar  /= pFar.w;
+                glm::vec4 pFar  = invViewProj * clipFar;
+                pFar  /= pFar.w;
 
-            ray.active = true;
-            ray.origin = t.value;
-            ray.dir = glm::normalize(glm::vec3(pFar) - ray.origin);
-            ray.hit = RayHit{};
-        }
+                ray.active = true;
+                ray.origin = t.value;
+                ray.dir = glm::normalize(glm::vec3(pFar) - ray.origin);
+                ray.hit = RayHit{};
+            }
     });
 
     ecs.Each<RayData>([&ecs](Hori::Entity, RayData& ray) {

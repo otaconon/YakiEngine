@@ -14,5 +14,7 @@ struct Controller
 	float mouseX = 0.f, mouseY = 0.f;
 	float dx = 0.f, dy = 0.f;
 	float lockX = 0.f, lockY = 0.f;
+	bool mouseButtonLeftPressed = false;
+	bool mouseButtonRightPressed = false;
 	MouseMode mouseMode = MouseMode::EDITOR;
 };

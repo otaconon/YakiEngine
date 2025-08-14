@@ -331,6 +331,7 @@ std::optional<std::shared_ptr<GltfObject>> GltfUtils::load_gltf_object(VulkanCon
 				fastgltf::iterateAccessorWithIndex<glm::vec3>(gltf, gltf.accessors[normals->accessorIndex],
 					[&](glm::vec3 v, size_t index) {
 						vertices[initial_vtx + index].normal = v;
+						vertices[initial_vtx + index].normal.y *= -1;
 					});
 			}
 

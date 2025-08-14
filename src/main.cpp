@@ -47,7 +47,7 @@ int main() {
 	}
 
 	// Load scene
-	auto scene = GltfUtils::load_gltf_object(&ctx, "../assets/scenes/Sponza.glb", renderer);
+	auto scene = GltfUtils::load_gltf_object(&ctx, "../assets/scenes/Bakalarska.glb", renderer);
 	for (auto& e: scene.value()->nodes | std::views::values)
 	{
 		if (!e.Valid())

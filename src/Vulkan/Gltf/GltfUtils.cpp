@@ -174,7 +174,7 @@ std::optional<std::shared_ptr<GltfObject>> GltfUtils::load_gltf_object(VulkanCon
 	auto data = fastgltf::MappedGltfFile::FromPath(filePath);
 	auto type = fastgltf::determineGltfFileType(data.get());
 	if (type == fastgltf::GltfType::glTF) {
-		auto load = parser.loadGltf(data.get(), filePath.parent_path(), gltfOptions);
+		auto load = parser.loadGltfJson(data.get(), filePath.parent_path(), gltfOptions);
 		if (load) {
 			gltf = std::move(load.get());
 		} else {
@@ -331,6 +331,7 @@ std::optional<std::shared_ptr<GltfObject>> GltfUtils::load_gltf_object(VulkanCon
 				fastgltf::iterateAccessorWithIndex<glm::vec3>(gltf, gltf.accessors[normals->accessorIndex],
 					[&](glm::vec3 v, size_t index) {
 						vertices[initial_vtx + index].normal = v;
+						vertices[initial_vtx + index].normal.y *= -1;
 					});
 			}
 
@@ -380,7 +381,7 @@ std::optional<std::shared_ptr<GltfObject>> GltfUtils::load_gltf_object(VulkanCon
 		}
 
 		nodes.push_back(newNode);
-		file.nodes[node.name.c_str()];
+		file.nodes[node.name.c_str()] = newNode;
 
 		auto localTransform = ecs.GetComponent<LocalToWorld>(newNode);
 		std::visit(fastgltf::visitor{

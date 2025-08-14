@@ -6,7 +6,7 @@
 
 struct Camera {
     float near{0.1f};
-    float far{100.f};
+    float far{1000.f};
     float fovx{90.f};
     glm::ivec2 aspectRatio{1600, 900};
     bool isPerspective{true};

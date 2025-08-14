@@ -47,7 +47,17 @@ int main() {
 	}
 
 	// Load scene
-	auto scene = GltfUtils::load_gltf_object(&ctx, "../assets/scenes/structure.glb", renderer);
+	auto scene = GltfUtils::load_gltf_object(&ctx, "../assets/scenes/Bakalarska.glb", renderer);
+	for (auto& e: scene.value()->nodes | std::views::values)
+	{
+		if (!e.Valid())
+			continue;
+		if (ecs.HasComponents<Mesh>(e))
+		{
+			auto eMesh = ecs.GetComponent<Mesh>(e);
+			ecs.AddComponents(e, Drawable{std::make_shared<Mesh>(*eMesh), {}, {}, {glm::mat4{1.f}, glm::mat4{}, glm::mat4{}}});
+		}
+	}
 
 	// Create camera entity
 	Hori::Entity camera = ecs.CreateEntity();

@@ -46,6 +46,9 @@ int main() {
 		register_object(e, mesh, Translation{{3.f * idx, 0.f, 0.f}});
 	}
 
+	// Load scene
+	auto scene = GltfUtils::load_gltf_object(&ctx, "../assets/scenes/structure.glb", renderer);
+
 	// Create camera entity
 	Hori::Entity camera = ecs.CreateEntity();
 	ecs.AddComponents(camera, Camera{}, Controller{}, RayData{});

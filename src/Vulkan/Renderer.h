@@ -21,6 +21,14 @@ public:
     void EndRendering();
     void WaitIdle();
 
+    [[nodiscard]] MetallicRoughnessMaterial& GetMetalRoughMaterial(); //TODO: Delete this from here
+
+    // TODO: Get this the fuck out of here
+    std::shared_ptr<Image> whiteImage{};
+    std::shared_ptr<Image> errorImage{};
+    VkSampler defaultSamplerLinear{};
+    VkSampler defaultSamplerNearest{};
+
 private:
     SDL_Window* m_window;
 	VulkanContext* m_ctx;
@@ -44,12 +52,6 @@ private:
     Buffer* m_lightBuffer = nullptr;
     void* m_lightBufferMapped = nullptr;
 
-    std::shared_ptr<Image> m_whiteImage{};
-    std::shared_ptr<Image> m_errorImage{};
-
-    VkSampler m_defaultSamplerLinear{};
-    VkSampler m_defaultSamplerNearest{};
-
     MaterialInstance m_defaultData{};
     MetallicRoughnessMaterial m_metalRoughMaterial;
 
@@ -60,8 +62,10 @@ private:
     void initGraphicsPipeline();
     void initDescriptorAllocator();
     void initDescriptors();
+    // TODO: Get this the fuck out of here
     void initSamplers();
     void initDefaultTextures();
+
     void initDefaultData();
     void initLightBuffer();
 

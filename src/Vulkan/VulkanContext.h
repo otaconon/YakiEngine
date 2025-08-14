@@ -25,6 +25,7 @@ public:
 
     void ImmediateSubmit(std::function<void(VkCommandBuffer cmd)>&& function) const;
 
+
 private:
     VkInstance m_instance{};
     VkDevice m_device{};

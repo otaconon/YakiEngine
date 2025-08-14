@@ -74,6 +74,8 @@ VkQueue VulkanContext::GetGraphicsQueue() const { return m_graphicsQueue; }
 VkQueue VulkanContext::GetPresentQueue() const { return m_presentQueue; }
 VkPhysicalDeviceProperties VulkanContext::GetGpuProperties() const { return m_gpuProperties; }
 
+
+
 void VulkanContext::createInstance()
 {
     // Setup validation layers

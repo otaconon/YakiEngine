@@ -8,7 +8,7 @@
 
 #include "../VulkanContext.h"
 #include "../Buffer.h"
-#include "../../Components/GltfObject.h"
+#include "GltfObject.h"
 #include "../MetallicRoughnessMaterial.h"
 #include "../Renderer.h"
 

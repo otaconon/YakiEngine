@@ -385,8 +385,8 @@ void Renderer::initSamplers()
     vkCreateSampler(m_ctx->GetDevice(), &sampler, nullptr, &defaultSamplerLinear);
 
     m_deletionQueue.PushFunction([&]() {
-        vkDestroySampler(m_ctx->GetDevice(), defaultSamplerNearest,nullptr);
-        vkDestroySampler(m_ctx->GetDevice(), defaultSamplerLinear,nullptr);
+        vkDestroySampler(m_ctx->GetDevice(), defaultSamplerNearest, nullptr);
+        vkDestroySampler(m_ctx->GetDevice(), defaultSamplerLinear, nullptr);
     });
 }
 

@@ -11,8 +11,10 @@
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/quaternion.hpp>
 
-#include "../../Ecs.h"
-#include "../../Components/Components.h"
+#include "../Ecs.h"
+#include "../Components/Components.h"
+#include "Mesh.h"
+#include "../Vulkan/VulkanContext.h"
 
 std::optional<std::vector<std::shared_ptr<Mesh>>> GltfUtils::load_gltf_meshes(VulkanContext* ctx, const std::filesystem::path& filePath)
 {
@@ -331,6 +333,7 @@ std::optional<std::shared_ptr<GltfObject>> GltfUtils::load_gltf_object(VulkanCon
 				fastgltf::iterateAccessorWithIndex<glm::vec3>(gltf, gltf.accessors[normals->accessorIndex],
 					[&](glm::vec3 v, size_t index) {
 						vertices[initial_vtx + index].normal = v;
+						vertices[initial_vtx + index].normal.y *= -1;
 					});
 			}
 

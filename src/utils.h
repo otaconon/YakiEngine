@@ -7,7 +7,7 @@
 
 #include "Ecs.h"
 #include "PropertyRegistry.h"
-#include "Vulkan/VkTypes.h"
+#include "Assets/Mesh.h"
 #include "Components/Components.h"
 
 inline std::vector<char> read_file(const std::filesystem::path& filepath)

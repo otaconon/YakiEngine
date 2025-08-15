@@ -103,13 +103,6 @@ struct GeoSurface {
     std::shared_ptr<MaterialInstance> material;
 };
 
-struct Mesh {
-    std::string name;
-
-    std::vector<GeoSurface> surfaces;
-    std::shared_ptr<GPUMeshBuffers> meshBuffers;
-};
-
 struct RenderObject {
     uint32_t indexCount;
     uint32_t firstIndex;

@@ -2,6 +2,7 @@
 #include <imgui_impl_sdl3.h>
 #include <imgui_impl_vulkan.h>
 #include <iostream>
+#include <tracy/Tracy.hpp>
 
 #include "Ecs.h"
 #include "Vulkan/Renderer.h"
@@ -14,8 +15,9 @@
 #include "Systems/CameraSystem.h"
 #include "Components/Components.h"
 #include "Systems/InputSystem.h"
-#include "Vulkan/Gltf/GltfUtils.h"
 #include "Systems/LightingSystem.h"
+#include "Assets/AssetMngr.h"
+#include "Assets/GltfUtils.h"
 
 constexpr uint32_t numDirectionalLights = 0;
 constexpr uint32_t numPointLights = 2;
@@ -23,9 +25,13 @@ constexpr uint32_t numPointLights = 2;
 int main() {
     auto& ecs = Ecs::GetInstance();
 
+
 	Window mainWindow;
 	VulkanContext ctx{mainWindow.window()};
 	Renderer renderer(mainWindow.window(), &ctx);
+
+	AssetMngr::Initialize(&ctx);
+
 	ecs.AddSystem<InputSystem>(InputSystem(mainWindow.window()));
 	ecs.AddSystem<CameraSystem>(CameraSystem());
 	ecs.AddSystem<MovementSystem>(MovementSystem());
@@ -39,15 +45,15 @@ int main() {
 	ecs.AddSingletonComponent(MouseMode{});
 
 	// Create object entities
-	auto allMeshes = GltfUtils::load_gltf_meshes(&ctx, "../assets/meshes/basicmesh.glb").value();
-	for (auto [idx, mesh] : std::views::enumerate(allMeshes))
+	auto allMeshes = AssetMngr::LoadMeshes("../assets/meshes/basicmesh.glb");
+	for (auto [idx, meshHandle] : std::views::enumerate(allMeshes))
 	{
 		Hori::Entity e = ecs.CreateEntity();
-		register_object(e, mesh, Translation{{3.f * idx, 0.f, 0.f}});
+		register_object(e, AssetMngr::GetAsset<Mesh>(meshHandle), Translation{{3.f * idx, 0.f, 0.f}});
 	}
 
 	// Load scene
-	auto scene = GltfUtils::load_gltf_object(&ctx, "../assets/scenes/Sponza.glb", renderer);
+	auto scene = GltfUtils::load_gltf_object(&ctx, "../assets/scenes/Bakalarska.glb", renderer);
 	for (auto& e: scene.value()->nodes | std::views::values)
 	{
 		if (!e.Valid())
@@ -75,7 +81,7 @@ int main() {
 	{
 		e = ecs.CreateEntity();
 		ecs.AddComponents(e, PointLight({0.5f, 0.3f, 0.2f, 1.f}, {1.0f, 0.0f, 0.0f, 1.f}));
-		register_object(e, allMeshes[1], Translation{{10.f, 10.f, 1.f}});
+		register_object(e, AssetMngr::GetAsset<Mesh>(allMeshes[1]), Translation{{10.f, 10.f, 1.f}});
 	}
 
 	// Initialize scene
@@ -126,7 +132,9 @@ int main() {
 		renderer.WaitIdle();
 		prevTime = currentTime;
 		std::cout.flush();
+		FrameMark;
 	}
 
 	ecs.Destroy();
+	AssetMngr::Shutdown();
 }

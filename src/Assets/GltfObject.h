@@ -5,8 +5,8 @@
 #include <string>
 #include <unordered_map>
 
-#include "../VkTypes.h"
-#include "../Image.h"
+#include "Mesh.h"
+#include "../Vulkan/Image.h"
 
 struct GltfObject
 {

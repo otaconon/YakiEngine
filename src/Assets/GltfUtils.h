@@ -6,11 +6,12 @@
 #include <vector>
 #include <fastgltf/core.hpp>
 
-#include "../VulkanContext.h"
-#include "../Buffer.h"
+#include "../Vulkan/VulkanContext.h"
+#include "../Vulkan/Buffer.h"
 #include "GltfObject.h"
-#include "../MetallicRoughnessMaterial.h"
-#include "../Renderer.h"
+#include "../Vulkan/MetallicRoughnessMaterial.h"
+#include "../Vulkan/Renderer.h"
+#include "Mesh.h"
 
 namespace GltfUtils
 {

@@ -11,8 +11,6 @@
 class AssetMngr
 {
 public:
-    explicit AssetMngr(VulkanContext* ctx);
-
     static void Initialize(VulkanContext* ctx)
     {
         s_instance = new AssetMngr(ctx);
@@ -49,6 +47,10 @@ private:
     std::unordered_map<AssetHandle, std::shared_ptr<Asset>> m_registry;
 
 private:
+    explicit AssetMngr(VulkanContext* ctx);
+    AssetMngr(const AssetMngr&) = default;
+    AssetMngr& operator=(const AssetMngr&) = default;
+
     [[nodiscard]] std::shared_ptr<Asset> getAssetImpl(AssetHandle handle);
     [[nodiscard]] AssetHandle registerAssetImpl(std::shared_ptr<Asset> asset);
     [[nodiscard]] std::vector<AssetHandle> loadMeshesImpl(const std::filesystem::path& path);

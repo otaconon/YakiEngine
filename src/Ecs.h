@@ -12,6 +12,8 @@ public:
 private:
     Ecs() = default;
     ~Ecs() = default;
+    Ecs(const Ecs&) = default;
+    Ecs& operator=(const Ecs&) = default;
 
     Hori::World m_world; 
 };

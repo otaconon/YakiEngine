@@ -1,10 +1,10 @@
-#include "Image.h"
+#include "Texture.h"
 
-#include "VkUtils.h"
+#include "../Vulkan/VkUtils.h"
 
-Image::Image() = default;
+Texture::Texture() = default;
 
-Image::Image(VulkanContext* ctx, VmaAllocator allocator, void* data, VkExtent3D size, VkFormat format, VkImageUsageFlags usage, bool mipmapped)
+Texture::Texture(VulkanContext* ctx, VmaAllocator allocator, void* data, VkExtent3D size, VkFormat format, VkImageUsageFlags usage, bool mipmapped)
     : m_ctx{ctx},
     m_allocator{allocator},
     m_extent{size},
@@ -37,7 +37,7 @@ Image::Image(VulkanContext* ctx, VmaAllocator allocator, void* data, VkExtent3D 
     });
 }
 
-Image::Image(VulkanContext* ctx, VmaAllocator allocator, VkExtent3D size, VkFormat format, VkImageUsageFlags usage, bool mipmapped)
+Texture::Texture(VulkanContext* ctx, VmaAllocator allocator, VkExtent3D size, VkFormat format, VkImageUsageFlags usage, bool mipmapped)
     : m_ctx{ctx},
     m_allocator{allocator},
     m_extent{size},
@@ -51,12 +51,12 @@ Image::Image(VulkanContext* ctx, VmaAllocator allocator, VkExtent3D size, VkForm
     });
 }
 
-Image::~Image()
+Texture::~Texture()
 {
     Cleanup();
 }
 
-Image::Image(Image&& other) noexcept
+Texture::Texture(Texture&& other) noexcept
     : m_ctx{std::move(other.m_ctx)},
     m_allocator{other.m_allocator},
     m_allocation{other.m_allocation},
@@ -71,7 +71,7 @@ Image::Image(Image&& other) noexcept
     other.m_view = VK_NULL_HANDLE;
 }
 
-Image& Image::operator=(Image&& other) noexcept
+Texture& Texture::operator=(Texture&& other) noexcept
 {
     if (this != &other) {
         Cleanup();
@@ -92,12 +92,12 @@ Image& Image::operator=(Image&& other) noexcept
     return *this;
 }
 
-VkImage Image::GetImage() const { return m_image; }
-VkImageView Image::GetView() const { return m_view; }
-VkExtent3D Image::GetExtent() const { return m_extent; }
-VkFormat Image::GetFormat() const { return m_format; }
+VkImage Texture::GetImage() const { return m_image; }
+VkImageView Texture::GetView() const { return m_view; }
+VkExtent3D Texture::GetExtent() const { return m_extent; }
+VkFormat Texture::GetFormat() const { return m_format; }
 
-void Image::createImage(VkImageUsageFlags usage, bool mipmapped) {
+void Texture::createImage(VkImageUsageFlags usage, bool mipmapped) {
     VkImageCreateInfo imgInfo = VkInit::image_create_info(m_format, usage, m_extent);
     if (mipmapped)
         imgInfo.mipLevels = static_cast<uint32_t>(std::floor(std::log2(std::max(m_extent.width, m_extent.height)))) + 1;
@@ -119,7 +119,7 @@ void Image::createImage(VkImageUsageFlags usage, bool mipmapped) {
     VK_CHECK(vkCreateImageView(m_ctx->GetDevice(), &view_info, nullptr, &m_view));
 }
 
-void Image::Cleanup()
+void Texture::Cleanup()
 {
     if (m_image != VK_NULL_HANDLE && m_view != VK_NULL_HANDLE)
     {
@@ -130,7 +130,7 @@ void Image::Cleanup()
     m_image = VK_NULL_HANDLE;
 }
 
-VkImageLayout Image::getFinalLayout(VkFormat format, VkImageUsageFlags usage)
+VkImageLayout Texture::getFinalLayout(VkFormat format, VkImageUsageFlags usage)
 {
     if (format == VK_FORMAT_D32_SFLOAT || format == VK_FORMAT_D24_UNORM_S8_UINT || format == VK_FORMAT_D16_UNORM)
         return VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL;

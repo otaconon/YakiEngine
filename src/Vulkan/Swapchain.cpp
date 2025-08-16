@@ -57,8 +57,8 @@ VkExtent2D Swapchain::GetExtent() const { return m_extent; }
 bool Swapchain::IsResized() const { return m_resized; }
 float Swapchain::GetRenderScale() const { return m_renderScale; }
 VkImage Swapchain::GetImage(uint32_t idx) const { return m_images[idx]; }
-Image& Swapchain::GetDrawImage() { return m_drawImage; }
-Image& Swapchain::GetDepthImage() { return m_depthImage; }
+Texture& Swapchain::GetDrawImage() { return m_drawImage; }
+Texture& Swapchain::GetDepthImage() { return m_depthImage; }
 VkImageView Swapchain::GetImageView(uint32_t idx) const { return m_imageViews[idx]; }
 SwapChainSupportDetails Swapchain::GetSwapchainSupport() const { return m_swapchainSupport; }
 
@@ -139,7 +139,7 @@ void Swapchain::createDrawImage()
         VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT
     };
 
-    m_drawImage = Image(m_ctx, m_allocator, drawImageExtent, VK_FORMAT_R16G16B16A16_SFLOAT, drawImageUsage, false);
+    m_drawImage = Texture(m_ctx, m_allocator, drawImageExtent, VK_FORMAT_R16G16B16A16_SFLOAT, drawImageUsage, false);
     m_deletionQueue.PushFunction([this] {
         m_drawImage.Cleanup();
     });
@@ -148,7 +148,7 @@ void Swapchain::createDrawImage()
 void Swapchain::createDepthImage()
 {
     VkImageUsageFlags depthImageUsage { VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT };
-    m_depthImage = Image(m_ctx, m_allocator, m_drawImage.GetExtent(), VK_FORMAT_D32_SFLOAT, depthImageUsage, false);
+    m_depthImage = Texture(m_ctx, m_allocator, m_drawImage.GetExtent(), VK_FORMAT_D32_SFLOAT, depthImageUsage, false);
     m_deletionQueue.PushFunction([this] {
         m_depthImage.Cleanup();
     });

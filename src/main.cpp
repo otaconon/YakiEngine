@@ -25,10 +25,10 @@ constexpr uint32_t numPointLights = 2;
 int main() {
     auto& ecs = Ecs::GetInstance();
 
-
 	Window mainWindow;
 	VulkanContext ctx{mainWindow.window()};
 	Renderer renderer(mainWindow.window(), &ctx);
+	DeletionQueue deletionQueue;
 
 	AssetMngr::Initialize(&ctx);
 
@@ -44,6 +44,9 @@ int main() {
 	ecs.AddSingletonComponent(GPULightData{});
 	ecs.AddSingletonComponent(MouseMode{});
 
+	DefaultData defaultData = create_default_data(&ctx, deletionQueue);
+	renderer.InitDefaultData(defaultData);
+
 	// Create object entities
 	auto allMeshes = AssetMngr::LoadMeshes("../assets/meshes/basicmesh.glb");
 	for (auto [idx, meshHandle] : std::views::enumerate(allMeshes))
@@ -53,7 +56,7 @@ int main() {
 	}
 
 	// Load scene
-	auto scene = GltfUtils::load_gltf_object(&ctx, "../assets/scenes/Bakalarska.glb", renderer);
+	auto scene = GltfUtils::load_gltf_object(&ctx, "../assets/scenes/Bakalarska.glb", renderer, defaultData);
 	for (auto& e: scene.value()->nodes | std::views::values)
 	{
 		if (!e.Valid())
@@ -135,6 +138,7 @@ int main() {
 		FrameMark;
 	}
 
+	deletionQueue.Flush();
 	ecs.Destroy();
 	AssetMngr::Shutdown();
 }

@@ -6,7 +6,7 @@
 #include <unordered_map>
 
 #include "Mesh.h"
-#include "../Vulkan/Image.h"
+#include "Texture.h"
 
 struct GltfObject
 {
@@ -21,7 +21,7 @@ struct GltfObject
     }
     std::unordered_map<std::string, std::shared_ptr<Mesh>> meshes;
     std::unordered_map<std::string, Hori::Entity> nodes;
-    std::unordered_map<std::string, Image> images;
+    std::unordered_map<std::string, Texture> images;
     std::unordered_map<std::string, std::shared_ptr<MaterialInstance>> materials;
 
     std::vector<Hori::Entity> topNodes;

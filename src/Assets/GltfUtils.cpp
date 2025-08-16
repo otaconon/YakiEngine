@@ -157,7 +157,7 @@ VkSamplerMipmapMode GltfUtils::extract_mipmap_mode(fastgltf::Filter filter)
     }
 }
 
-std::optional<std::shared_ptr<GltfObject>> GltfUtils::load_gltf_object(VulkanContext* ctx, const std::filesystem::path& filePath, Renderer& renderer /*TODO: Remove this parameter*/)
+std::optional<std::shared_ptr<GltfObject>> GltfUtils::load_gltf_object(VulkanContext* ctx, const std::filesystem::path& filePath, Renderer& renderer /*TODO: Remove this parameter*/, DefaultData& defaultData)
 {
 	std::println("Loading GLTF file: {}", filePath.string());
 	if (!std::filesystem::exists(filePath))
@@ -205,14 +205,11 @@ std::optional<std::shared_ptr<GltfObject>> GltfUtils::load_gltf_object(VulkanCon
 	file.descriptorPool.Init(ctx->GetDevice(), gltf.materials.size(), sizes);
 
 	for (fastgltf::Sampler& sampler : gltf.samplers) {
-
 		VkSamplerCreateInfo sampl = { .sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO, .pNext = nullptr};
 		sampl.maxLod = VK_LOD_CLAMP_NONE;
 		sampl.minLod = 0;
-
 		sampl.magFilter = extract_filter(sampler.magFilter.value_or(fastgltf::Filter::Nearest));
 		sampl.minFilter = extract_filter(sampler.minFilter.value_or(fastgltf::Filter::Nearest));
-
 		sampl.mipmapMode= extract_mipmap_mode(sampler.minFilter.value_or(fastgltf::Filter::Nearest));
 
 		VkSampler newSampler;
@@ -223,11 +220,11 @@ std::optional<std::shared_ptr<GltfObject>> GltfUtils::load_gltf_object(VulkanCon
 
 	std::vector<std::shared_ptr<Mesh>> meshes;
 	std::vector<Hori::Entity> nodes;
-	std::vector<std::shared_ptr<Image>> images;
+	std::vector<std::shared_ptr<Texture>> images;
 	std::vector<std::shared_ptr<MaterialInstance>> materials;
 
 	for (fastgltf::Image& image : gltf.images) {
-		images.push_back(renderer.errorImage);
+		images.push_back(defaultData.errorTexture);
 	}
 
 	file.materialDataBuffer = std::make_shared<Buffer>(ctx->GetAllocator(), sizeof(MaterialConstants) * gltf.materials.size(), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU);
@@ -244,7 +241,6 @@ std::optional<std::shared_ptr<GltfObject>> GltfUtils::load_gltf_object(VulkanCon
         constants.colorFactors.y = mat.pbrData.baseColorFactor[1];
         constants.colorFactors.z = mat.pbrData.baseColorFactor[2];
         constants.colorFactors.w = mat.pbrData.baseColorFactor[3];
-
         constants.metal_rough_factors.x = mat.pbrData.metallicFactor;
         constants.metal_rough_factors.y = mat.pbrData.roughnessFactor;
         // write material parameters to buffer
@@ -257,10 +253,10 @@ std::optional<std::shared_ptr<GltfObject>> GltfUtils::load_gltf_object(VulkanCon
 
         MaterialResources materialResources;
         // default the material textures
-        materialResources.colorImage = renderer.whiteImage;
-        materialResources.colorSampler = renderer.defaultSamplerLinear;
-        materialResources.metalRoughImage = renderer.whiteImage;
-        materialResources.metalRoughSampler = renderer.defaultSamplerLinear;
+        materialResources.colorImage = defaultData.errorTexture;
+        materialResources.colorSampler = defaultData.samplerLinear;
+        materialResources.metalRoughImage = defaultData.whiteTexture;
+        materialResources.metalRoughSampler = defaultData.samplerLinear;
 
         // set the uniform buffer for the material data
         materialResources.dataBuffer = file.materialDataBuffer->buffer;

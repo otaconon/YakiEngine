@@ -17,6 +17,7 @@
 #include "../Ecs.h"
 #include "Descriptors/DescriptorLayoutBuilder.h"
 #include "../Components/Components.h"
+#include "../DefaultData.h"
 
 Renderer::Renderer(SDL_Window* window, VulkanContext* ctx)
     : m_window{window},
@@ -31,9 +32,6 @@ Renderer::Renderer(SDL_Window* window, VulkanContext* ctx)
 	initDescriptorAllocator();
 	initDescriptors();
 	initGraphicsPipeline();
-	initDefaultTextures();
-	initSamplers();
-	initDefaultData();
 }
 
 Renderer::~Renderer()
@@ -374,43 +372,7 @@ void Renderer::initDescriptors()
 	}
 }
 
-void Renderer::initSamplers()
-{
-    VkSamplerCreateInfo sampler = {.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO};
-    sampler.magFilter = VK_FILTER_NEAREST;
-    sampler.minFilter = VK_FILTER_NEAREST;
-    vkCreateSampler(m_ctx->GetDevice(), &sampler, nullptr, &defaultSamplerNearest);
-    sampler.magFilter = VK_FILTER_LINEAR;
-    sampler.minFilter = VK_FILTER_LINEAR;
-    vkCreateSampler(m_ctx->GetDevice(), &sampler, nullptr, &defaultSamplerLinear);
-
-    m_deletionQueue.PushFunction([&]() {
-        vkDestroySampler(m_ctx->GetDevice(), defaultSamplerNearest, nullptr);
-        vkDestroySampler(m_ctx->GetDevice(), defaultSamplerLinear, nullptr);
-    });
-}
-
-void Renderer::initDefaultTextures()
-{
-    uint32_t white = glm::packUnorm4x8(glm::vec4(1, 1, 1, 1));
-    whiteImage = std::make_shared<Image>(m_ctx, m_ctx->GetAllocator(), static_cast<void*>(&white), VkExtent3D{1, 1, 1}, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_USAGE_SAMPLED_BIT, false);
-
-    uint32_t black = glm::packUnorm4x8(glm::vec4(0, 0, 0, 0));
-    uint32_t magenta = glm::packUnorm4x8(glm::vec4(1, 0, 1, 1));
-    std::array<uint32_t, 16*16> pixels{};
-    for (int x = 0; x < 16; x++)
-        for (int y = 0; y < 16; y++)
-            pixels[y*16 + x] = ((x % 2) ^ (y % 2)) ? magenta : black;
-
-    errorImage = std::make_shared<Image>(m_ctx, m_ctx->GetAllocator(), pixels.data(), VkExtent3D{16, 16, 1}, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_USAGE_SAMPLED_BIT, false);
-    m_deletionQueue.PushFunction([this] {
-        whiteImage->Cleanup();
-        errorImage->Cleanup();
-    });
-}
-
-
-void Renderer::initDefaultData()
+void Renderer::InitDefaultData(DefaultData defaultData)
 {
 	Buffer materialConstants(m_ctx->GetAllocator(), sizeof(MaterialConstants), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU);
 
@@ -421,10 +383,10 @@ void Renderer::initDefaultData()
 	vmaUnmapMemory(materialConstants.allocator, materialConstants.allocation);
 
 	MaterialResources materialResources {
-		.colorImage = whiteImage,
-		.colorSampler = defaultSamplerLinear,
-		.metalRoughImage = whiteImage,
-		.metalRoughSampler = defaultSamplerLinear,
+		.colorImage = defaultData.whiteTexture,
+		.colorSampler = defaultData.samplerLinear,
+		.metalRoughImage = defaultData.whiteTexture,
+		.metalRoughSampler = defaultData.samplerLinear,
 		.dataBuffer = materialConstants.buffer,
 		.dataBufferOffset = 0
 	};
@@ -433,10 +395,6 @@ void Renderer::initDefaultData()
 	m_defaultData = m_metalRoughMaterial.WriteMaterial(MaterialPass::MainColor, materialResources, m_descriptorAllocator);
 }
 
-void Renderer::initLightBuffer()
-{
-
-}
 VkCommandBuffer Renderer::beginSingleTimeCommands(VkCommandPool& commandPool) const
 {
 	VkCommandBufferAllocateInfo allocInfo {

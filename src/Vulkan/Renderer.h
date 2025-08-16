@@ -7,6 +7,7 @@
 #include "VkTypes.h"
 #include "VulkanContext.h"
 #include "../Components/Drawable.h"
+#include "../DefaultData.h"
 
 constexpr uint32_t FRAME_OVERLAP = 2;
 
@@ -15,6 +16,7 @@ public:
     Renderer(SDL_Window* window, VulkanContext* ctx);
     ~Renderer();
 
+    void InitDefaultData(DefaultData defaultData);
     void BeginRendering();
     void RenderObjects(std::vector<RenderObject>& objects);
     void RenderImGui();
@@ -22,12 +24,6 @@ public:
     void WaitIdle();
 
     [[nodiscard]] MetallicRoughnessMaterial& GetMetalRoughMaterial(); //TODO: Delete this from here
-
-    // TODO: Get this the fuck out of here
-    std::shared_ptr<Image> whiteImage{};
-    std::shared_ptr<Image> errorImage{};
-    VkSampler defaultSamplerLinear{};
-    VkSampler defaultSamplerNearest{};
 
 private:
     SDL_Window* m_window;
@@ -62,12 +58,6 @@ private:
     void initGraphicsPipeline();
     void initDescriptorAllocator();
     void initDescriptors();
-    // TODO: Get this the fuck out of here
-    void initSamplers();
-    void initDefaultTextures();
-
-    void initDefaultData();
-    void initLightBuffer();
 
     VkCommandBuffer beginSingleTimeCommands(VkCommandPool& commandPool) const;
     void endSingleTimeCommands(VkCommandPool& commandPool, VkCommandBuffer& commandBuffer) const;

@@ -3,7 +3,7 @@
 #include <cassert>
 
 #include "VkTypes.h"
-#include "Image.h"
+#include "../Assets/Texture.h"
 #include "Swapchain.h"
 #include "Descriptors/DescriptorWriter.h"
 
@@ -15,9 +15,9 @@ struct MaterialConstants {
 static_assert(sizeof(MaterialConstants) == 256);
 
 struct MaterialResources {
-    std::shared_ptr<Image> colorImage;
+    std::shared_ptr<Texture> colorImage;
     VkSampler colorSampler;
-    std::shared_ptr<Image> metalRoughImage;
+    std::shared_ptr<Texture> metalRoughImage;
     VkSampler metalRoughSampler;
     VkBuffer dataBuffer;
     uint32_t dataBufferOffset;

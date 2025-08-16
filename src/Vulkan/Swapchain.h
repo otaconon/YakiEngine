@@ -5,7 +5,7 @@
 #include "VulkanContext.h"
 #include "VkUtils.h"
 #include "VkTypes.h"
-#include "Image.h"
+#include "../Assets/Texture.h"
 
 class Swapchain {
 public:
@@ -18,8 +18,8 @@ public:
 	[[nodiscard]] VkExtent2D GetExtent() const;
 	[[nodiscard]] VkFormat& GetImageFormat();
 	[[nodiscard]] VkImage GetImage(uint32_t idx) const;
-	[[nodiscard]] Image& GetDrawImage();
-	[[nodiscard]] Image& GetDepthImage();
+	[[nodiscard]] Texture& GetDrawImage();
+	[[nodiscard]] Texture& GetDepthImage();
 	[[nodiscard]] VkImageView GetImageView(uint32_t idx) const;
 	[[nodiscard]] bool IsResized() const;
 	[[nodiscard]] float GetRenderScale() const;
@@ -39,8 +39,8 @@ private:
     VkSwapchainKHR m_swapchain{};
 	SwapChainSupportDetails m_swapchainSupport;
 
-    Image m_drawImage{};
-	Image m_depthImage{};
+    Texture m_drawImage{};
+	Texture m_depthImage{};
     std::vector<VkImage> m_images;
     std::vector<VkImageView> m_imageViews;
 

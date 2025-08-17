@@ -157,7 +157,7 @@ VkSamplerMipmapMode GltfUtils::extract_mipmap_mode(fastgltf::Filter filter)
     }
 }
 
-std::optional<std::shared_ptr<GltfObject>> GltfUtils::load_gltf_object(VulkanContext* ctx, const std::filesystem::path& filePath, Renderer& renderer /*TODO: Remove this parameter*/, DefaultData& defaultData)
+std::optional<std::shared_ptr<GltfObject>> GltfUtils::load_gltf_object(VulkanContext* ctx, const std::filesystem::path& filePath, Material& material, DefaultData& defaultData)
 {
 	std::println("Loading GLTF file: {}", filePath.string());
 	if (!std::filesystem::exists(filePath))
@@ -224,7 +224,7 @@ std::optional<std::shared_ptr<GltfObject>> GltfUtils::load_gltf_object(VulkanCon
 	std::vector<std::shared_ptr<MaterialInstance>> materials;
 
 	for (fastgltf::Image& image : gltf.images) {
-		images.push_back(defaultData.errorTexture);
+		images.push_back(defaultData.whiteTexture);
 	}
 
 	file.materialDataBuffer = std::make_shared<Buffer>(ctx->GetAllocator(), sizeof(MaterialConstants) * gltf.materials.size(), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU);
@@ -241,8 +241,8 @@ std::optional<std::shared_ptr<GltfObject>> GltfUtils::load_gltf_object(VulkanCon
         constants.colorFactors.y = mat.pbrData.baseColorFactor[1];
         constants.colorFactors.z = mat.pbrData.baseColorFactor[2];
         constants.colorFactors.w = mat.pbrData.baseColorFactor[3];
-        constants.metal_rough_factors.x = mat.pbrData.metallicFactor;
-        constants.metal_rough_factors.y = mat.pbrData.roughnessFactor;
+        constants.metalRoughtFactors.x = mat.pbrData.metallicFactor;
+        constants.metalRoughtFactors.y = mat.pbrData.roughnessFactor;
         // write material parameters to buffer
         sceneMaterialConstants[data_index] = constants;
 
@@ -253,7 +253,7 @@ std::optional<std::shared_ptr<GltfObject>> GltfUtils::load_gltf_object(VulkanCon
 
         MaterialResources materialResources;
         // default the material textures
-        materialResources.colorImage = defaultData.errorTexture;
+        materialResources.colorImage = defaultData.whiteTexture;
         materialResources.colorSampler = defaultData.samplerLinear;
         materialResources.metalRoughImage = defaultData.whiteTexture;
         materialResources.metalRoughSampler = defaultData.samplerLinear;
@@ -270,7 +270,7 @@ std::optional<std::shared_ptr<GltfObject>> GltfUtils::load_gltf_object(VulkanCon
             materialResources.colorSampler = file.samplers[sampler];
         }
         // build material
-        *newMat = renderer.GetMetalRoughMaterial().WriteMaterial(passType, materialResources, file.descriptorPool);
+        *newMat = material.WriteMaterial(passType, materialResources, file.descriptorPool);
         data_index++;
     }
 

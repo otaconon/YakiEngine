@@ -2,12 +2,12 @@
 
 #include <array>
 
-#include "MetallicRoughnessMaterial.h"
 #include "Swapchain.h"
 #include "VkTypes.h"
 #include "VulkanContext.h"
 #include "../Components/Drawable.h"
 #include "../DefaultData.h"
+#include "../Assets/Material.h"
 
 constexpr uint32_t FRAME_OVERLAP = 2;
 
@@ -16,14 +16,17 @@ public:
     Renderer(SDL_Window* window, VulkanContext* ctx);
     ~Renderer();
 
-    void InitDefaultData(DefaultData defaultData);
     void BeginRendering();
     void RenderObjects(std::vector<RenderObject>& objects);
     void RenderImGui();
     void EndRendering();
     void WaitIdle();
+    
+    [[nodiscard]] VkBuffer GetMaterialConstantsBuffer();
 
-    [[nodiscard]] MetallicRoughnessMaterial& GetMetalRoughMaterial(); //TODO: Delete this from here
+    void BuildMaterialPipelines(Material& material);
+    void WriteMaterialConstants(MaterialConstants& materialConstants);
+    MaterialInstance CreateMaterialInstance(Material& material, MaterialResources& materialResources);
 
 private:
     SDL_Window* m_window;
@@ -44,18 +47,12 @@ private:
     VkDescriptorSetLayout m_singleImageDescriptorLayout{};
     VkDescriptorSetLayout m_gpuSceneDataDescriptorLayout{};
 
-    // Move from here
-    Buffer* m_lightBuffer = nullptr;
-    void* m_lightBufferMapped = nullptr;
-
-    MaterialInstance m_defaultData{};
-    MetallicRoughnessMaterial m_metalRoughMaterial;
+    Buffer m_materialConstantsBuffer;
 
 private:
     void initCommands();
     void initImgui();
     void initSyncObjects();
-    void initGraphicsPipeline();
     void initDescriptorAllocator();
     void initDescriptors();
 

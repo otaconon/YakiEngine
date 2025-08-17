@@ -1,16 +1,11 @@
-#include "MetallicRoughnessMaterial.h"
+#include "Material.h"
+#include "../Vulkan/PipelineBuilder.h"
 
-#include "PipelineBuilder.h"
-#include "Swapchain.h"
-#include "Descriptors/DescriptorLayoutBuilder.h"
-
-MetallicRoughnessMaterial::MetallicRoughnessMaterial(VulkanContext* ctx)
+Material::Material(VulkanContext* ctx)
 	: m_ctx(ctx)
-{
+{}
 
-}
-
-MetallicRoughnessMaterial::~MetallicRoughnessMaterial()
+Material::~Material()
 {
 	vkDestroyPipeline(m_ctx->GetDevice(), m_opaquePipeline.pipeline, nullptr);
 	vkDestroyPipeline(m_ctx->GetDevice(), m_transparentPipeline.pipeline, nullptr);
@@ -18,7 +13,7 @@ MetallicRoughnessMaterial::~MetallicRoughnessMaterial()
 	vkDestroyDescriptorSetLayout(m_ctx->GetDevice(), m_materialLayout, nullptr);
 }
 
-void MetallicRoughnessMaterial::BuildPipelines(Swapchain& swapchain, VkDescriptorSetLayout gpuSceneDataDescriptorLayout)
+void Material::BuildPipelines(Swapchain& swapchain, VkDescriptorSetLayout gpuSceneDataDescriptorLayout)
 {
     VkShaderModule meshFragShader;
 	if (!VkUtil::load_shader_module("../shaders/fragment/materials.frag.spv", m_ctx->GetDevice(), &meshFragShader))
@@ -75,7 +70,7 @@ void MetallicRoughnessMaterial::BuildPipelines(Swapchain& swapchain, VkDescripto
 	vkDestroyShaderModule(m_ctx->GetDevice(), meshVertexShader, nullptr);
 }
 
-MaterialInstance MetallicRoughnessMaterial::WriteMaterial(MaterialPass pass, const MaterialResources& resources, DescriptorAllocator& descriptorAllocator)
+MaterialInstance Material::WriteMaterial(MaterialPass pass, const MaterialResources& resources, DescriptorAllocator& descriptorAllocator)
 {
 	MaterialInstance matData{};
 	matData.passType = pass;

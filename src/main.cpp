@@ -45,18 +45,28 @@ int main() {
 	ecs.AddSingletonComponent(MouseMode{});
 
 	DefaultData defaultData = create_default_data(&ctx, deletionQueue);
-	renderer.InitDefaultData(defaultData);
+	Material metallicMaterial(&ctx);
+	MaterialResources materialResources {
+		.colorImage = defaultData.whiteTexture,
+		.colorSampler = defaultData.samplerLinear,
+		.metalRoughImage = defaultData.whiteTexture,
+		.metalRoughSampler = defaultData.samplerLinear,
+		.dataBuffer = renderer.GetMaterialConstantsBuffer(),
+		.dataBufferOffset = 0
+	};
+	renderer.BuildMaterialPipelines(metallicMaterial);
+	auto metallicMaterialInstance = renderer.CreateMaterialInstance(metallicMaterial, materialResources);
 
 	// Create object entities
-	auto allMeshes = AssetMngr::LoadMeshes("../assets/meshes/basicmesh.glb");
+	/*auto allMeshes = AssetMngr::LoadMeshes("../assets/meshes/basicmesh.glb");
 	for (auto [idx, meshHandle] : std::views::enumerate(allMeshes))
 	{
 		Hori::Entity e = ecs.CreateEntity();
 		register_object(e, AssetMngr::GetAsset<Mesh>(meshHandle), Translation{{3.f * idx, 0.f, 0.f}});
-	}
+	}*/
 
 	// Load scene
-	auto scene = GltfUtils::load_gltf_object(&ctx, "../assets/scenes/Bakalarska.glb", renderer, defaultData);
+	auto scene = GltfUtils::load_gltf_object(&ctx, "../assets/scenes/Bakalarska.glb", metallicMaterial, defaultData);
 	for (auto& e: scene.value()->nodes | std::views::values)
 	{
 		if (!e.Valid())
@@ -84,7 +94,7 @@ int main() {
 	{
 		e = ecs.CreateEntity();
 		ecs.AddComponents(e, PointLight({0.5f, 0.3f, 0.2f, 1.f}, {1.0f, 0.0f, 0.0f, 1.f}));
-		register_object(e, AssetMngr::GetAsset<Mesh>(allMeshes[1]), Translation{{10.f, 10.f, 1.f}});
+		//register_object(e, AssetMngr::GetAsset<Mesh>(allMeshes[1]), Translation{{10.f, 10.f, 1.f}});
 	}
 
 	// Initialize scene

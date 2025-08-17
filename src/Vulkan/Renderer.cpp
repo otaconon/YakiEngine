@@ -18,20 +18,20 @@
 #include "Descriptors/DescriptorLayoutBuilder.h"
 #include "../Components/Components.h"
 #include "../DefaultData.h"
+#include "Descriptors/DescriptorWriter.h"
 
 Renderer::Renderer(SDL_Window* window, VulkanContext* ctx)
     : m_window{window},
     m_ctx{ctx},
     m_swapchain{m_ctx, window},
     m_currentFrame{0},
-	m_metalRoughMaterial{m_ctx}
+	m_materialConstantsBuffer{m_ctx->GetAllocator(), sizeof(MaterialConstants), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU}
 {
 	initCommands();
 	initSyncObjects();
 	initImgui();
 	initDescriptorAllocator();
 	initDescriptors();
-	initGraphicsPipeline();
 }
 
 Renderer::~Renderer()
@@ -148,7 +148,6 @@ void Renderer::RenderObjects(std::vector<RenderObject>& objects)
 
 	for (auto& [indexCount, firstIndex, indexBuffer, material, transform, vertexBufferAddress] : objects)
 	{
-		material = &m_defaultData; // TODO: This is not the right way to do this
 		vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, material->pipeline->pipeline);
 		vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, material->pipeline->layout, 0, 1, &globalDescriptor, 0, nullptr );
 		vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, material->pipeline->layout, 1, 1, &material->materialSet, 0, nullptr );
@@ -303,11 +302,6 @@ void Renderer::initSyncObjects()
 	}
 }
 
-void Renderer::initGraphicsPipeline()
-{
-	m_metalRoughMaterial.BuildPipelines(m_swapchain, m_gpuSceneDataDescriptorLayout);
-}
-
 void Renderer::initDescriptorAllocator()
 {
 	std::vector<DescriptorAllocator::PoolSizeRatio> sizes {
@@ -372,29 +366,6 @@ void Renderer::initDescriptors()
 	}
 }
 
-void Renderer::InitDefaultData(DefaultData defaultData)
-{
-	Buffer materialConstants(m_ctx->GetAllocator(), sizeof(MaterialConstants), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU);
-
-	MaterialConstants* sceneUniformData;
-	vmaMapMemory(materialConstants.allocator, materialConstants.allocation, reinterpret_cast<void**>(&sceneUniformData));
-	sceneUniformData->colorFactors = glm::vec4{1,1,1,1};
-	sceneUniformData->metal_rough_factors = glm::vec4{1,0.5,0,0};
-	vmaUnmapMemory(materialConstants.allocator, materialConstants.allocation);
-
-	MaterialResources materialResources {
-		.colorImage = defaultData.whiteTexture,
-		.colorSampler = defaultData.samplerLinear,
-		.metalRoughImage = defaultData.whiteTexture,
-		.metalRoughSampler = defaultData.samplerLinear,
-		.dataBuffer = materialConstants.buffer,
-		.dataBufferOffset = 0
-	};
-
-	m_deletionQueue.PushBuffer(std::move(materialConstants));
-	m_defaultData = m_metalRoughMaterial.WriteMaterial(MaterialPass::MainColor, materialResources, m_descriptorAllocator);
-}
-
 VkCommandBuffer Renderer::beginSingleTimeCommands(VkCommandPool& commandPool) const
 {
 	VkCommandBufferAllocateInfo allocInfo {
@@ -457,7 +428,25 @@ void Renderer::WaitIdle()
 	vkDeviceWaitIdle(m_ctx->GetDevice());
 }
 
-MetallicRoughnessMaterial& Renderer::GetMetalRoughMaterial()
+VkBuffer Renderer::GetMaterialConstantsBuffer()
 {
-	return m_metalRoughMaterial;
+	return m_materialConstantsBuffer.buffer;
+}
+
+void Renderer::BuildMaterialPipelines(Material& material)
+{
+	material.BuildPipelines(m_swapchain, m_gpuSceneDataDescriptorLayout);
+}
+
+void Renderer::WriteMaterialConstants(MaterialConstants& materialConstants)
+{
+	vmaMapMemory(m_materialConstantsBuffer.allocator, m_materialConstantsBuffer.allocation, reinterpret_cast<void**>(&materialConstants));
+	materialConstants.colorFactors = glm::vec4{1,1,1,1};
+	materialConstants.metalRoughtFactors = glm::vec4{1,0.5,0,0};
+	vmaUnmapMemory(m_materialConstantsBuffer.allocator, m_materialConstantsBuffer.allocation);
+}
+
+MaterialInstance Renderer::CreateMaterialInstance(Material& material, MaterialResources& materialResources)
+{
+	return material.WriteMaterial(MaterialPass::MainColor, materialResources, m_descriptorAllocator);
 }

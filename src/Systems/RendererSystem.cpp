@@ -40,7 +40,7 @@ void RenderSystem::renderDrawables()
 {
     auto& ecs = Ecs::GetInstance();
     std::vector<RenderObject> objects;
-    ecs.Each<Drawable, LocalToWorld>([&](Hori::Entity, Drawable& drawable, LocalToWorld& localToWorld) {
+    ecs.Each<Drawable, LocalToWorld>([&](Hori::Entity e, Drawable& drawable, LocalToWorld& localToWorld) {
         for (auto& [startIndex, count, material] : drawable.mesh->surfaces)
         {
             RenderObject def;

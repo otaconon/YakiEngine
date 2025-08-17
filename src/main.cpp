@@ -55,7 +55,9 @@ int main() {
 		if (ecs.HasComponents<Mesh>(e))
 		{
 			auto eMesh = ecs.GetComponent<Mesh>(e);
+			ecs.AddComponents(e, PointLight({0.5f, 0.3f, 0.2f, 1.f}, {1.0f, 0.0f, 0.0f, 1.f}));
 			register_object(e, std::make_shared<Mesh>(*eMesh), Translation{{3.f, 0.f, 0.f}});
+			break;
 		}
 	}
 
@@ -88,7 +90,8 @@ int main() {
 	{
 		e = ecs.CreateEntity();
 		ecs.AddComponents(e, PointLight({0.5f, 0.3f, 0.2f, 1.f}, {1.0f, 0.0f, 0.0f, 1.f}));
-		//register_object(e, AssetMngr::GetAsset<Mesh>(allMeshes[1]), Translation{{10.f, 10.f, 1.f}});
+		auto eMesh = ecs.GetComponent<Mesh>(Hori::Entity{3}); // Quick test
+		register_object(e, std::make_shared<Mesh>(*eMesh), Translation{{3.f, 0.f, 0.f}});
 	}
 
 	// Initialize scene

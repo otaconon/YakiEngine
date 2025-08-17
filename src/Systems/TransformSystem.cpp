@@ -12,9 +12,17 @@ void TransformSystem::Update(float dt)
 {
     auto& ecs = Ecs::GetInstance();
 
-    ecs.Each<Translation, Rotation, Scale, LocalToParent>(
-        [](Hori::Entity, Translation& t, Rotation& r, Scale& s, LocalToParent& localToParent) {
-            localToParent.value = glm::translate(glm::mat4(1.f), t.value) *  glm::toMat4(r.value) * glm::scale(glm::mat4(1.f), s.value);
+    ecs.Each<Translation, Rotation, Scale, LocalToWorld>(
+        [&ecs](Hori::Entity e, Translation& t, Rotation& r, Scale& s, LocalToWorld& localToWorld) {
+            if (ecs.HasComponents<Parent>(e))
+            {
+                localToWorld.value = glm::translate(glm::mat4(1.f), t.value) *  glm::toMat4(r.value) * glm::scale(glm::mat4(1.f), s.value);
+            }
+            else
+            {
+                auto localToParent = ecs.GetComponent<LocalToParent>(e);
+                localToParent->value = glm::translate(glm::mat4(1.f), t.value) *  glm::toMat4(r.value) * glm::scale(glm::mat4(1.f), s.value);
+            }
     });
 
     ecs.Each<LocalToWorld>([&](Hori::Entity entity, LocalToWorld&) {

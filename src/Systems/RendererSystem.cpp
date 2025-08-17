@@ -24,7 +24,7 @@ void RenderSystem::Update(float dt)
     Camera camera;
     ecs.Each<Camera, Translation>([&camera, &sceneData](Hori::Entity, Camera& cam, Translation& pos) {
         camera = cam;
-        sceneData->eyePos = pos.value;
+        sceneData->eyePos = glm::vec4(pos.value, 1.0f);
     });
     sceneData->proj = camera.projection;
     sceneData->view = camera.view;

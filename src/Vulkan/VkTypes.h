@@ -66,7 +66,7 @@ struct GPUSceneData
     glm::mat4 proj;
     glm::mat4 viewproj;
     glm::vec4 ambientColor;
-    glm::vec3 eyePos;
+    glm::vec4 eyePos;
 };
 
 static constexpr uint32_t MAX_DIRECTIONAL_LIGHTS = 10;
@@ -75,7 +75,8 @@ struct GPULightData
 {
     uint32_t numDirectionalLights;
     uint32_t numPointLights;
-
+    uint32_t padding1;
+    uint32_t padding2;
     std::array<DirectionalLight, MAX_DIRECTIONAL_LIGHTS> directionalLights;
     std::array<PointLight, MAX_POINT_LIGHTS> pointLights;
 };

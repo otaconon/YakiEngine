@@ -20,7 +20,7 @@
 #include "Assets/GltfUtils.h"
 
 constexpr uint32_t numDirectionalLights = 0;
-constexpr uint32_t numPointLights = 2;
+constexpr uint32_t numPointLights = 1;
 
 int main() {
     auto& ecs = Ecs::GetInstance();
@@ -85,6 +85,7 @@ int main() {
 	lightData->numPointLights = numPointLights;
 
 	// Create light entity
+	/*
 	std::array<Hori::Entity, numPointLights> lights;
 	for (auto& e : lights)
 	{
@@ -92,7 +93,7 @@ int main() {
 		ecs.AddComponents(e, PointLight({0.5f, 0.3f, 0.2f, 1.f}, {1.0f, 0.0f, 0.0f, 1.f}));
 		auto eMesh = ecs.GetComponent<Mesh>(Hori::Entity{3}); // Quick test
 		register_object(e, std::make_shared<Mesh>(*eMesh), Translation{{3.f, 0.f, 0.f}});
-	}
+	} */
 
 	// Initialize scene
 	auto sceneData = ecs.GetSingletonComponent<GPUSceneData>();

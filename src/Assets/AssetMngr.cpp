@@ -256,7 +256,6 @@ std::shared_ptr<GltfObject> AssetMngr::loadGltfImpl(const std::filesystem::path&
 				fastgltf::iterateAccessorWithIndex<glm::vec3>(gltf, gltf.accessors[normals->accessorIndex],
 					[&](glm::vec3 v, size_t index) {
 						vertices[initial_vtx + index].normal = v;
-						vertices[initial_vtx + index].normal.y *= -1;
 					});
 			}
 

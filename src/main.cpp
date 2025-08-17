@@ -47,12 +47,17 @@ int main() {
 	ecs.AddSingletonComponent(MouseMode{});
 
 	// Create object entities
-	/*auto allMeshes = AssetMngr::LoadMeshes("../assets/meshes/basicmesh.glb");
-	for (auto [idx, meshHandle] : std::views::enumerate(allMeshes))
+	auto allMeshes = AssetMngr::LoadGltf("../assets/meshes/basicmesh.glb");
+	for (auto& e : allMeshes->nodes | std::views::values)
 	{
-		Hori::Entity e = ecs.CreateEntity();
-		register_object(e, AssetMngr::GetAsset<Mesh>(meshHandle), Translation{{3.f * idx, 0.f, 0.f}});
-	}*/
+		if (!e.Valid())
+			continue;
+		if (ecs.HasComponents<Mesh>(e))
+		{
+			auto eMesh = ecs.GetComponent<Mesh>(e);
+			register_object(e, std::make_shared<Mesh>(*eMesh), Translation{{3.f, 0.f, 0.f}});
+		}
+	}
 
 	// Load scene
 	auto scene = AssetMngr::LoadGltf("../assets/scenes/Bakalarska.glb");

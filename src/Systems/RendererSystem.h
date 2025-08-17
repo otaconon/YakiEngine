@@ -1,5 +1,6 @@
 #pragma once
-#include <System.h>
+
+#include <HECS/System.h>
 #include <vector>
 
 #include "../Components/Drawable.h"

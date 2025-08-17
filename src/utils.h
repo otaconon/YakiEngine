@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Entity.h>
+#include <HECS/Entity.h>
 #include <filesystem>
 #include <fstream>
 #include <print>

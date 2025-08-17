@@ -1,7 +1,7 @@
 #pragma once
 
 #include <glm/glm.hpp>
-#include <World.h>
+#include <HECS/World.h>
 
 #include "../Components/Components.h"
 

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <System.h>
+#include <HECS/System.h>
 #include <SDL3/SDL_video.h>
 
 #include "../Components/Components.h"

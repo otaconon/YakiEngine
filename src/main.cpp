@@ -29,8 +29,10 @@ int main() {
 	VulkanContext ctx{mainWindow.window()};
 	Renderer renderer(mainWindow.window(), &ctx);
 	DeletionQueue deletionQueue;
-
-	AssetMngr::Initialize(&ctx);
+	
+	MaterialBuilder materialBuilder(&ctx);
+	materialBuilder.BuildPipelines(renderer.GetSwapchain(), renderer.GetSceneDataDescriptorLayout());
+	AssetMngr::Initialize(&ctx, &materialBuilder);
 
 	ecs.AddSystem<InputSystem>(InputSystem(mainWindow.window()));
 	ecs.AddSystem<CameraSystem>(CameraSystem());
@@ -44,19 +46,6 @@ int main() {
 	ecs.AddSingletonComponent(GPULightData{});
 	ecs.AddSingletonComponent(MouseMode{});
 
-	DefaultData defaultData = create_default_data(&ctx, deletionQueue);
-	Material metallicMaterial(&ctx);
-	MaterialResources materialResources {
-		.colorImage = defaultData.whiteTexture,
-		.colorSampler = defaultData.samplerLinear,
-		.metalRoughImage = defaultData.whiteTexture,
-		.metalRoughSampler = defaultData.samplerLinear,
-		.dataBuffer = renderer.GetMaterialConstantsBuffer(),
-		.dataBufferOffset = 0
-	};
-	renderer.BuildMaterialPipelines(metallicMaterial);
-	auto metallicMaterialInstance = renderer.CreateMaterialInstance(metallicMaterial, materialResources);
-
 	// Create object entities
 	/*auto allMeshes = AssetMngr::LoadMeshes("../assets/meshes/basicmesh.glb");
 	for (auto [idx, meshHandle] : std::views::enumerate(allMeshes))
@@ -66,8 +55,8 @@ int main() {
 	}*/
 
 	// Load scene
-	auto scene = GltfUtils::load_gltf_object(&ctx, "../assets/scenes/Bakalarska.glb", metallicMaterial, defaultData);
-	for (auto& e: scene.value()->nodes | std::views::values)
+	auto scene = AssetMngr::LoadGltf("../assets/scenes/Bakalarska.glb");
+	for (auto& e: scene->nodes | std::views::values)
 	{
 		if (!e.Valid())
 			continue;

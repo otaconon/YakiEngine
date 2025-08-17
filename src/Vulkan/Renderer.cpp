@@ -220,6 +220,13 @@ void Renderer::EndRendering()
 	m_currentFrame = (m_currentFrame + 1) % FRAME_OVERLAP;
 }
 
+Swapchain& Renderer::GetSwapchain()
+{
+	return m_swapchain;
+}
+
+
+
 void Renderer::initCommands()
 {
 	auto [graphicsFamily, presentFamily] = VkUtil::find_queue_families(m_ctx->GetPhysicalDevice(), m_ctx->GetSurface());
@@ -406,6 +413,7 @@ void Renderer::endSingleTimeCommands(VkCommandPool& commandPool, VkCommandBuffer
 
 FrameData& Renderer::getCurrentFrame() { return m_frames[m_currentFrame % FRAME_OVERLAP]; }
 
+
 VkRenderingAttachmentInfo Renderer::attachmentInfo(VkImageView view, VkClearValue* clear, VkImageLayout layout)
 {
 	VkRenderingAttachmentInfo colorAttachment {
@@ -433,9 +441,9 @@ VkBuffer Renderer::GetMaterialConstantsBuffer()
 	return m_materialConstantsBuffer.buffer;
 }
 
-void Renderer::BuildMaterialPipelines(Material& material)
+VkDescriptorSetLayout Renderer::GetSceneDataDescriptorLayout()
 {
-	material.BuildPipelines(m_swapchain, m_gpuSceneDataDescriptorLayout);
+	return m_gpuSceneDataDescriptorLayout;
 }
 
 void Renderer::WriteMaterialConstants(MaterialConstants& materialConstants)
@@ -444,9 +452,4 @@ void Renderer::WriteMaterialConstants(MaterialConstants& materialConstants)
 	materialConstants.colorFactors = glm::vec4{1,1,1,1};
 	materialConstants.metalRoughtFactors = glm::vec4{1,0.5,0,0};
 	vmaUnmapMemory(m_materialConstantsBuffer.allocator, m_materialConstantsBuffer.allocation);
-}
-
-MaterialInstance Renderer::CreateMaterialInstance(Material& material, MaterialResources& materialResources)
-{
-	return material.WriteMaterial(MaterialPass::MainColor, materialResources, m_descriptorAllocator);
 }

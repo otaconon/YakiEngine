@@ -1,11 +1,11 @@
-#include "Material.h"
 #include "../Vulkan/PipelineBuilder.h"
+#include "MaterialBuilder.h"
 
-Material::Material(VulkanContext* ctx)
+MaterialBuilder::MaterialBuilder(VulkanContext* ctx)
 	: m_ctx(ctx)
 {}
 
-Material::~Material()
+MaterialBuilder::~MaterialBuilder()
 {
 	vkDestroyPipeline(m_ctx->GetDevice(), m_opaquePipeline.pipeline, nullptr);
 	vkDestroyPipeline(m_ctx->GetDevice(), m_transparentPipeline.pipeline, nullptr);
@@ -13,7 +13,7 @@ Material::~Material()
 	vkDestroyDescriptorSetLayout(m_ctx->GetDevice(), m_materialLayout, nullptr);
 }
 
-void Material::BuildPipelines(Swapchain& swapchain, VkDescriptorSetLayout gpuSceneDataDescriptorLayout)
+void MaterialBuilder::BuildPipelines(Swapchain& swapchain, VkDescriptorSetLayout gpuSceneDataDescriptorLayout)
 {
     VkShaderModule meshFragShader;
 	if (!VkUtil::load_shader_module("../shaders/fragment/materials.frag.spv", m_ctx->GetDevice(), &meshFragShader))
@@ -70,7 +70,7 @@ void Material::BuildPipelines(Swapchain& swapchain, VkDescriptorSetLayout gpuSce
 	vkDestroyShaderModule(m_ctx->GetDevice(), meshVertexShader, nullptr);
 }
 
-MaterialInstance Material::WriteMaterial(MaterialPass pass, const MaterialResources& resources, DescriptorAllocator& descriptorAllocator)
+MaterialInstance MaterialBuilder::WriteMaterial(MaterialPass pass, const MaterialResources& resources, DescriptorAllocator& descriptorAllocator)
 {
 	MaterialInstance matData{};
 	matData.passType = pass;

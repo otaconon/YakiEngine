@@ -7,7 +7,7 @@
 #include "VulkanContext.h"
 #include "../Components/Drawable.h"
 #include "../DefaultData.h"
-#include "../Assets/Material.h"
+#include "../Assets/MaterialBuilder.h"
 
 constexpr uint32_t FRAME_OVERLAP = 2;
 
@@ -22,11 +22,11 @@ public:
     void EndRendering();
     void WaitIdle();
     
+    [[nodiscard]] Swapchain& GetSwapchain();
     [[nodiscard]] VkBuffer GetMaterialConstantsBuffer();
+    [[nodiscard]] VkDescriptorSetLayout GetSceneDataDescriptorLayout();
 
-    void BuildMaterialPipelines(Material& material);
     void WriteMaterialConstants(MaterialConstants& materialConstants);
-    MaterialInstance CreateMaterialInstance(Material& material, MaterialResources& materialResources);
 
 private:
     SDL_Window* m_window;

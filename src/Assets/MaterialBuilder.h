@@ -27,11 +27,11 @@ struct MaterialResources {
     uint32_t dataBufferOffset;
 };
 
-class Material : Asset
+class MaterialBuilder
 {
 public:
-	explicit Material(VulkanContext* ctx);
-    ~Material();
+	explicit MaterialBuilder(VulkanContext* ctx);
+    ~MaterialBuilder();
 
     void BuildPipelines(Swapchain& swapchain, VkDescriptorSetLayout gpuSceneDataDescriptorLayout);
     MaterialInstance WriteMaterial(MaterialPass pass, const MaterialResources& resources, DescriptorAllocator& descriptorAllocator);

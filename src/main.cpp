@@ -72,6 +72,15 @@ int main() {
 		register_object(e, mesh, Translation{{3.f, 3.f, 0.f}});
 	}
 
+	auto boxMesh = std::next(allMeshes->meshes.begin(), 1)->second;
+	int cnt = 0;
+	ecs.Each<BoxCollider>([&ecs, &boxMesh, &cnt](Hori::Entity e, BoxCollider& boxCollider) {
+		auto eCollider = ecs.CreateEntity();
+		register_object(eCollider, boxMesh, {});
+		ecs.AddComponents(eCollider, ColliderEntity{}, LocalToWorld{}, LocalToParent{}, Children{}, Parent{e});
+		cnt++;
+	});
+
 	// Initialize scene
 	auto sceneData = ecs.GetSingletonComponent<GPUSceneData>();
 	sceneData->ambientColor = glm::vec4(.1f, .1f, .1f, 1.f);

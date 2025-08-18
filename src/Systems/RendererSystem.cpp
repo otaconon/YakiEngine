@@ -114,7 +114,7 @@ void RenderSystem::renderColliders()
 {
     auto& ecs = Ecs::GetInstance();
     std::vector<WireframeObject> objects;
-    ecs.Each<Drawable, LocalToWorld>([&](Hori::Entity e, Drawable& drawable, LocalToWorld& localToWorld) {
+    ecs.Each<Drawable, LocalToWorld, ColliderEntity>([&](Hori::Entity e, Drawable& drawable, LocalToWorld& localToWorld, ColliderEntity&) {
         for (auto& [startIndex, count, material] : drawable.mesh->surfaces)
         {
             WireframeObject def;

@@ -18,3 +18,4 @@
 #include "AmbientLight.h"
 #include "Property.h"
 #include "InputQueue.h"
+#include "ColliderEntity.h"

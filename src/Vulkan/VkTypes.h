@@ -75,8 +75,7 @@ struct GPULightData
 {
     uint32_t numDirectionalLights;
     uint32_t numPointLights;
-    uint32_t padding1;
-    uint32_t padding2;
+    glm::uvec2 padding;
     std::array<DirectionalLight, MAX_DIRECTIONAL_LIGHTS> directionalLights;
     std::array<PointLight, MAX_POINT_LIGHTS> pointLights;
 };

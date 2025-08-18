@@ -1,4 +1,4 @@
-#version 450
+#version 460
 
 #extension GL_GOOGLE_include_directive : require
 #include "../shared/input_structures.glsl"
@@ -23,7 +23,7 @@ void main()
     vec3 v = normalize(sceneData.eyePosition.xyz - vPosition);
 
     vec3 color = inColor * texture(colorTex, inUV).xyz;
-    vec3 ambient = color * sceneData.ambientColor.xyz;
+    vec3 ambient = color * (sceneData.ambientColor.xyz  * sceneData.ambientColor.w);
 
     outFragColor = vec4(0.f, 0.f, 0.f, 1.0f);
     for (uint i = 0u; i < lightBuffer.numPointLights; i++) {
@@ -32,4 +32,5 @@ void main()
         float NdL = clamp(dot(n, l), 0.0f, 1.0f);
         outFragColor.rgb += NdL * lightBuffer.pointLights[i].color.rgb * lit(l, n, v);
     }
+    outFragColor.rgb += ambient;
 }

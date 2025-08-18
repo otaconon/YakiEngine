@@ -41,10 +41,13 @@ inline std::vector<char> read_file(const std::filesystem::path& filepath)
     return drawable;
 }
 
-inline void register_object(Hori::Entity e, std::shared_ptr<Mesh> mesh, Translation pos)
+inline void register_object(Hori::Entity e, std::shared_ptr<Mesh> mesh = nullptr, Translation pos = {})
 {
     auto& ecs = Ecs::GetInstance();
-    ecs.AddComponents(e, create_drawable(mesh), std::move(pos), Rotation{}, Scale{{1.f, 1.f, 1.f}}, BoxCollider{{0.5f, 0.5f, 0.5f}, true});
+    if (mesh)
+        ecs.AddComponents(e, create_drawable(mesh));
+
+    ecs.AddComponents(e, std::move(pos), Rotation{}, Scale{{1.f, 1.f, 1.f}}, LocalToWorld{}, LocalToParent{}, ParentToLocal{}, Children{}, Parent{}, BoxCollider{{0.5f, 0.5f, 0.5f}, true});
     register_property<Translation>(e, "Translation");
     register_property<Rotation>(e, "Rotation");
     register_property<Scale>(e, "Scale");

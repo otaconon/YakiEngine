@@ -20,7 +20,7 @@
 #include "Assets/GltfUtils.h"
 
 constexpr uint32_t numDirectionalLights = 0;
-constexpr uint32_t numPointLights = 1;
+constexpr uint32_t numPointLights = 3;
 
 int main() {
     auto& ecs = Ecs::GetInstance();
@@ -48,21 +48,9 @@ int main() {
 
 	// Create object entities
 	auto allMeshes = AssetMngr::LoadGltf("../assets/meshes/basicmesh.glb");
-	for (auto& e : allMeshes->nodes | std::views::values)
-	{
-		if (!e.Valid())
-			continue;
-		if (ecs.HasComponents<Mesh>(e))
-		{
-			auto eMesh = ecs.GetComponent<Mesh>(e);
-			ecs.AddComponents(e, PointLight({0.5f, 0.3f, 0.2f, 1.f}, {1.0f, 0.0f, 0.0f, 1.f}));
-			register_object(e, std::make_shared<Mesh>(*eMesh), Translation{{3.f, 0.f, 0.f}});
-			break;
-		}
-	}
 
 	// Load scene
-	auto scene = AssetMngr::LoadGltf("../assets/scenes/Bakalarska.glb");
+	auto scene = AssetMngr::LoadGltf("../assets/scenes/Baccalarska.glb");
 	for (auto& e: scene->nodes | std::views::values)
 	{
 		if (!e.Valid())
@@ -85,15 +73,14 @@ int main() {
 	lightData->numPointLights = numPointLights;
 
 	// Create light entity
-	/*
 	std::array<Hori::Entity, numPointLights> lights;
 	for (auto& e : lights)
 	{
 		e = ecs.CreateEntity();
 		ecs.AddComponents(e, PointLight({0.5f, 0.3f, 0.2f, 1.f}, {1.0f, 0.0f, 0.0f, 1.f}));
-		auto eMesh = ecs.GetComponent<Mesh>(Hori::Entity{3}); // Quick test
-		register_object(e, std::make_shared<Mesh>(*eMesh), Translation{{3.f, 0.f, 0.f}});
-	} */
+		auto mesh = allMeshes->meshes.begin()->second;
+		register_object(e, mesh, Translation{{3.f, 3.f, 0.f}});
+	}
 
 	// Initialize scene
 	auto sceneData = ecs.GetSingletonComponent<GPUSceneData>();

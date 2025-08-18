@@ -1,10 +1,12 @@
 #include "AssetMngr.h"
 
 #define GLM_ENABLE_EXPERIMENTAL
+#include <stb_image.h>
 #include <glm/gtx/quaternion.hpp>
 
 #include "../Ecs.h"
 #include "../Components/Components.h"
+#include "../utils.h"
 
 AssetMngr::AssetMngr(VulkanContext* ctx, MaterialBuilder* materialBuilder)
     : m_ctx{ctx},
@@ -89,6 +91,7 @@ std::shared_ptr<GltfObject> AssetMngr::loadGltfImpl(const std::filesystem::path&
 	if (!std::filesystem::exists(path))
 	{
 		std::print(std::cerr, "Path doesn't exist: {}", path.string());
+		return nullptr;
 	}
 
 	std::shared_ptr<GltfObject> scene = std::make_shared<GltfObject>();
@@ -149,14 +152,24 @@ std::shared_ptr<GltfObject> AssetMngr::loadGltfImpl(const std::filesystem::path&
 	std::vector<std::shared_ptr<Texture>> images;
 	std::vector<std::shared_ptr<MaterialInstance>> materials;
 
+	// Load textures
 	for (fastgltf::Image& image : gltf.images) {
-		images.push_back(m_defaultTextures.errorTexture);
+		std::shared_ptr<Texture> texture = LoadTexture(gltf, image);
+
+		if (texture) {
+			images.push_back(texture);
+			file.images[image.name.c_str()] = texture;
+		}
+		else {
+			images.push_back(m_defaultTextures.errorTexture);
+			std::cout << "gltf failed to load texture " << image.name << std::endl;
+		}
 	}
 
+	// Load materials
 	file.materialDataBuffer = std::make_shared<Buffer>(m_ctx->GetAllocator(), sizeof(MaterialConstants) * gltf.materials.size(), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU);
 	int data_index = 0;
 	MaterialConstants* sceneMaterialConstants = static_cast<MaterialConstants*>(file.materialDataBuffer->info.pMappedData);
-
 	for (fastgltf::Material &mat : gltf.materials)
 	{
         std::shared_ptr<MaterialInstance> newMat = std::make_shared<MaterialInstance>();
@@ -296,12 +309,16 @@ std::shared_ptr<GltfObject> AssetMngr::loadGltfImpl(const std::filesystem::path&
 	auto& ecs = Ecs::GetInstance();
 	for (fastgltf::Node& node : gltf.nodes) {
 		Hori::Entity newNode = ecs.CreateEntity();
-		ecs.AddComponents(newNode, LocalToWorld{}, LocalToParent{}, ParentToLocal{}, Children{}, Parent{});
 
 		// find if the node has a mesh, and if it does hook it to the mesh pointer and allocate it with the meshnode class
-		if (node.meshIndex.has_value()) {
-			Mesh mesh = *meshes[*node.meshIndex].get();
-			ecs.AddComponents(newNode, std::move(mesh));
+		if (node.meshIndex.has_value())
+		{
+			std::shared_ptr<Mesh> mesh = meshes[*node.meshIndex];
+			register_object(newNode, mesh);
+		}
+		else
+		{
+			register_object(newNode);
 		}
 
 		nodes.push_back(newNode);
@@ -319,12 +336,9 @@ std::shared_ptr<GltfObject> AssetMngr::loadGltfImpl(const std::filesystem::path&
 				glm::vec3 tl(transform.translation[0], transform.translation[1], transform.translation[2]);
 				glm::quat rot(transform.rotation[3], transform.rotation[0], transform.rotation[1], transform.rotation[2]);
 				glm::vec3 sc(transform.scale[0], transform.scale[1], transform.scale[2]);
-
-				glm::mat4 tm = glm::translate(glm::mat4(1.f), tl);
-				glm::mat4 rm = glm::toMat4(rot);
-				glm::mat4 sm = glm::scale(glm::mat4(1.f), sc);
-
-				localTransform->value = tm * rm * sm;
+				ecs.GetComponent<Translation>(newNode)->value = tl;
+				ecs.GetComponent<Rotation>(newNode)->value = rot;
+				ecs.GetComponent<Scale>(newNode)->value = sc;
 			}
 		},
 			node.transform
@@ -351,4 +365,78 @@ std::shared_ptr<GltfObject> AssetMngr::loadGltfImpl(const std::filesystem::path&
 		}
 	}
 	return scene;
+}
+
+std::shared_ptr<Texture> AssetMngr::loadTextureImpl(fastgltf::Asset& asset, fastgltf::Image image)
+{
+	std::shared_ptr<Texture> newTexture {};
+
+    int width, height, nrChannels;
+
+    std::visit(
+        fastgltf::visitor {
+            [](auto& arg) {},
+            [&](fastgltf::sources::URI& filePath) {
+                assert(filePath.fileByteOffset == 0); // We don't support offsets with stbi.
+                assert(filePath.uri.isLocalPath()); // We're only capable of loading
+
+                const std::string path(filePath.uri.path().begin(), filePath.uri.path().end()); // Thanks C++.
+                unsigned char* data = stbi_load(path.c_str(), &width, &height, &nrChannels, 4);
+                if (data) {
+                    VkExtent3D imagesize;
+                    imagesize.width = width;
+                    imagesize.height = height;
+                    imagesize.depth = 1;
+
+                    newTexture = std::make_shared<Texture>(m_ctx, m_ctx->GetAllocator(), data, imagesize, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_USAGE_SAMPLED_BIT, false);
+
+                    stbi_image_free(data);
+                }
+            },
+            [&](fastgltf::sources::Vector& vector) {
+                unsigned char* data = stbi_load_from_memory(bit_cast<stbi_uc*>(vector.bytes.data()), static_cast<int>(vector.bytes.size()), &width, &height, &nrChannels, 4);
+                if (data) {
+                    VkExtent3D imagesize;
+                    imagesize.width = width;
+                    imagesize.height = height;
+                    imagesize.depth = 1;
+
+                    newTexture = std::make_shared<Texture>(m_ctx, m_ctx->GetAllocator(), data, imagesize, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_USAGE_SAMPLED_BIT, false);
+
+                    stbi_image_free(data);
+                }
+            },
+            [&](fastgltf::sources::BufferView& view) {
+                auto& bufferView = asset.bufferViews[view.bufferViewIndex];
+                auto& buffer = asset.buffers[bufferView.bufferIndex];
+
+                std::visit(fastgltf::visitor {
+                	[](auto& arg) {
+                		std::println(std::cerr, "Unhandled buffer data type");
+                	},
+					[&](fastgltf::sources::Array& vector) {
+					   stbi_uc* data = stbi_load_from_memory(bit_cast<const stbi_uc*>(vector.bytes.data() + bufferView.byteOffset), static_cast<int>(bufferView.byteLength), &width, &height, &nrChannels, 4);
+					   if (data) {
+						   VkExtent3D imagesize;
+						   imagesize.width = width;
+						   imagesize.height = height;
+						   imagesize.depth = 1;
+
+						   newTexture = std::make_shared<Texture>(m_ctx, m_ctx->GetAllocator(), data, imagesize, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_USAGE_SAMPLED_BIT, false);
+
+						   stbi_image_free(data);
+					   }
+				   } },
+				   buffer.data);
+            },
+        },
+        image.data);
+
+    // if any of the attempts to load the data failed, we havent written the image
+    // so handle is null
+    if (!newTexture || newTexture->GetImage() == VK_NULL_HANDLE) {
+        return {};
+    } else {
+        return newTexture;
+    }
 }

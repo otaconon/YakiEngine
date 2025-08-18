@@ -49,6 +49,11 @@ public:
         return s_instance->loadGltfImpl(path);
     }
 
+    [[nodiscard]] static std::shared_ptr<Texture> LoadTexture(fastgltf::Asset& asset, fastgltf::Image image)
+    {
+        return s_instance->loadTextureImpl(asset, image);
+    }
+
 private:
     inline static AssetMngr* s_instance;
 
@@ -73,4 +78,5 @@ private:
     [[nodiscard]] AssetHandle registerAssetImpl(std::shared_ptr<Asset> asset);
     [[nodiscard]] std::vector<AssetHandle> loadMeshesImpl(const std::filesystem::path& path);
     [[nodiscard]] std::shared_ptr<GltfObject> loadGltfImpl(const std::filesystem::path& path);
+    [[nodiscard]] std::shared_ptr<Texture> loadTextureImpl(fastgltf::Asset& asset, fastgltf::Image image);
 };

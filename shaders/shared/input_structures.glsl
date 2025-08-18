@@ -19,11 +19,10 @@ layout(set = 0, binding = 0) uniform  SceneData {
     vec4 eyePosition;
 } sceneData;
 
-layout (std140, set = 0, binding = 1) restrict readonly buffer LightBuffer {
+layout (set = 0, binding = 1, std430) readonly buffer LightBuffer {
     uint numDirectionalLights;
     uint numPointLights;
-    uint padding1;
-    uint padding2;
+    uvec2 padding;
     DirectionalLight directionalLights[MAX_DIRECTIONAL];
     PointLight pointLights[MAX_POINT];
 } lightBuffer;

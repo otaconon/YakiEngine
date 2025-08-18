@@ -324,6 +324,7 @@ std::shared_ptr<GltfObject> AssetMngr::loadGltfImpl(const std::filesystem::path&
 		nodes.push_back(newNode);
 		file.nodes[node.name.c_str()] = newNode;
 
+
 		auto localTransform = ecs.GetComponent<LocalToWorld>(newNode);
 		std::visit(fastgltf::visitor{
 			[&]<typename T0>(T0& matrix) {
@@ -357,13 +358,6 @@ std::shared_ptr<GltfObject> AssetMngr::loadGltfImpl(const std::filesystem::path&
 		}
 	}
 
-	// find the top nodes, with no parents
-	for (auto& node : nodes) {
-		auto parent = ecs.GetComponent<Parent>(node);
-		if (!parent->value.Valid()) {
-			file.topNodes.push_back(node);
-		}
-	}
 	return scene;
 }
 

@@ -8,8 +8,8 @@ void CameraSystem::Update(float dt)
 {
     auto& ecs = Ecs::GetInstance();
 
-    ecs.Each<Camera, LocalToParent>([](Hori::Entity, Camera& camera, LocalToParent& localToParent) {
-        camera.view = view(localToParent.value);
+    ecs.Each<Camera, LocalToWorld>([](Hori::Entity, Camera& camera, LocalToWorld& localToWorld) {
+        camera.view = view(localToWorld.value);
         if (camera.isPerspective)
             camera.projection = perspectiveProjection(camera);
         else

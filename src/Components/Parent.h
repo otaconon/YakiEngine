@@ -4,5 +4,5 @@
 
 struct Parent
 {
-    Hori::Entity value{};
+    Hori::Entity value{0};
 };

@@ -51,21 +51,11 @@ int main() {
 
 	// Load scene
 	auto scene = AssetMngr::LoadGltf("../assets/scenes/Baccalarska.glb");
-	for (auto& e: scene->nodes | std::views::values)
-	{
-		if (!e.Valid())
-			continue;
-		if (ecs.HasComponents<Mesh>(e))
-		{
-			auto eMesh = ecs.GetComponent<Mesh>(e);
-			ecs.AddComponents(e, Drawable{std::make_shared<Mesh>(*eMesh), {}, {}, {glm::mat4{1.f}, glm::mat4{}, glm::mat4{}}});
-		}
-	}
 
 	// Create camera entity
 	Hori::Entity camera = ecs.CreateEntity();
 	ecs.AddComponents(camera, Camera{}, Controller{}, RayData{});
-	ecs.AddComponents(camera, Translation{{0, -10.f, -10.f}}, Rotation{}, Scale{}, LocalToWorld{}, LocalToParent{}, ParentToLocal{});
+	ecs.AddComponents(camera, Translation{{0, -10.f, -10.f}}, Rotation{}, Scale{}, LocalToWorld{}, LocalToParent{}, ParentToLocal{}, Parent{}, Children{});
 
 	// Init lights data
 	auto lightData = ecs.GetSingletonComponent<GPULightData>();

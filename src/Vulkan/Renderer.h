@@ -17,7 +17,10 @@ public:
     ~Renderer();
 
     void BeginRendering();
+    void Begin3DRendering();
     void RenderObjects(std::vector<RenderObject>& objects);
+    void RenderWireframes(std::vector<WireframeObject>& objects);
+    void End3DRendering();
     void RenderImGui();
     void EndRendering();
     void WaitIdle();
@@ -34,11 +37,17 @@ private:
 
     Swapchain m_swapchain;
 
+    VkDescriptorSetLayout m_wireframeDescriptorSetLayout;
+    VkPipelineLayout m_wireframePipelineLayout;
+    VkPipeline m_wireframePipeline;
+
     DeletionQueue m_deletionQueue;
 
     std::array<FrameData, 2> m_frames;
     uint32_t m_currentFrame;
     uint32_t m_currentImageIndex;
+
+    VkDescriptorSet m_globalDescriptor;
 
     DescriptorAllocator m_descriptorAllocator;
     VkDescriptorSet m_drawImageDescriptors{};
@@ -55,6 +64,7 @@ private:
     void initSyncObjects();
     void initDescriptorAllocator();
     void initDescriptors();
+    void initWireframePipeline();
 
     VkCommandBuffer beginSingleTimeCommands(VkCommandPool& commandPool) const;
     void endSingleTimeCommands(VkCommandPool& commandPool, VkCommandBuffer& commandBuffer) const;

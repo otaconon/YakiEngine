@@ -229,8 +229,8 @@ std::shared_ptr<GltfObject> AssetMngr::loadGltfImpl(const std::filesystem::path&
 
 		for (auto&& p : mesh.primitives) {
 			GeoSurface newSurface;
-			newSurface.startIndex = (uint32_t)indices.size();
-			newSurface.count = (uint32_t)gltf.accessors[p.indicesAccessor.value()].count;
+			newSurface.startIndex = static_cast<uint32_t>(indices.size());
+			newSurface.count = static_cast<uint32_t>(gltf.accessors[p.indicesAccessor.value()].count);
 
 			size_t initial_vtx = vertices.size();
 

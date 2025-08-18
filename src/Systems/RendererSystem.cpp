@@ -31,7 +31,10 @@ void RenderSystem::Update(float dt)
     sceneData->viewproj = camera.viewProjection;
 
     m_renderer->BeginRendering();
+    m_renderer->Begin3DRendering();
     renderDrawables();
+    renderColliders();
+    m_renderer->End3DRendering();
     renderGui();
     m_renderer->EndRendering();
 }
@@ -105,4 +108,25 @@ void RenderSystem::renderGui()
 
     ImGui::Render();
     m_renderer->RenderImGui();
+}
+
+void RenderSystem::renderColliders()
+{
+    auto& ecs = Ecs::GetInstance();
+    std::vector<WireframeObject> objects;
+    ecs.Each<Drawable, LocalToWorld>([&](Hori::Entity e, Drawable& drawable, LocalToWorld& localToWorld) {
+        for (auto& [startIndex, count, material] : drawable.mesh->surfaces)
+        {
+            WireframeObject def;
+            def.indexCount = count;
+            def.firstIndex = startIndex;
+            def.indexBuffer = drawable.mesh->meshBuffers->indexBuffer.buffer;
+            def.transform = localToWorld.value;
+            def.vertexBufferAddress = drawable.mesh->meshBuffers->vertexBufferAddress;
+
+            objects.push_back(def);
+        }
+    });
+
+    m_renderer->RenderWireframes(objects);
 }

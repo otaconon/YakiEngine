@@ -20,4 +20,5 @@ private:
 
     void renderDrawables();
     void renderGui();
+    void renderColliders();
 };

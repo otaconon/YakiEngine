@@ -13,6 +13,7 @@
 #include <vk_mem_alloc.h>
 
 #include "ImGuiStyles.h"
+#include "PipelineBuilder.h"
 #include "VkInit.h"
 #include "../Ecs.h"
 #include "Descriptors/DescriptorLayoutBuilder.h"
@@ -32,6 +33,7 @@ Renderer::Renderer(SDL_Window* window, VulkanContext* ctx)
 	initImgui();
 	initDescriptorAllocator();
 	initDescriptors();
+	initWireframePipeline();
 }
 
 Renderer::~Renderer()
@@ -111,7 +113,7 @@ void Renderer::BeginRendering()
 	vkCmdClearColorImage(cmd, m_swapchain.GetDrawImage().GetImage(), VK_IMAGE_LAYOUT_GENERAL, &clearValues[0].color, 1, &clearRange);
 }
 
-void Renderer::RenderObjects(std::vector<RenderObject>& objects)
+void Renderer::Begin3DRendering()
 {
 	VkCommandBuffer cmd = getCurrentFrame().commandBuffer;
 	VkRenderingAttachmentInfo colorAttachment = VkInit::color_attachment_info(m_swapchain.GetDrawImage().GetView(), nullptr, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
@@ -136,20 +138,25 @@ void Renderer::RenderObjects(std::vector<RenderObject>& objects)
 	*mappedLightData = lightData;
 	vmaUnmapMemory(lightBuffer.allocator, lightBuffer.allocation);
 
-	VkDescriptorSet globalDescriptor = getCurrentFrame().frameDescriptors.Allocate(m_ctx->GetDevice(), m_gpuSceneDataDescriptorLayout);
+	m_globalDescriptor = getCurrentFrame().frameDescriptors.Allocate(m_ctx->GetDevice(), m_gpuSceneDataDescriptorLayout);
 	{
 		DescriptorWriter writer;
 		writer.WriteBuffer(0, gpuSceneDataBuffer.buffer, sizeof(GPUSceneData), 0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER);
 		writer.WriteBuffer(1, lightBuffer.buffer, sizeof(GPULightData), 0, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER);
-		writer.UpdateSet(m_ctx->GetDevice(), globalDescriptor);
+		writer.UpdateSet(m_ctx->GetDevice(), m_globalDescriptor);
 	}
-	m_deletionQueue.PushBuffer(std::move(gpuSceneDataBuffer));
-	m_deletionQueue.PushBuffer(std::move(lightBuffer));
 
+	getCurrentFrame().deletionQueue.PushBuffer(std::move(gpuSceneDataBuffer));
+	getCurrentFrame().deletionQueue.PushBuffer(std::move(lightBuffer));
+}
+
+void Renderer::RenderObjects(std::vector<RenderObject>& objects)
+{
+	VkCommandBuffer cmd = getCurrentFrame().commandBuffer;
 	for (auto& [indexCount, firstIndex, indexBuffer, material, transform, vertexBufferAddress] : objects)
 	{
 		vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, material->pipeline->pipeline);
-		vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, material->pipeline->layout, 0, 1, &globalDescriptor, 0, nullptr );
+		vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, material->pipeline->layout, 0, 1, &m_globalDescriptor, 0, nullptr );
 		vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, material->pipeline->layout, 1, 1, &material->materialSet, 0, nullptr );
 
 		vkCmdBindIndexBuffer(cmd, indexBuffer, 0, VK_INDEX_TYPE_UINT32);
@@ -162,7 +169,31 @@ void Renderer::RenderObjects(std::vector<RenderObject>& objects)
 
 		vkCmdDrawIndexed(cmd, indexCount, 1, firstIndex, 0, 0);
 	}
+}
 
+void Renderer::RenderWireframes(std::vector<WireframeObject>& objects)
+{
+	VkCommandBuffer cmd = getCurrentFrame().commandBuffer;
+	for (auto& [indexCount, firstIndex, indexBuffer, transform, vertexBufferAddress] : objects)
+	{
+		vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, m_wireframePipeline);
+		vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, m_wireframePipelineLayout, 0, 1, &m_globalDescriptor, 0, nullptr );
+
+		vkCmdBindIndexBuffer(cmd, indexBuffer, 0, VK_INDEX_TYPE_UINT32);
+
+		GPUDrawPushConstants pushConstants {
+			.worldMatrix = transform,
+			.vertexBuffer = vertexBufferAddress
+		};
+		vkCmdPushConstants(cmd, m_wireframePipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(GPUDrawPushConstants), &pushConstants);
+
+		vkCmdDrawIndexed(cmd, indexCount, 1, firstIndex, 0, 0);
+	}
+}
+
+void Renderer::End3DRendering()
+{
+	VkCommandBuffer cmd = getCurrentFrame().commandBuffer;
 	vkCmdEndRendering(cmd);
 
 	VkUtil::transition_image(cmd, m_swapchain.GetDrawImage().GetImage(), VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
@@ -224,8 +255,6 @@ Swapchain& Renderer::GetSwapchain()
 {
 	return m_swapchain;
 }
-
-
 
 void Renderer::initCommands()
 {
@@ -371,6 +400,53 @@ void Renderer::initDescriptors()
 			vkDestroyDescriptorSetLayout(m_ctx->GetDevice(), m_gpuSceneDataDescriptorLayout, nullptr);
 		});
 	}
+}
+
+void Renderer::initWireframePipeline()
+{
+	VkShaderModule meshFragShader;
+	if (!VkUtil::load_shader_module("../shaders/fragment/wireframe.frag.spv", m_ctx->GetDevice(), &meshFragShader))
+		std::println("Error when building the triangle fragment shader module");
+
+	VkShaderModule meshVertexShader;
+	if (!VkUtil::load_shader_module("../shaders/vertex/wireframe.vert.spv", m_ctx->GetDevice(), &meshVertexShader))
+		std::println("Error when building the triangle vertex shader module");
+
+	VkPushConstantRange matrixRange {
+		.stageFlags = VK_SHADER_STAGE_VERTEX_BIT,
+		.offset = 0,
+		.size = sizeof(GPUDrawPushConstants)
+	};
+
+	VkDescriptorSetLayout layouts[] = { m_gpuSceneDataDescriptorLayout };
+	VkPipelineLayoutCreateInfo mesh_layout_info = VkInit::pipeline_layout_create_info();
+	mesh_layout_info.setLayoutCount = 1;
+	mesh_layout_info.pSetLayouts = layouts;
+	mesh_layout_info.pPushConstantRanges = &matrixRange;
+	mesh_layout_info.pushConstantRangeCount = 1;
+
+	VK_CHECK(vkCreatePipelineLayout(m_ctx->GetDevice(), &mesh_layout_info, nullptr, &m_wireframePipelineLayout));
+
+	PipelineBuilder pipelineBuilder(m_ctx);
+	pipelineBuilder.SetShaders(meshVertexShader, meshFragShader);
+	pipelineBuilder.SetInputTopology(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
+	pipelineBuilder.SetPolygonMode(VK_POLYGON_MODE_LINE);
+	pipelineBuilder.SetCullMode(VK_CULL_MODE_NONE, VK_FRONT_FACE_CLOCKWISE);
+	pipelineBuilder.SetMultisamplingNone();
+	pipelineBuilder.DisableBlending();
+	pipelineBuilder.EnableDepthTest(true);
+	pipelineBuilder.SetColorAttachmentFormat(m_swapchain.GetDrawImage().GetFormat());
+	pipelineBuilder.SetDepthFormat(m_swapchain.GetDepthImage().GetFormat());
+	pipelineBuilder.SetLayout(m_wireframePipelineLayout);
+
+	m_wireframePipeline = pipelineBuilder.CreatePipeline();
+	m_deletionQueue.PushFunction([this]() {
+		vkDestroyPipeline(m_ctx->GetDevice(), m_wireframePipeline, nullptr);
+		vkDestroyPipelineLayout(m_ctx->GetDevice(), m_wireframePipelineLayout, nullptr);
+	});
+
+	vkDestroyShaderModule(m_ctx->GetDevice(), meshFragShader, nullptr);
+	vkDestroyShaderModule(m_ctx->GetDevice(), meshVertexShader, nullptr);
 }
 
 VkCommandBuffer Renderer::beginSingleTimeCommands(VkCommandPool& commandPool) const

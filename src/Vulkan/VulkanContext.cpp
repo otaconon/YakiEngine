@@ -138,7 +138,9 @@ void VulkanContext::createLogicalDevice()
         queueCreateInfos.push_back(queueCreateInfo);
     }
 
-    VkPhysicalDeviceFeatures deviceFeatures{};
+    VkPhysicalDeviceFeatures deviceFeatures {
+        .fillModeNonSolid = VK_TRUE
+    };
     VkPhysicalDeviceSynchronization2Features sync2Features {
         .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SYNCHRONIZATION_2_FEATURES,
         .synchronization2 = VK_TRUE

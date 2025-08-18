@@ -113,3 +113,13 @@ struct RenderObject {
     glm::mat4 transform;
     VkDeviceAddress vertexBufferAddress;
 };
+
+struct WireframeObject
+{
+    uint32_t indexCount;
+    uint32_t firstIndex;
+    VkBuffer indexBuffer;
+
+    glm::mat4 transform;
+    VkDeviceAddress vertexBufferAddress;
+};

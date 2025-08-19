@@ -1,5 +1,6 @@
 #include "InputSystem.h"
 
+#include <imgui.h>
 #include <SDL3/SDL_events.h>
 
 #include "../Ecs.h"
@@ -58,14 +59,15 @@ void InputSystem::processMouseButtonEvents(Controller& controller)
     {
         if (event.button == SDL_BUTTON_LEFT)
         {
-            if (event.type == SDL_EVENT_MOUSE_BUTTON_DOWN)
+            if (event.type == SDL_EVENT_MOUSE_BUTTON_DOWN && !ImGui::GetIO().WantCaptureMouse)
             {
-                Ecs::GetInstance().Each<Hovered>([](Hori::Entity e, Hovered&) {
-                    if (Ecs::GetInstance().GetComponentArray<Hovered>().Size() > 1)
+                auto& ecs = Ecs::GetInstance();
+                ecs.Each<Hovered>([&ecs](Hori::Entity e, Hovered&) {
+                    if (ecs.GetComponentArray<Hovered>().Size() > 1)
                     {
-                        Ecs::GetInstance().RemoveComponents<Hovered>(e);
+                        ecs.RemoveComponents<Hovered>(e);
                     }
-                    Ecs::GetInstance().AddComponents(e, RayTagged{});
+                    ecs.AddComponents(e, RayTagged{});
                 });
                 controller.mouseButtonLeftPressed = true;
             }

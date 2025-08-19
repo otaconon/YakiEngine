@@ -11,6 +11,7 @@
 
 #include <vulkan/vulkan.h>
 #include <vk_mem_alloc.h>
+#include <SDL3/SDL_mouse.h>
 
 #include "ImGuiStyles.h"
 #include "PipelineBuilder.h"
@@ -231,14 +232,19 @@ void Renderer::RenderPickingTexture(std::vector<RenderObject>& objects)
 	vkCmdEndRendering(cmd);
 
 	VkUtil::transition_image(cmd, m_pickingResources.texture->GetImage(), VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
-
 	VkBufferImageCopy region{};
-	region.imageOffset = {0, 0, 0};
+	float mouseX, mouseY;
+	SDL_GetMouseState(&mouseX, &mouseY); // I Would rather not use sdl in the renderer
+	region.imageOffset = {static_cast<int>(mouseX), static_cast<int>(mouseY), 0};
 	region.imageExtent = {1, 1, 1};
 	region.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 	region.imageSubresource.layerCount = 1;
-
 	vkCmdCopyImageToBuffer(cmd, m_pickingResources.texture->GetImage(), VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, m_pickingResources.stagingBuffer->buffer, 1, &region);
+
+	void* mappedData;
+	vmaMapMemory(m_pickingResources.stagingBuffer->allocator, m_pickingResources.stagingBuffer->allocation, &mappedData);
+	m_pickingResources.entityId = *static_cast<uint32_t*>(mappedData);
+	vmaUnmapMemory(m_pickingResources.stagingBuffer->allocator, m_pickingResources.stagingBuffer->allocation);
 }
 
 void Renderer::RenderImGui()
@@ -288,11 +294,6 @@ void Renderer::EndRendering()
 		m_swapchain.SetResized(true);
 	else if (result != VK_SUCCESS)
 		throw std::runtime_error("failed to present swap chain image!");
-
-	void* mappedData;
-	vmaMapMemory(m_pickingResources.stagingBuffer->allocator, m_pickingResources.stagingBuffer->allocation, &mappedData);
-	uint32_t pickedObjectID = *static_cast<uint32_t*>(mappedData);
-	vmaUnmapMemory(m_pickingResources.stagingBuffer->allocator, m_pickingResources.stagingBuffer->allocation);
 
 	m_currentFrame = (m_currentFrame + 1) % FRAME_OVERLAP;
 }
@@ -615,6 +616,11 @@ VkBuffer Renderer::GetMaterialConstantsBuffer()
 VkDescriptorSetLayout Renderer::GetSceneDataDescriptorLayout()
 {
 	return m_gpuSceneDataDescriptorLayout;
+}
+
+uint32_t Renderer::GetHoveredEntityId()
+{
+	return m_pickingResources.entityId;
 }
 
 void Renderer::WriteMaterialConstants(MaterialConstants& materialConstants)

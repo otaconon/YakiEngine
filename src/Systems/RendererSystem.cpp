@@ -161,4 +161,7 @@ void RenderSystem::renderPickingTexture()
     });
 
     m_renderer->RenderPickingTexture(objects);
+    Hori::Entity selectedEntity{m_renderer->GetHoveredEntityId()};
+    if (selectedEntity.Valid())
+        ecs.AddComponents(selectedEntity, Hovered{});
 }

@@ -59,9 +59,16 @@ void InputSystem::processMouseButtonEvents(Controller& controller)
         if (event.button == SDL_BUTTON_LEFT)
         {
             if (event.type == SDL_EVENT_MOUSE_BUTTON_DOWN)
+            {
+                Ecs::GetInstance().Each<Hovered>([](Hori::Entity e, Hovered&) {
+                    Ecs::GetInstance().AddComponents(e, RayTagged{});
+                });
                 controller.mouseButtonLeftPressed = true;
+            }
             else
+            {
                 controller.mouseButtonLeftPressed = false;
+            }
         }
         if (event.type == SDL_EVENT_MOUSE_BUTTON_DOWN && event.button == SDL_BUTTON_RIGHT)
         {

@@ -18,8 +18,9 @@ struct PickingResources
     VkPipelineLayout pipelineLayout;
     VkPipeline pipeline;
     std::shared_ptr<Texture> texture;
-    VkImageMemoryBarrier barrier;
     std::shared_ptr<Buffer> stagingBuffer;
+    VkImageMemoryBarrier barrier;
+    uint32_t entityId;
 };
 
 class Renderer {
@@ -40,6 +41,7 @@ public:
     [[nodiscard]] Swapchain& GetSwapchain();
     [[nodiscard]] VkBuffer GetMaterialConstantsBuffer();
     [[nodiscard]] VkDescriptorSetLayout GetSceneDataDescriptorLayout();
+    [[nodiscard]] uint32_t GetHoveredEntityId();
 
     void WriteMaterialConstants(MaterialConstants& materialConstants);
 

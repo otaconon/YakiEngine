@@ -40,7 +40,6 @@ int main() {
 	ecs.AddSystem<TransformSystem>(TransformSystem());
 	ecs.AddSystem<LightingSystem>(LightingSystem());
 	ecs.AddSystem<RenderSystem>(renderer);
-	ecs.AddSystem<PhysicsSystem>(PhysicsSystem());
 
 	ecs.AddSingletonComponent(GPUSceneData{});
 	ecs.AddSingletonComponent(GPULightData{});
@@ -129,7 +128,7 @@ int main() {
 		renderer.WaitIdle();
 		prevTime = currentTime;
 		std::cout.flush();
-		FrameMark;
+		//FrameMark;
 	}
 
 	deletionQueue.Flush();

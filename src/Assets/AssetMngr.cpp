@@ -155,8 +155,8 @@ std::shared_ptr<GltfObject> AssetMngr::loadGltfImpl(const std::filesystem::path&
 	// Load textures
 	for (fastgltf::Image& image : gltf.images) {
 		std::shared_ptr<Texture> texture = LoadTexture(gltf, image);
-
 		if (texture) {
+			RegisterAsset<Texture>(texture);
 			images.push_back(texture);
 			file.images[image.name.c_str()] = texture;
 		}
@@ -192,13 +192,10 @@ std::shared_ptr<GltfObject> AssetMngr::loadGltfImpl(const std::filesystem::path&
         }
 
         MaterialResources materialResources;
-        // default the material textures
 		materialResources.colorImage = m_defaultTextures.whiteTexture;
 		materialResources.colorSampler = m_defaultTextures.samplerLinear;
 		materialResources.metalRoughImage = m_defaultTextures.whiteTexture;
 		materialResources.metalRoughSampler = m_defaultTextures.samplerLinear;
-
-        // set the uniform buffer for the material data
         materialResources.dataBuffer = file.materialDataBuffer->buffer;
         materialResources.dataBufferOffset = data_index * sizeof(MaterialConstants);
         // grab textures from gltf file
@@ -207,6 +204,8 @@ std::shared_ptr<GltfObject> AssetMngr::loadGltfImpl(const std::filesystem::path&
             size_t sampler = gltf.textures[mat.pbrData.baseColorTexture.value().textureIndex].samplerIndex.value();
 
             materialResources.colorImage = images[img];
+        	if (images[img]->GetView() == VK_NULL_HANDLE)
+        		std::print(std::cerr, "View is null");
             materialResources.colorSampler = file.samplers[sampler];
         }
         // build material

@@ -34,7 +34,7 @@ public:
     }
 
     template<typename AssetType>
-    [[nodiscard]] static AssetHandle RegisterAsset(std::shared_ptr<AssetType> asset)
+    static AssetHandle RegisterAsset(std::shared_ptr<AssetType> asset)
     {
         return s_instance->registerAssetImpl(asset);
     }

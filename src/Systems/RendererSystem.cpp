@@ -91,6 +91,13 @@ void RenderSystem::renderGui()
    });
     ImGui::End();
 
+    ImGui::Begin("Controller");
+    ecs.Each<Controller>([](Hori::Entity, Controller& controller) {
+        ImGui::InputFloat("Speed", &controller.speed);
+        ImGui::InputFloat("Sensitivity", &controller.sensitivity);
+    });
+    ImGui::End();
+
     ImGui::Begin("Object info");
     ecs.Each<RayTagged, Translation, Rotation, Scale, Property<Translation>, Property<Rotation>, Property<Scale>>
     ([&ecs](Hori::Entity e, RayTagged, Translation& translation, Rotation& rotation, Scale& scale, Property<Translation>& pTranslation, Property<Rotation>& pRotation, Property<Scale>& pScale) {

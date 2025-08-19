@@ -61,6 +61,10 @@ void InputSystem::processMouseButtonEvents(Controller& controller)
             if (event.type == SDL_EVENT_MOUSE_BUTTON_DOWN)
             {
                 Ecs::GetInstance().Each<Hovered>([](Hori::Entity e, Hovered&) {
+                    if (Ecs::GetInstance().GetComponentArray<Hovered>().Size() > 1)
+                    {
+                        Ecs::GetInstance().RemoveComponents<Hovered>(e);
+                    }
                     Ecs::GetInstance().AddComponents(e, RayTagged{});
                 });
                 controller.mouseButtonLeftPressed = true;

@@ -49,7 +49,7 @@ int main() {
 	auto allMeshes = AssetMngr::LoadGltf("../assets/meshes/basicmesh.glb");
 
 	// Load scene
-	auto scene = AssetMngr::LoadGltf("../assets/scenes/Baccalarska.glb");
+	//auto scene = AssetMngr::LoadGltf("../assets/scenes/Baccalarska.glb");
 
 	// Create camera entity
 	Hori::Entity camera = ecs.CreateEntity();
@@ -71,6 +71,7 @@ int main() {
 		register_object(e, mesh, Translation{{3.f, 3.f, 0.f}});
 	}
 
+	/*
 	auto boxMesh = std::next(allMeshes->meshes.begin(), 1)->second;
 	int cnt = 0;
 	ecs.Each<BoxCollider>([&ecs, &boxMesh, &cnt](Hori::Entity e, BoxCollider& boxCollider) {
@@ -78,7 +79,7 @@ int main() {
 		register_object(eCollider, boxMesh, {});
 		ecs.AddComponents(eCollider, ColliderEntity{}, LocalToWorld{}, LocalToParent{}, Children{}, Parent{e});
 		cnt++;
-	});
+	});*/
 
 	// Initialize scene
 	auto sceneData = ecs.GetSingletonComponent<GPUSceneData>();

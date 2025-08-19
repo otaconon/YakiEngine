@@ -114,12 +114,14 @@ void Renderer::BeginRendering()
 	// Setup image layout
 	VkUtil::transition_image(cmd, m_swapchain.GetDrawImage().GetImage(), VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_GENERAL);
 	VkUtil::transition_image(cmd, m_swapchain.GetDepthImage().GetImage(), VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL);
+	VkUtil::transition_image(cmd, m_pickingResources.texture->GetImage(), VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_GENERAL);
 
 	std::array<VkClearValue, 2> clearValues{};
 	clearValues[0].color = {{0.0f, 0.0f, 0.0f, 1.0f}};
 	clearValues[1].depthStencil = {1.0f, 0};
 	VkImageSubresourceRange clearRange = VkInit::image_subresource_range(VK_IMAGE_ASPECT_COLOR_BIT);
 	vkCmdClearColorImage(cmd, m_swapchain.GetDrawImage().GetImage(), VK_IMAGE_LAYOUT_GENERAL, &clearValues[0].color, 1, &clearRange);
+	vkCmdClearColorImage(cmd, m_pickingResources.texture->GetImage(), VK_IMAGE_LAYOUT_GENERAL, &clearValues[0].color, 1, &clearRange);
 }
 
 void Renderer::Begin3DRendering()
@@ -213,16 +215,19 @@ void Renderer::End3DRendering()
 void Renderer::RenderPickingTexture(std::vector<RenderObject>& objects)
 {
 	VkCommandBuffer cmd = getCurrentFrame().commandBuffer;
+
+	VkUtil::transition_image(cmd, m_pickingResources.texture->GetImage(), VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 	VkRenderingAttachmentInfo colorAttachment = VkInit::color_attachment_info(m_pickingResources.texture->GetView(), nullptr, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+	VkRenderingAttachmentInfo depthAttachment = VkInit::depth_attachment_info(m_swapchain.GetDepthImage().GetView(), VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL);
 
 	VkExtent2D drawExtent = {m_swapchain.GetDrawImage().GetExtent().width, m_swapchain.GetDrawImage().GetExtent().height};
-	VkRenderingInfo renderInfo = VkInit::rendering_info(drawExtent, &colorAttachment, nullptr);
+	VkRenderingInfo renderInfo = VkInit::rendering_info(drawExtent, &colorAttachment, &depthAttachment);
 	vkCmdBeginRendering(cmd, &renderInfo);
 
 	for (auto& [objectId, indexCount, firstIndex, indexBuffer, material, transform, vertexBufferAddress] : objects)
 	{
 		vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pickingResources.pipeline);
-		vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, material->pipeline->layout, 0, 1, &m_globalDescriptor, 0, nullptr );
+		vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pickingResources.pipelineLayout, 0, 1, &m_globalDescriptor, 0, nullptr );
 
 		vkCmdBindIndexBuffer(cmd, indexBuffer, 0, VK_INDEX_TYPE_UINT32);
 
@@ -231,14 +236,14 @@ void Renderer::RenderPickingTexture(std::vector<RenderObject>& objects)
 			.vertexBuffer = vertexBufferAddress,
 			.objectId = objectId
 		};
-		vkCmdPushConstants(cmd, material->pipeline->layout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(GPUDrawPushConstants), &pushConstants);
+		vkCmdPushConstants(cmd, m_pickingResources.pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(GPUDrawPushConstants), &pushConstants);
 
 		vkCmdDrawIndexed(cmd, indexCount, 1, firstIndex, 0, 0);
 	}
 
 	vkCmdEndRendering(cmd);
 
-	VkUtil::transition_image(cmd, m_pickingResources.texture->GetImage(), VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
+	VkUtil::transition_image(cmd, m_pickingResources.texture->GetImage(), VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
 	VkBufferImageCopy region{};
 	float mouseX, mouseY;
 	SDL_GetMouseState(&mouseX, &mouseY); // I Would rather not use sdl in the renderer
@@ -247,11 +252,6 @@ void Renderer::RenderPickingTexture(std::vector<RenderObject>& objects)
 	region.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 	region.imageSubresource.layerCount = 1;
 	vkCmdCopyImageToBuffer(cmd, m_pickingResources.texture->GetImage(), VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, m_pickingResources.stagingBuffer->buffer, 1, &region);
-
-	void* mappedData;
-	vmaMapMemory(m_pickingResources.stagingBuffer->allocator, m_pickingResources.stagingBuffer->allocation, &mappedData);
-	m_pickingResources.entityId = *static_cast<uint32_t*>(mappedData);
-	vmaUnmapMemory(m_pickingResources.stagingBuffer->allocator, m_pickingResources.stagingBuffer->allocation);
 }
 
 void Renderer::RenderImGui()
@@ -276,13 +276,14 @@ void Renderer::RenderImGui()
 void Renderer::EndRendering()
 {
 	VkCommandBuffer cmd = getCurrentFrame().commandBuffer;
+
 	VkUtil::transition_image(cmd, m_swapchain.GetImage(m_currentImageIndex), VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
 	VK_CHECK(vkEndCommandBuffer(cmd));
-	VkCommandBufferSubmitInfo cmdInfo = VkInit::command_buffer_submit_info(getCurrentFrame().commandBuffer);
 
-	VkSemaphoreSubmitInfo waitInfo = VkInit::semaphore_submit_info(VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT_KHR,getCurrentFrame().swapchainSemaphore);
+	VkCommandBufferSubmitInfo cmdInfo = VkInit::command_buffer_submit_info(getCurrentFrame().commandBuffer);
+	VkSemaphoreSubmitInfo waitInfo = VkInit::semaphore_submit_info(VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT_KHR, getCurrentFrame().swapchainSemaphore);
 	VkSemaphoreSubmitInfo signalInfo = VkInit::semaphore_submit_info(VK_PIPELINE_STAGE_2_ALL_GRAPHICS_BIT, getCurrentFrame().renderSemaphore);
-	VkSubmitInfo2 submit = VkInit::submit_info(&cmdInfo,&signalInfo,&waitInfo);
+	VkSubmitInfo2 submit = VkInit::submit_info(&cmdInfo, &signalInfo, &waitInfo);
 
 	VK_CHECK(vkQueueSubmit2(m_ctx->GetGraphicsQueue(), 1, &submit, getCurrentFrame().renderFence));
 
@@ -301,6 +302,11 @@ void Renderer::EndRendering()
 		m_swapchain.SetResized(true);
 	else if (result != VK_SUCCESS)
 		throw std::runtime_error("failed to present swap chain image!");
+
+	void* mappedData;
+	vmaMapMemory(m_pickingResources.stagingBuffer->allocator, m_pickingResources.stagingBuffer->allocation, &mappedData);
+	m_pickingResources.entityId = *static_cast<uint32_t*>(mappedData);
+	vmaUnmapMemory(m_pickingResources.stagingBuffer->allocator, m_pickingResources.stagingBuffer->allocation);
 
 	m_currentFrame = (m_currentFrame + 1) % FRAME_OVERLAP;
 }
@@ -505,7 +511,7 @@ void Renderer::initWireframePipeline()
 
 void Renderer::initPicking()
 {
-	m_pickingResources.texture = std::make_shared<Texture>(m_ctx, m_ctx->GetAllocator(), VkExtent3D{m_swapchain.GetExtent().width, m_swapchain.GetExtent().height, 1}, VK_FORMAT_R32_UINT, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT, false);
+	m_pickingResources.texture = std::make_shared<Texture>(m_ctx, m_ctx->GetAllocator(), VkExtent3D{m_swapchain.GetExtent().width, m_swapchain.GetExtent().height, 1}, VK_FORMAT_R32_UINT, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT, false);
 	m_pickingResources.stagingBuffer = std::make_shared<Buffer>(m_ctx->GetAllocator(), sizeof(uint32_t), VK_BUFFER_USAGE_TRANSFER_DST_BIT, VMA_MEMORY_USAGE_GPU_TO_CPU);
 	VkShaderModule meshFragShader;
 	if (!VkUtil::load_shader_module("../shaders/fragment/picking.frag.spv", m_ctx->GetDevice(), &meshFragShader))
@@ -623,6 +629,11 @@ VkDescriptorSetLayout Renderer::GetSceneDataDescriptorLayout()
 
 uint32_t Renderer::GetHoveredEntityId()
 {
+	void* mappedData;
+	vmaMapMemory(m_pickingResources.stagingBuffer->allocator, m_pickingResources.stagingBuffer->allocation, &mappedData);
+	m_pickingResources.entityId = *static_cast<uint32_t*>(mappedData);
+	vmaUnmapMemory(m_pickingResources.stagingBuffer->allocator, m_pickingResources.stagingBuffer->allocation);
+
 	return m_pickingResources.entityId;
 }
 

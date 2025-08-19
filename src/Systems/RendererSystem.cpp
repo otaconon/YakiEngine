@@ -38,6 +38,10 @@ void RenderSystem::Update(float dt)
     renderGui();
     renderPickingTexture(); // TODO: Combine with rendering drawables
     m_renderer->EndRendering();
+
+    Hori::Entity selectedEntity{m_renderer->GetHoveredEntityId()};
+    if (selectedEntity.Valid())
+        ecs.AddComponents(selectedEntity, Hovered{});
 }
 
 void RenderSystem::renderDrawables()
@@ -161,7 +165,4 @@ void RenderSystem::renderPickingTexture()
     });
 
     m_renderer->RenderPickingTexture(objects);
-    Hori::Entity selectedEntity{m_renderer->GetHoveredEntityId()};
-    if (selectedEntity.Valid())
-        ecs.AddComponents(selectedEntity, Hovered{});
 }

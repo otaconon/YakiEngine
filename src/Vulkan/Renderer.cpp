@@ -53,6 +53,9 @@ Renderer::~Renderer()
     	m_frames[i].deletionQueue.Flush();
     }
 
+	vkDestroyPipeline(m_ctx->GetDevice(), m_pickingResources.pipeline, nullptr);
+	vkDestroyPipelineLayout(m_ctx->GetDevice(), m_pickingResources.pipelineLayout, nullptr);
+
 	m_deletionQueue.Flush();
 }
 
@@ -70,6 +73,10 @@ void Renderer::BeginRendering()
 	{
 		m_swapchain.RecreateSwapchain();
 		m_swapchain.SetResized(false);
+
+		vkDestroyPipeline(m_ctx->GetDevice(), m_pickingResources.pipeline, nullptr);
+		vkDestroyPipelineLayout(m_ctx->GetDevice(), m_pickingResources.pipelineLayout, nullptr);
+		initPicking();
 	}
 
 	VkResult result = vkAcquireNextImageKHR(m_ctx->GetDevice(), m_swapchain.GetSwapchain(), UINT64_MAX, getCurrentFrame().swapchainSemaphore, VK_NULL_HANDLE, &m_currentImageIndex);
@@ -536,10 +543,6 @@ void Renderer::initPicking()
 	pipelineBuilder.SetLayout(m_pickingResources.pipelineLayout);
 
 	m_pickingResources.pipeline = pipelineBuilder.CreatePipeline();
-	m_deletionQueue.PushFunction([this]() {
-		vkDestroyPipeline(m_ctx->GetDevice(), m_pickingResources.pipeline, nullptr);
-		vkDestroyPipelineLayout(m_ctx->GetDevice(), m_pickingResources.pipelineLayout, nullptr);
-	});
 
 	vkDestroyShaderModule(m_ctx->GetDevice(), meshFragShader, nullptr);
 	vkDestroyShaderModule(m_ctx->GetDevice(), meshVertexShader, nullptr);

@@ -34,6 +34,7 @@ Renderer::Renderer(SDL_Window* window, VulkanContext* ctx)
 	initDescriptorAllocator();
 	initDescriptors();
 	initWireframePipeline();
+	initPicking();
 }
 
 Renderer::~Renderer()
@@ -153,7 +154,7 @@ void Renderer::Begin3DRendering()
 void Renderer::RenderObjects(std::vector<RenderObject>& objects)
 {
 	VkCommandBuffer cmd = getCurrentFrame().commandBuffer;
-	for (auto& [indexCount, firstIndex, indexBuffer, material, transform, vertexBufferAddress] : objects)
+	for (auto& [objectId, indexCount, firstIndex, indexBuffer, material, transform, vertexBufferAddress] : objects)
 	{
 		vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, material->pipeline->pipeline);
 		vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, material->pipeline->layout, 0, 1, &m_globalDescriptor, 0, nullptr );
@@ -163,7 +164,8 @@ void Renderer::RenderObjects(std::vector<RenderObject>& objects)
 
 		GPUDrawPushConstants pushConstants {
 			.worldMatrix = transform,
-			.vertexBuffer = vertexBufferAddress
+			.vertexBuffer = vertexBufferAddress,
+			.objectId = objectId
 		};
 		vkCmdPushConstants(cmd, material->pipeline->layout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(GPUDrawPushConstants), &pushConstants);
 
@@ -198,6 +200,45 @@ void Renderer::End3DRendering()
 
 	VkUtil::transition_image(cmd, m_swapchain.GetDrawImage().GetImage(), VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
 	VkUtil::transition_image(cmd, m_swapchain.GetImage(m_currentImageIndex), VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+}
+
+void Renderer::RenderPickingTexture(std::vector<RenderObject>& objects)
+{
+	VkCommandBuffer cmd = getCurrentFrame().commandBuffer;
+	VkRenderingAttachmentInfo colorAttachment = VkInit::color_attachment_info(m_pickingResources.texture->GetView(), nullptr, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+
+	VkExtent2D drawExtent = {m_swapchain.GetDrawImage().GetExtent().width, m_swapchain.GetDrawImage().GetExtent().height};
+	VkRenderingInfo renderInfo = VkInit::rendering_info(drawExtent, &colorAttachment, nullptr);
+	vkCmdBeginRendering(cmd, &renderInfo);
+
+	for (auto& [objectId, indexCount, firstIndex, indexBuffer, material, transform, vertexBufferAddress] : objects)
+	{
+		vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pickingResources.pipeline);
+		vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, material->pipeline->layout, 0, 1, &m_globalDescriptor, 0, nullptr );
+
+		vkCmdBindIndexBuffer(cmd, indexBuffer, 0, VK_INDEX_TYPE_UINT32);
+
+		GPUDrawPushConstants pushConstants {
+			.worldMatrix = transform,
+			.vertexBuffer = vertexBufferAddress,
+			.objectId = objectId
+		};
+		vkCmdPushConstants(cmd, material->pipeline->layout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(GPUDrawPushConstants), &pushConstants);
+
+		vkCmdDrawIndexed(cmd, indexCount, 1, firstIndex, 0, 0);
+	}
+
+	vkCmdEndRendering(cmd);
+
+	VkUtil::transition_image(cmd, m_pickingResources.texture->GetImage(), VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
+
+	VkBufferImageCopy region{};
+	region.imageOffset = {0, 0, 0};
+	region.imageExtent = {1, 1, 1};
+	region.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+	region.imageSubresource.layerCount = 1;
+
+	vkCmdCopyImageToBuffer(cmd, m_pickingResources.texture->GetImage(), VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, m_pickingResources.stagingBuffer->buffer, 1, &region);
 }
 
 void Renderer::RenderImGui()
@@ -247,6 +288,11 @@ void Renderer::EndRendering()
 		m_swapchain.SetResized(true);
 	else if (result != VK_SUCCESS)
 		throw std::runtime_error("failed to present swap chain image!");
+
+	void* mappedData;
+	vmaMapMemory(m_pickingResources.stagingBuffer->allocator, m_pickingResources.stagingBuffer->allocation, &mappedData);
+	uint32_t pickedObjectID = *static_cast<uint32_t*>(mappedData);
+	vmaUnmapMemory(m_pickingResources.stagingBuffer->allocator, m_pickingResources.stagingBuffer->allocation);
 
 	m_currentFrame = (m_currentFrame + 1) % FRAME_OVERLAP;
 }
@@ -431,7 +477,7 @@ void Renderer::initWireframePipeline()
 	pipelineBuilder.SetShaders(meshVertexShader, meshFragShader);
 	pipelineBuilder.SetInputTopology(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
 	pipelineBuilder.SetPolygonMode(VK_POLYGON_MODE_LINE);
-	pipelineBuilder.SetCullMode(VK_CULL_MODE_NONE, VK_FRONT_FACE_CLOCKWISE);
+	pipelineBuilder.SetCullMode(VK_CULL_MODE_BACK_BIT, VK_FRONT_FACE_CLOCKWISE);
 	pipelineBuilder.SetMultisamplingNone();
 	pipelineBuilder.DisableBlending();
 	pipelineBuilder.EnableDepthTest(true);
@@ -443,6 +489,55 @@ void Renderer::initWireframePipeline()
 	m_deletionQueue.PushFunction([this]() {
 		vkDestroyPipeline(m_ctx->GetDevice(), m_wireframePipeline, nullptr);
 		vkDestroyPipelineLayout(m_ctx->GetDevice(), m_wireframePipelineLayout, nullptr);
+	});
+
+	vkDestroyShaderModule(m_ctx->GetDevice(), meshFragShader, nullptr);
+	vkDestroyShaderModule(m_ctx->GetDevice(), meshVertexShader, nullptr);
+}
+
+void Renderer::initPicking()
+{
+	m_pickingResources.texture = std::make_shared<Texture>(m_ctx, m_ctx->GetAllocator(), VkExtent3D{m_swapchain.GetExtent().width, m_swapchain.GetExtent().height, 1}, VK_FORMAT_R32_UINT, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT, false);
+	m_pickingResources.stagingBuffer = std::make_shared<Buffer>(m_ctx->GetAllocator(), sizeof(uint32_t), VK_BUFFER_USAGE_TRANSFER_DST_BIT, VMA_MEMORY_USAGE_GPU_TO_CPU);
+	VkShaderModule meshFragShader;
+	if (!VkUtil::load_shader_module("../shaders/fragment/picking.frag.spv", m_ctx->GetDevice(), &meshFragShader))
+		std::println("Error when building the triangle fragment shader module");
+
+	VkShaderModule meshVertexShader;
+	if (!VkUtil::load_shader_module("../shaders/vertex/picking.vert.spv", m_ctx->GetDevice(), &meshVertexShader))
+		std::println("Error when building the triangle vertex shader module");
+
+	VkPushConstantRange matrixRange {
+		.stageFlags = VK_SHADER_STAGE_VERTEX_BIT,
+		.offset = 0,
+		.size = sizeof(GPUDrawPushConstants)
+	};
+
+	VkDescriptorSetLayout layouts[] = { m_gpuSceneDataDescriptorLayout };
+	VkPipelineLayoutCreateInfo mesh_layout_info = VkInit::pipeline_layout_create_info();
+	mesh_layout_info.setLayoutCount = 1;
+	mesh_layout_info.pSetLayouts = layouts;
+	mesh_layout_info.pPushConstantRanges = &matrixRange;
+	mesh_layout_info.pushConstantRangeCount = 1;
+
+	VK_CHECK(vkCreatePipelineLayout(m_ctx->GetDevice(), &mesh_layout_info, nullptr, &m_pickingResources.pipelineLayout));
+
+	PipelineBuilder pipelineBuilder(m_ctx);
+	pipelineBuilder.SetShaders(meshVertexShader, meshFragShader);
+	pipelineBuilder.SetInputTopology(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
+	pipelineBuilder.SetPolygonMode(VK_POLYGON_MODE_FILL);
+	pipelineBuilder.SetCullMode(VK_CULL_MODE_NONE, VK_FRONT_FACE_CLOCKWISE);
+	pipelineBuilder.SetMultisamplingNone();
+	pipelineBuilder.DisableBlending();
+	pipelineBuilder.EnableDepthTest(true);
+	pipelineBuilder.SetColorAttachmentFormat(m_pickingResources.texture->GetFormat());
+	pipelineBuilder.SetDepthFormat(m_swapchain.GetDepthImage().GetFormat());
+	pipelineBuilder.SetLayout(m_pickingResources.pipelineLayout);
+
+	m_pickingResources.pipeline = pipelineBuilder.CreatePipeline();
+	m_deletionQueue.PushFunction([this]() {
+		vkDestroyPipeline(m_ctx->GetDevice(), m_pickingResources.pipeline, nullptr);
+		vkDestroyPipelineLayout(m_ctx->GetDevice(), m_pickingResources.pipelineLayout, nullptr);
 	});
 
 	vkDestroyShaderModule(m_ctx->GetDevice(), meshFragShader, nullptr);

@@ -11,6 +11,17 @@
 
 constexpr uint32_t FRAME_OVERLAP = 2;
 
+struct PickingResources
+{
+    VkDescriptorSetLayout descriptorSetLayout;
+    VkDescriptorSet descriptorSet;
+    VkPipelineLayout pipelineLayout;
+    VkPipeline pipeline;
+    std::shared_ptr<Texture> texture;
+    VkImageMemoryBarrier barrier;
+    std::shared_ptr<Buffer> stagingBuffer;
+};
+
 class Renderer {
 public:
     Renderer(SDL_Window* window, VulkanContext* ctx);
@@ -21,6 +32,7 @@ public:
     void RenderObjects(std::vector<RenderObject>& objects);
     void RenderWireframes(std::vector<WireframeObject>& objects);
     void End3DRendering();
+    void RenderPickingTexture(std::vector<RenderObject>& objects);
     void RenderImGui();
     void EndRendering();
     void WaitIdle();
@@ -47,14 +59,16 @@ private:
     uint32_t m_currentFrame;
     uint32_t m_currentImageIndex;
 
-    VkDescriptorSet m_globalDescriptor;
-
     DescriptorAllocator m_descriptorAllocator;
-    VkDescriptorSet m_drawImageDescriptors{};
 
     VkDescriptorSetLayout m_drawImageDescriptorLayout{};
     VkDescriptorSetLayout m_singleImageDescriptorLayout{};
     VkDescriptorSetLayout m_gpuSceneDataDescriptorLayout{};
+
+    VkDescriptorSet m_globalDescriptor;
+    VkDescriptorSet m_drawImageDescriptors{};
+
+    PickingResources m_pickingResources;
 
     Buffer m_materialConstantsBuffer;
 
@@ -65,6 +79,7 @@ private:
     void initDescriptorAllocator();
     void initDescriptors();
     void initWireframePipeline();
+    void initPicking();
 
     VkCommandBuffer beginSingleTimeCommands(VkCommandPool& commandPool) const;
     void endSingleTimeCommands(VkCommandPool& commandPool, VkCommandBuffer& commandBuffer) const;

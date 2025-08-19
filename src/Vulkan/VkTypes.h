@@ -58,6 +58,7 @@ struct GPUMeshBuffers
 struct GPUDrawPushConstants {
     glm::mat4 worldMatrix;
     VkDeviceAddress vertexBuffer;
+    uint32_t objectId;
 };
 
 struct GPUSceneData
@@ -104,6 +105,8 @@ struct GeoSurface {
 };
 
 struct RenderObject {
+    uint32_t objectId;
+
     uint32_t indexCount;
     uint32_t firstIndex;
     VkBuffer indexBuffer;

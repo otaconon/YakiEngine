@@ -5,10 +5,7 @@
 
 #include "../shared/input_structures.glsl"
 
-layout (location = 0) out vec3 outNormal;
-layout (location = 1) out vec3 outColor;
-layout (location = 2) out vec2 outUV;
-layout (location = 3) out vec3 vPosition;
+layout (location = 0) flat out uint outObjectId;
 
 struct Vertex {
     vec3 position;
@@ -22,7 +19,7 @@ layout(buffer_reference, std430) readonly buffer VertexBuffer{
     Vertex vertices[];
 };
 
-layout( push_constant ) uniform constants
+layout(push_constant) uniform constants
 {
     mat4 render_matrix;
     VertexBuffer vertexBuffer;
@@ -36,9 +33,5 @@ void main()
     vec4 position = vec4(v.position, 1.0f);
     gl_Position =  sceneData.viewproj * PushConstants.render_matrix * position;
 
-    outNormal = normalize((PushConstants.render_matrix * vec4(v.normal, 0.f)).xyz);
-    outColor = v.color.xyz;
-    outUV.x = v.uv_x;
-    outUV.y = v.uv_y;
-    vPosition = v.position;
+    outObjectId = PushConstants.objectId;
 }

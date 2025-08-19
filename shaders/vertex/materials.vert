@@ -26,6 +26,7 @@ layout( push_constant ) uniform constants
 {
     mat4 render_matrix;
     VertexBuffer vertexBuffer;
+    uint objectId;
 } PushConstants;
 
 void main()

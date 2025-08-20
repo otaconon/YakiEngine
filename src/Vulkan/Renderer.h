@@ -11,6 +11,13 @@
 
 constexpr uint32_t FRAME_OVERLAP = 2;
 
+struct RenderingStats
+{
+    uint32_t triangleCount;
+    uint32_t drawcallCount;
+    float sceneUpdateTime;
+};
+
 struct PickingResources
 {
     std::shared_ptr<Texture> texture;
@@ -25,7 +32,7 @@ public:
 
     void BeginRendering();
     void Begin3DRendering();
-    void RenderObjects(std::vector<RenderObject>& objects);
+    void RenderObjects(std::span<RenderObject> objects, std::span<size_t> order);
     void RenderWireframes(std::vector<WireframeObject>& objects);
     void End3DRendering();
     void RenderImGui();
@@ -36,6 +43,7 @@ public:
     [[nodiscard]] VkBuffer GetMaterialConstantsBuffer();
     [[nodiscard]] VkDescriptorSetLayout GetSceneDataDescriptorLayout();
     [[nodiscard]] uint32_t GetHoveredEntityId();
+    [[nodiscard]] RenderingStats GetRenderingStats();
 
     void WriteMaterialConstants(MaterialConstants& materialConstants);
 
@@ -65,6 +73,7 @@ private:
     VkDescriptorSet m_drawImageDescriptors{};
 
     PickingResources m_pickingResources;
+    RenderingStats m_stats;
 
     Buffer m_materialConstantsBuffer;
 

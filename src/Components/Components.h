@@ -20,3 +20,4 @@
 #include "InputQueue.h"
 #include "ColliderEntity.h"
 #include "Hovered.h"
+#include "FramesPerSecond.h"

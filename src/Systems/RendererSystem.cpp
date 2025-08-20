@@ -5,6 +5,7 @@
 #include <imgui.h>
 #include <imgui_impl_sdl3.h>
 #include <imgui_impl_vulkan.h>
+#include <numeric>
 #include <glm/glm.hpp>
 #include <glm/ext/matrix_transform.hpp>
 #include <glm/gtx/quaternion.hpp>
@@ -35,7 +36,7 @@ void RenderSystem::Update(float dt)
     renderDrawables();
     renderColliders();
     m_renderer->End3DRendering();
-    renderGui();
+    renderGui(dt);
     m_renderer->EndRendering();
 
     Hori::Entity selectedEntity{m_renderer->GetHoveredEntityId()};
@@ -46,7 +47,13 @@ void RenderSystem::Update(float dt)
 void RenderSystem::renderDrawables()
 {
     auto& ecs = Ecs::GetInstance();
+
+    size_t drawableCount = ecs.GetComponentArray<Drawable>().Size();
     std::vector<RenderObject> objects;
+    objects.reserve(drawableCount);
+    std::vector<size_t> order(drawableCount);
+    std::iota(order.begin(), order.end(), 0);
+
     ecs.Each<Drawable, LocalToWorld>([&](Hori::Entity e, Drawable& drawable, LocalToWorld& localToWorld) {
         for (auto& [startIndex, count, material] : drawable.mesh->surfaces)
         {
@@ -63,10 +70,19 @@ void RenderSystem::renderDrawables()
         }
     });
 
-    m_renderer->RenderObjects(objects);
+    std::ranges::sort(order, [&objects](const auto& iA, const auto& iB) {
+        auto& A = objects[iA];
+        auto& B = objects[iB];
+        if (A.material == B.material)
+            return A.indexBuffer < B.indexBuffer;
+        else
+            return A.material < B.material;
+    });
+
+    m_renderer->RenderObjects(objects, order);
 }
 
-void RenderSystem::renderGui()
+void RenderSystem::renderGui(float dt)
 {
     auto& ecs = Ecs::GetInstance();
 
@@ -77,6 +93,13 @@ void RenderSystem::renderGui()
     ImGui::Begin("SceneData");
     auto sceneData = ecs.GetSingletonComponent<GPUSceneData>();
     ImGui::InputFloat4("Ambient color", glm::value_ptr(sceneData->ambientColor));
+    ImGui::End();
+
+    ImGui::Begin("Stats");
+    auto stats = m_renderer->GetRenderingStats();
+    ImGui::Text(std::format("Frames per second: {}", ecs.GetSingletonComponent<FramesPerSecond>()->value).c_str());
+    ImGui::Text(std::format("Draw calls count: {}", stats.drawcallCount).c_str());
+    ImGui::Text(std::format("Triangle count: {}", stats.triangleCount).c_str());
     ImGui::End();
 
     uint32_t id = 0;

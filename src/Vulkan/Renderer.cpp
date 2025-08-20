@@ -116,6 +116,8 @@ void Renderer::BeginRendering()
 	vkCmdClearColorImage(cmd, m_swapchain.GetDrawImage().GetImage(), VK_IMAGE_LAYOUT_GENERAL, &clearValues[0].color, 1, &clearRange);
 	vkCmdClearColorImage(cmd, m_pickingResources.texture->GetImage(), VK_IMAGE_LAYOUT_GENERAL, &clearValues[0].color, 1, &clearRange);
 
+	// Reset rendering stats
+	m_stats = RenderingStats{0, 0, 0};
 }
 
 void Renderer::Begin3DRendering()
@@ -158,16 +160,50 @@ void Renderer::Begin3DRendering()
 	getCurrentFrame().deletionQueue.PushBuffer(std::move(lightBuffer));
 }
 
-void Renderer::RenderObjects(std::vector<RenderObject>& objects)
+void Renderer::RenderObjects(std::span<RenderObject> objects, std::span<size_t> order)
 {
 	VkCommandBuffer cmd = getCurrentFrame().commandBuffer;
-	for (auto& [objectId, indexCount, firstIndex, indexBuffer, material, transform, vertexBufferAddress] : objects)
-	{
-		vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, material->pipeline->pipeline);
-		vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, material->pipeline->layout, 0, 1, &m_globalDescriptor, 0, nullptr );
-		vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, material->pipeline->layout, 1, 1, &material->materialSet, 0, nullptr );
 
-		vkCmdBindIndexBuffer(cmd, indexBuffer, 0, VK_INDEX_TYPE_UINT32);
+	MaterialPipeline* lastPipeline{nullptr};
+	MaterialInstance* lastMaterial{nullptr};
+	VkBuffer lastIndexBuffer{VK_NULL_HANDLE};
+	for (auto& idx : order)
+	{
+		auto& [objectId, indexCount, firstIndex, indexBuffer, material, transform, vertexBufferAddress] = objects[idx];
+
+		if (material != lastMaterial)
+		{
+			lastMaterial = material;
+			if (material->pipeline != lastPipeline)
+			{
+				lastPipeline = material->pipeline;
+				vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, material->pipeline->pipeline);
+				vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, material->pipeline->layout, 0, 1, &m_globalDescriptor, 0, nullptr );
+
+				VkViewport viewport {
+					.x = 0.0f,
+					.y = 0.0f,
+					.width = static_cast<float>(m_swapchain.GetExtent().width),
+					.height = static_cast<float>(m_swapchain.GetExtent().height),
+					.minDepth = 0.0f,
+					.maxDepth = 1.0f
+				};
+				vkCmdSetViewport(cmd, 0, 1, &viewport);
+
+				VkRect2D scissor {
+					.offset = {0, 0},
+					.extent = m_swapchain.GetExtent()
+				};
+				vkCmdSetScissor(cmd, 0, 1, &scissor);
+			}
+			vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, material->pipeline->layout, 1, 1, &material->materialSet, 0, nullptr );
+		}
+
+		if (lastIndexBuffer != indexBuffer)
+		{
+			lastIndexBuffer = indexBuffer;
+			vkCmdBindIndexBuffer(cmd, indexBuffer, 0, VK_INDEX_TYPE_UINT32);
+		}
 
 		GPUDrawPushConstants pushConstants {
 			.worldMatrix = transform,
@@ -177,12 +213,13 @@ void Renderer::RenderObjects(std::vector<RenderObject>& objects)
 		vkCmdPushConstants(cmd, material->pipeline->layout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(GPUDrawPushConstants), &pushConstants);
 
 		vkCmdDrawIndexed(cmd, indexCount, 1, firstIndex, 0, 0);
+		m_stats.drawcallCount++;
+		m_stats.triangleCount += indexCount / 3;
 	}
 }
 
 void Renderer::RenderWireframes(std::vector<WireframeObject>& objects)
 {
-	/*
 	VkCommandBuffer cmd = getCurrentFrame().commandBuffer;
 	for (auto& [indexCount, firstIndex, indexBuffer, transform, vertexBufferAddress] : objects)
 	{
@@ -199,7 +236,6 @@ void Renderer::RenderWireframes(std::vector<WireframeObject>& objects)
 
 		vkCmdDrawIndexed(cmd, indexCount, 1, firstIndex, 0, 0);
 	}
-	*/
 }
 
 void Renderer::End3DRendering()
@@ -565,6 +601,11 @@ uint32_t Renderer::GetHoveredEntityId()
 	vmaUnmapMemory(m_pickingResources.stagingBuffer->allocator, m_pickingResources.stagingBuffer->allocation);
 
 	return m_pickingResources.entityId;
+}
+
+RenderingStats Renderer::GetRenderingStats()
+{
+	return m_stats;
 }
 
 void Renderer::WriteMaterialConstants(MaterialConstants& materialConstants)

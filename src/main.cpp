@@ -18,6 +18,7 @@
 #include "Systems/LightingSystem.h"
 #include "Assets/AssetMngr.h"
 #include "Assets/GltfUtils.h"
+#include "Systems/PerformanceMeasureSystem.h"
 
 constexpr uint32_t numDirectionalLights = 0;
 constexpr uint32_t numPointLights = 3;
@@ -40,7 +41,9 @@ int main() {
 	ecs.AddSystem<TransformSystem>(TransformSystem());
 	ecs.AddSystem<LightingSystem>(LightingSystem());
 	ecs.AddSystem<RenderSystem>(renderer);
+	ecs.AddSystem<PerformanceMeasureSystem>(PerformanceMeasureSystem());
 
+	ecs.AddSingletonComponent(FramesPerSecond{});
 	ecs.AddSingletonComponent(GPUSceneData{});
 	ecs.AddSingletonComponent(GPULightData{});
 	ecs.AddSingletonComponent(MouseMode{});

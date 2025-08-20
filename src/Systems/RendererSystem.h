@@ -19,6 +19,6 @@ private:
     Renderer* m_renderer;
 
     void renderDrawables();
-    void renderGui();
+    void renderGui(float dt);
     void renderColliders();
 };

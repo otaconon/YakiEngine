@@ -1,5 +1,8 @@
 #include "VkInit.h"
 
+#include <array>
+#include <span>
+
 
 VkCommandPoolCreateInfo VkInit::command_pool_create_info(uint32_t queueFamilyIndex, VkCommandPoolCreateFlags flags) {
     VkCommandPoolCreateInfo info = {
@@ -177,15 +180,15 @@ VkRenderingAttachmentInfo VkInit::depth_attachment_info(VkImageView view, VkImag
     return depthAttachment;
 }
 
-VkRenderingInfo VkInit::rendering_info(VkExtent2D renderExtent, VkRenderingAttachmentInfo* colorAttachment, VkRenderingAttachmentInfo* depthAttachment)
+VkRenderingInfo VkInit::rendering_info(VkExtent2D renderExtent, std::span<VkRenderingAttachmentInfo> colorAttachments, VkRenderingAttachmentInfo* depthAttachment)
 {
     VkRenderingInfo renderInfo {
         .sType = VK_STRUCTURE_TYPE_RENDERING_INFO,
         .pNext = nullptr,
         .renderArea = VkRect2D { VkOffset2D { 0, 0 }, renderExtent },
         .layerCount = 1,
-        .colorAttachmentCount = 1,
-        .pColorAttachments = colorAttachment,
+        .colorAttachmentCount = static_cast<uint32_t>(colorAttachments.size()),
+        .pColorAttachments = colorAttachments.data(),
         .pDepthAttachment = depthAttachment,
         .pStencilAttachment = nullptr,
     };

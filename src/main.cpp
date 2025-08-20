@@ -49,7 +49,7 @@ int main() {
 	auto allMeshes = AssetMngr::LoadGltf("../assets/meshes/basicmesh.glb");
 
 	// Load scene
-	//auto scene = AssetMngr::LoadGltf("../assets/scenes/Baccalarska.glb");
+	auto scene = AssetMngr::LoadGltf("../assets/scenes/Baccalarska.glb");
 
 	// Create camera entity
 	Hori::Entity camera = ecs.CreateEntity();

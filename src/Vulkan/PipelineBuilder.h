@@ -11,6 +11,7 @@ public:
     explicit PipelineBuilder(VulkanContext* ctx);
 
     VkPipeline CreatePipeline();
+    VkPipeline CreateMRTPipeline(std::span<VkPipelineColorBlendAttachmentState> blendAttachments, std::span<VkFormat> colorFormats);
 
     [[nodiscard]] VkPipeline GetPipeline() const;
     [[nodiscard]] VkPipelineLayout GetPipelineLayout() const;

@@ -7,8 +7,10 @@ layout (location = 0) in vec3 inNormal;
 layout (location = 1) in vec3 inColor;
 layout (location = 2) in vec2 inUV;
 layout (location = 3) in vec3 vPosition;
+layout (location = 4) in flat uint inObjectId;
 
 layout (location = 0) out vec4 outFragColor;
+layout (location = 1) out uint outObjectId;
 
 vec3 lit(vec3 l, vec3 n, vec3 v) {
     vec3 r_l = reflect(-l, n);
@@ -33,4 +35,6 @@ void main()
         outFragColor.rgb += NdL * lightBuffer.pointLights[i].color.rgb * lit(l, n, v);
     }
     outFragColor.rgb += ambient;
+
+    outObjectId = inObjectId;
 }

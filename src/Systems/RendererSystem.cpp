@@ -36,7 +36,6 @@ void RenderSystem::Update(float dt)
     renderColliders();
     m_renderer->End3DRendering();
     renderGui();
-    renderPickingTexture(); // TODO: Combine with rendering drawables
     m_renderer->EndRendering();
 
     Hori::Entity selectedEntity{m_renderer->GetHoveredEntityId()};
@@ -142,27 +141,4 @@ void RenderSystem::renderColliders()
     });
 
     m_renderer->RenderWireframes(objects);
-}
-
-void RenderSystem::renderPickingTexture()
-{
-    auto& ecs = Ecs::GetInstance();
-    std::vector<RenderObject> objects;
-    ecs.Each<Drawable, LocalToWorld>([&](Hori::Entity e, Drawable& drawable, LocalToWorld& localToWorld) {
-        for (auto& [startIndex, count, material] : drawable.mesh->surfaces)
-        {
-            RenderObject def;
-            def.objectId = e.id;
-            def.indexCount = count;
-            def.firstIndex = startIndex;
-            def.indexBuffer = drawable.mesh->meshBuffers->indexBuffer.buffer;
-            def.material = material.get();
-            def.transform = localToWorld.value;
-            def.vertexBufferAddress = drawable.mesh->meshBuffers->vertexBufferAddress;
-
-            objects.push_back(def);
-        }
-    });
-
-    m_renderer->RenderPickingTexture(objects);
 }

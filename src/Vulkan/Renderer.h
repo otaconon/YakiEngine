@@ -13,13 +13,8 @@ constexpr uint32_t FRAME_OVERLAP = 2;
 
 struct PickingResources
 {
-    VkDescriptorSetLayout descriptorSetLayout;
-    VkDescriptorSet descriptorSet;
-    VkPipelineLayout pipelineLayout;
-    VkPipeline pipeline;
     std::shared_ptr<Texture> texture;
     std::shared_ptr<Buffer> stagingBuffer;
-    VkImageMemoryBarrier barrier;
     uint32_t entityId;
 };
 
@@ -33,7 +28,6 @@ public:
     void RenderObjects(std::vector<RenderObject>& objects);
     void RenderWireframes(std::vector<WireframeObject>& objects);
     void End3DRendering();
-    void RenderPickingTexture(std::vector<RenderObject>& objects);
     void RenderImGui();
     void EndRendering();
     void WaitIdle();

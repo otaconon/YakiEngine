@@ -66,6 +66,69 @@ VkPipeline PipelineBuilder::CreatePipeline()
     return m_pipeline;
 }
 
+VkPipeline PipelineBuilder::CreateMRTPipeline(std::span<VkPipelineColorBlendAttachmentState> blendAttachments, std::span<VkFormat> colorFormats)
+{
+    VkPipelineVertexInputStateCreateInfo vertexInputInfo { .sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO };
+
+    VkPipelineViewportStateCreateInfo viewportState {
+        .sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO,
+        .pNext = nullptr,
+        .viewportCount = 1,
+        .scissorCount = 1,
+    };
+
+    VkPipelineColorBlendStateCreateInfo colorBlending {
+        .sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO,
+        .pNext = nullptr,
+        .logicOpEnable = VK_FALSE,
+        .logicOp = VK_LOGIC_OP_COPY,
+        .attachmentCount = static_cast<uint32_t>(blendAttachments.size()),
+        .pAttachments = blendAttachments.data(),
+    };
+
+    VkPipelineRenderingCreateInfo renderInfo = {
+        .sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO,
+        .colorAttachmentCount = 2,
+        .pColorAttachmentFormats = colorFormats.data(),
+        .depthAttachmentFormat = VK_FORMAT_D32_SFLOAT
+    };
+
+    std::array dynamicStates {
+        VK_DYNAMIC_STATE_VIEWPORT,
+        VK_DYNAMIC_STATE_SCISSOR
+    };
+
+    VkPipelineDynamicStateCreateInfo dynamicState {
+        .sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO,
+        .dynamicStateCount = static_cast<uint32_t>(dynamicStates.size()),
+        .pDynamicStates = dynamicStates.data()
+    };
+
+    VkGraphicsPipelineCreateInfo pipelineInfo {
+        .sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
+        .pNext = &renderInfo,
+        .stageCount = 2,
+        .pStages = m_shaderStages.data(),
+        .pVertexInputState = &vertexInputInfo,
+        .pInputAssemblyState = &m_inputAssembly,
+        .pViewportState = &viewportState,
+        .pRasterizationState = &m_rasterizer,
+        .pMultisampleState = &m_multisampling,
+        .pDepthStencilState = &m_depthStencil,
+        .pColorBlendState = &colorBlending,
+        .pDynamicState = &dynamicState,
+        .layout = m_pipelineLayout,
+        .renderPass = VK_NULL_HANDLE,
+        .subpass = 0,
+        .basePipelineHandle = VK_NULL_HANDLE,
+    };
+
+    if (vkCreateGraphicsPipelines(m_ctx->GetDevice(), VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &m_pipeline) != VK_SUCCESS)
+        throw std::runtime_error("failed to create graphics pipeline!");
+
+    return m_pipeline;
+}
+
 void PipelineBuilder::SetLayout(VkPipelineLayout layout) { m_pipelineLayout = layout; }
 
 VkPipeline PipelineBuilder::GetPipeline() const { return m_pipeline; }

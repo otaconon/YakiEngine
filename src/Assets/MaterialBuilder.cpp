@@ -60,7 +60,23 @@ void MaterialBuilder::BuildPipelines(Swapchain& swapchain, VkDescriptorSetLayout
 	pipelineBuilder.SetColorAttachmentFormat(swapchain.GetDrawImage().GetFormat());
 	pipelineBuilder.SetDepthFormat(swapchain.GetDepthImage().GetFormat());
 	pipelineBuilder.SetLayout(newLayout);
-	m_opaquePipeline.pipeline = pipelineBuilder.CreatePipeline();
+
+	std::array<VkPipelineColorBlendAttachmentState, 2> blendAttachments;
+	blendAttachments[0] = {
+		.blendEnable = VK_FALSE,
+		.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT
+	};
+	blendAttachments[1] = {
+		.blendEnable = VK_FALSE,
+		.colorWriteMask = VK_COLOR_COMPONENT_R_BIT
+	};
+
+	std::array<VkFormat, 2> colorFormats {
+		VK_FORMAT_R16G16B16A16_SFLOAT,
+		VK_FORMAT_R32_UINT
+	};
+
+	m_opaquePipeline.pipeline = pipelineBuilder.CreateMRTPipeline(blendAttachments, colorFormats);
 
 	pipelineBuilder.EnableBlendingAdditive();
 	pipelineBuilder.EnableDepthTest(false);

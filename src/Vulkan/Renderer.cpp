@@ -169,7 +169,7 @@ void Renderer::RenderObjects(std::span<RenderObject> objects, std::span<size_t> 
 	VkBuffer lastIndexBuffer{VK_NULL_HANDLE};
 	for (auto& idx : order)
 	{
-		auto& [objectId, indexCount, firstIndex, indexBuffer, material, transform, vertexBufferAddress] = objects[idx];
+		auto& [objectId, indexCount, firstIndex, indexBuffer, material, bounds, transform, vertexBufferAddress] = objects[idx];
 
 		if (material != lastMaterial)
 		{

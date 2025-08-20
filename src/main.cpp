@@ -132,7 +132,7 @@ int main() {
 		renderer.WaitIdle();
 		prevTime = currentTime;
 		std::cout.flush();
-		//FrameMark;
+		FrameMark;
 	}
 
 	deletionQueue.Flush();

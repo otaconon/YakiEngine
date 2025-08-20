@@ -33,7 +33,7 @@ void RenderSystem::Update(float dt)
 
     m_renderer->BeginRendering();
     m_renderer->Begin3DRendering();
-    renderDrawables();
+    renderDrawables(camera.viewProjection);
     renderColliders();
     m_renderer->End3DRendering();
     renderGui(dt);
@@ -44,31 +44,35 @@ void RenderSystem::Update(float dt)
         ecs.AddComponents(selectedEntity, Hovered{});
 }
 
-void RenderSystem::renderDrawables()
+void RenderSystem::renderDrawables(const glm::mat4& viewproj)
 {
     auto& ecs = Ecs::GetInstance();
 
     size_t drawableCount = ecs.GetComponentArray<Drawable>().Size();
     std::vector<RenderObject> objects;
     objects.reserve(drawableCount);
-    std::vector<size_t> order(drawableCount);
-    std::iota(order.begin(), order.end(), 0);
 
     ecs.Each<Drawable, LocalToWorld>([&](Hori::Entity e, Drawable& drawable, LocalToWorld& localToWorld) {
-        for (auto& [startIndex, count, material] : drawable.mesh->surfaces)
+        for (auto& [startIndex, count, bounds, material] : drawable.mesh->surfaces)
         {
-            RenderObject def;
-            def.objectId = e.id;
-            def.indexCount = count;
-            def.firstIndex = startIndex;
-            def.indexBuffer = drawable.mesh->meshBuffers->indexBuffer.buffer;
-            def.material = material.get();
-            def.transform = localToWorld.value;
-            def.vertexBufferAddress = drawable.mesh->meshBuffers->vertexBufferAddress;
+            RenderObject obj {
+                .objectId = e.id,
+                .indexCount = count,
+                .firstIndex = startIndex,
+                .indexBuffer = drawable.mesh->meshBuffers->indexBuffer.buffer,
+                .material = material.get(),
+                .bounds = bounds,
+                .transform = localToWorld.value,
+                .vertexBufferAddress = drawable.mesh->meshBuffers->vertexBufferAddress
+            };
 
-            objects.push_back(def);
+            if (isVisible(obj, viewproj))
+                objects.push_back(obj);
         }
     });
+
+    std::vector<size_t> order(objects.size());
+    std::iota(order.begin(), order.end(), 0);
 
     std::ranges::sort(order, [&objects](const auto& iA, const auto& iB) {
         auto& A = objects[iA];
@@ -147,6 +151,7 @@ void RenderSystem::renderGui(float dt)
 
 void RenderSystem::renderColliders()
 {
+    /*
     auto& ecs = Ecs::GetInstance();
     std::vector<WireframeObject> objects;
     ecs.Each<Drawable, LocalToWorld, ColliderEntity>([&](Hori::Entity e, Drawable& drawable, LocalToWorld& localToWorld, ColliderEntity&) {
@@ -164,4 +169,44 @@ void RenderSystem::renderColliders()
     });
 
     m_renderer->RenderWireframes(objects);
+    */
+}
+
+bool RenderSystem::isVisible(const RenderObject& obj, const glm::mat4& viewproj)
+{
+    std::array<glm::vec3, 8> corners {
+        glm::vec3 { 1, 1, 1 },
+        glm::vec3 { 1, 1, -1 },
+        glm::vec3 { 1, -1, 1 },
+        glm::vec3 { 1, -1, -1 },
+        glm::vec3 { -1, 1, 1 },
+        glm::vec3 { -1, 1, -1 },
+        glm::vec3 { -1, -1, 1 },
+        glm::vec3 { -1, -1, -1 },
+    };
+
+    glm::mat4 matrix = viewproj * obj.transform;
+
+    glm::vec3 min = { 1.5, 1.5, 1.5 };
+    glm::vec3 max = { -1.5, -1.5, -1.5 };
+
+    for (int c = 0; c < 8; c++) {
+        // project each corner into clip space
+        glm::vec4 v = matrix * glm::vec4(obj.bounds.origin + (corners[c] * obj.bounds.extents), 1.f);
+
+        // perspective correction
+        v.x = v.x / v.w;
+        v.y = v.y / v.w;
+        v.z = v.z / v.w;
+
+        min = glm::min(glm::vec3 { v.x, v.y, v.z }, min);
+        max = glm::max(glm::vec3 { v.x, v.y, v.z }, max);
+    }
+
+    // check the clip space box is within the view
+    if (min.z > 1.f || max.z < 0.f || min.x > 1.f || max.x < -1.f || min.y > 1.f || max.y < -1.f) {
+        return false;
+    } else {
+        return true;
+    }
 }

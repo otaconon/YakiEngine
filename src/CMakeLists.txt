@@ -3,9 +3,9 @@ file(GLOB_RECURSE HEADERS "${CMAKE_CURRENT_SOURCE_DIR}/*.h")
 add_executable(YakiEngine ${SOURCES} ${HEADERS} "Vulkan/Impl/stb_image_impl.cpp")
 
 FetchContent_MakeAvailable(hecs)
+FetchContent_MakeAvailable(glm)
 
 find_package(glad REQUIRED)
-find_package(glm CONFIG REQUIRED)
 find_package(Freetype REQUIRED)
 find_package(Vulkan REQUIRED)
 find_package(SDL3 CONFIG REQUIRED)

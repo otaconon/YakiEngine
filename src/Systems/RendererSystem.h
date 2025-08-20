@@ -1,6 +1,6 @@
 #pragma once
 
-#include <HECS/System.h>
+#include <System.h>
 #include <vector>
 
 #include "../Components/Drawable.h"
@@ -18,7 +18,9 @@ public:
 private:
     Renderer* m_renderer;
 
-    void renderDrawables();
+    void renderDrawables(const glm::mat4& viewproj);
     void renderGui(float dt);
     void renderColliders();
+
+    bool isVisible(const RenderObject& obj, const glm::mat4& viewproj);
 };

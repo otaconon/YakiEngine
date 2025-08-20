@@ -1,6 +1,6 @@
 #pragma once
 
-#include <HECS/World.h>
+#include <World.h>
 #include <glm/glm.hpp>
 
 class TransformSystem : public Hori::System

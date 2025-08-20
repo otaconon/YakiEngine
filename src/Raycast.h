@@ -1,6 +1,6 @@
 #pragma once
 
-#include <HECS/Entity.h>
+#include <Entity.h>
 #include <glm/glm.hpp>
 
 struct RayHit

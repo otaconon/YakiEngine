@@ -1,6 +1,6 @@
 #pragma once
 
-#include <HECS/System.h>
+#include <System.h>
 
 class LightingSystem final : public Hori::System
 {

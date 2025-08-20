@@ -98,9 +98,17 @@ struct MaterialInstance {
     MaterialPass passType;
 };
 
+struct Bounds
+{
+    glm::vec3 origin;
+    float sphereRadius;
+    glm::vec3 extents;
+};
+
 struct GeoSurface {
     uint32_t startIndex;
     uint32_t count;
+    Bounds bounds;
     std::shared_ptr<MaterialInstance> material;
 };
 
@@ -112,6 +120,7 @@ struct RenderObject {
     VkBuffer indexBuffer;
 
     MaterialInstance* material;
+    Bounds bounds;
 
     glm::mat4 transform;
     VkDeviceAddress vertexBufferAddress;

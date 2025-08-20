@@ -1,5 +1,5 @@
 #pragma once
-#include <HECS/Entity.h>
+#include <Entity.h>
 #include <string>
 
 #include "Ecs.h"

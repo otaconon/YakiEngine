@@ -1,6 +1,6 @@
 #pragma once
 
-#include <HECS/Entity.h>
+#include <Entity.h>
 #include <memory>
 #include <string>
 #include <unordered_map>

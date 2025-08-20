@@ -1,6 +1,6 @@
 #pragma once
 
-#include <HECS/World.h>
+#include <World.h>
 
 class PerformanceMeasureSystem : public Hori::System
 {

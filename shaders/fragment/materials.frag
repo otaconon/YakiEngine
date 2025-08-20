@@ -1,6 +1,8 @@
 #version 460
 
 #extension GL_GOOGLE_include_directive : require
+//#extension GL_NV_fragment_shader_barycentric : require
+
 #include "../shared/input_structures.glsl"
 
 layout (location = 0) in vec3 inNormal;
@@ -19,6 +21,15 @@ vec3 lit(vec3 l, vec3 n, vec3 v) {
     return mix(vec3(0.6, 0.2, 0.2), highlightColor, s);
 }
 
+/*
+float computeWireframe() {
+    vec3 bary = gl_BaryCoordNV;
+    vec3 d = fwidth(bary);
+    vec3 smoothing = d * 0.1f;
+    vec3 thickness = smoothstep(vec3(0.0), smoothing, bary);
+    return min(min(thickness.x, thickness.y), thickness.z);
+}*/
+
 void main()
 {
     vec3 n = normalize(inNormal);
@@ -35,6 +46,14 @@ void main()
         outFragColor.rgb += NdL * lightBuffer.pointLights[i].color.rgb * lit(l, n, v);
     }
     outFragColor.rgb += ambient;
+
+    /*
+    float edge = computeWireframe();
+    if (edge > 0.5) {
+        discard; // Only render edges
+    }
+    outFragColor = vec4(vec3(0.0f, 1.0f, 0.0f), 1.0);
+    */
 
     outObjectId = inObjectId;
 }

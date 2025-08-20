@@ -80,7 +80,7 @@ void MaterialBuilder::BuildPipelines(Swapchain& swapchain, VkDescriptorSetLayout
 
 	pipelineBuilder.EnableBlendingAdditive();
 	pipelineBuilder.EnableDepthTest(false);
-	m_transparentPipeline.pipeline = pipelineBuilder.CreatePipeline();
+	m_transparentPipeline.pipeline = pipelineBuilder.CreateMRTPipeline(blendAttachments, colorFormats);
 
 	vkDestroyShaderModule(m_ctx->GetDevice(), meshFragShader, nullptr);
 	vkDestroyShaderModule(m_ctx->GetDevice(), meshVertexShader, nullptr);

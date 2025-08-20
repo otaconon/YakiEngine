@@ -15,7 +15,7 @@
 #endif
 
 std::vector g_validationLayers {"VK_LAYER_KHRONOS_validation"};
-std::vector g_deviceExtensions {VK_KHR_SWAPCHAIN_EXTENSION_NAME, VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME};
+std::vector g_deviceExtensions {VK_KHR_SWAPCHAIN_EXTENSION_NAME, VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME, VK_NV_FRAGMENT_SHADER_BARYCENTRIC_EXTENSION_NAME};
 
 VulkanContext::VulkanContext(SDL_Window* window)
 {
@@ -139,8 +139,10 @@ void VulkanContext::createLogicalDevice()
     }
 
     VkPhysicalDeviceFeatures deviceFeatures {
+        .independentBlend = VK_TRUE,
         .fillModeNonSolid = VK_TRUE
     };
+
     VkPhysicalDeviceSynchronization2Features sync2Features {
         .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SYNCHRONIZATION_2_FEATURES,
         .synchronization2 = VK_TRUE
@@ -156,9 +158,15 @@ void VulkanContext::createLogicalDevice()
         .bufferDeviceAddress = VK_TRUE,
     };
 
+    VkPhysicalDeviceFragmentShaderBarycentricFeaturesNV fragmentShaderBarycentricFeatures {
+        .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_SHADER_BARYCENTRIC_FEATURES_NV,
+        .pNext = &bufferDeviceAddressFeatures,
+        .fragmentShaderBarycentric = VK_TRUE
+    };
+
     const VkDeviceCreateInfo createInfo {
         .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
-        .pNext = &bufferDeviceAddressFeatures,
+        .pNext = &fragmentShaderBarycentricFeatures,
         .queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size()),
         .pQueueCreateInfos = queueCreateInfos.data(),
         .enabledLayerCount = static_cast<uint32_t>(g_validationLayers.size()),

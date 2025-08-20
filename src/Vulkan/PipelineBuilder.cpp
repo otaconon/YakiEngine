@@ -88,7 +88,7 @@ VkPipeline PipelineBuilder::CreateMRTPipeline(std::span<VkPipelineColorBlendAtta
 
     VkPipelineRenderingCreateInfo renderInfo = {
         .sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO,
-        .colorAttachmentCount = 2,
+        .colorAttachmentCount = static_cast<uint32_t>(colorFormats.size()),
         .pColorAttachmentFormats = colorFormats.data(),
         .depthAttachmentFormat = VK_FORMAT_D32_SFLOAT
     };

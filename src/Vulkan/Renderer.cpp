@@ -115,6 +115,7 @@ void Renderer::BeginRendering()
 	VkImageSubresourceRange clearRange = VkInit::image_subresource_range(VK_IMAGE_ASPECT_COLOR_BIT);
 	vkCmdClearColorImage(cmd, m_swapchain.GetDrawImage().GetImage(), VK_IMAGE_LAYOUT_GENERAL, &clearValues[0].color, 1, &clearRange);
 	vkCmdClearColorImage(cmd, m_pickingResources.texture->GetImage(), VK_IMAGE_LAYOUT_GENERAL, &clearValues[0].color, 1, &clearRange);
+
 }
 
 void Renderer::Begin3DRendering()
@@ -181,6 +182,7 @@ void Renderer::RenderObjects(std::vector<RenderObject>& objects)
 
 void Renderer::RenderWireframes(std::vector<WireframeObject>& objects)
 {
+	/*
 	VkCommandBuffer cmd = getCurrentFrame().commandBuffer;
 	for (auto& [indexCount, firstIndex, indexBuffer, transform, vertexBufferAddress] : objects)
 	{
@@ -197,6 +199,7 @@ void Renderer::RenderWireframes(std::vector<WireframeObject>& objects)
 
 		vkCmdDrawIndexed(cmd, indexCount, 1, firstIndex, 0, 0);
 	}
+	*/
 }
 
 void Renderer::End3DRendering()
@@ -209,7 +212,7 @@ void Renderer::End3DRendering()
 	VkUtil::transition_image(cmd, m_swapchain.GetImage(m_currentImageIndex), VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
 
 	// Handle object picking
-	VkUtil::transition_image(cmd, m_pickingResources.texture->GetImage(), VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
+	VkUtil::transition_image(cmd, m_pickingResources.texture->GetImage(), VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
 	VkBufferImageCopy region{};
 	float mouseX, mouseY;
 	SDL_GetMouseState(&mouseX, &mouseY); // I Would rather not use sdl in the renderer

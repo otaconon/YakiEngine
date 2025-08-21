@@ -2,6 +2,7 @@
 
 #include <World.h>
 #include <glm/glm.hpp>
+#include "../Components/Components.h"
 
 class TransformSystem : public Hori::System
 {
@@ -11,5 +12,5 @@ public:
     void Update(float dt) override;
 
 private:
-    void updateHierarchy(Hori::Entity entity, const glm::mat4& parentToWorld);
+    void updateHierarchy(Hori::Entity entity, const LocalToWorld* parentToWorld);
 };

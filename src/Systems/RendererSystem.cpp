@@ -131,11 +131,12 @@ void RenderSystem::renderGui(float dt)
     ImGui::End();
 
     ImGui::Begin("Object info");
+    std::vector<Hori::Entity> outOfDateTags;
     ecs.Each<RayTagged, Translation, Rotation, Scale, Property<Translation>, Property<Rotation>, Property<Scale>>
-    ([&ecs](Hori::Entity e, RayTagged, Translation& translation, Rotation& rotation, Scale& scale, Property<Translation>& pTranslation, Property<Rotation>& pRotation, Property<Scale>& pScale) {
-        if (ecs.GetComponentArray<RayTagged>().Size() > 1)
+    ([&ecs, &outOfDateTags](Hori::Entity e, RayTagged, Translation& translation, Rotation& rotation, Scale& scale, Property<Translation>& pTranslation, Property<Rotation>& pRotation, Property<Scale>& pScale) {
+        if (ecs.GetComponentArray<RayTagged>().Size() - outOfDateTags.size() > 1)
         {
-            ecs.RemoveComponents<RayTagged>(e);
+            outOfDateTags.push_back(e);
             return;
         }
 
@@ -143,6 +144,11 @@ void RenderSystem::renderGui(float dt)
         ImGui::InputFloat3(pRotation.label.c_str(), glm::value_ptr(rotation.value));
         ImGui::InputFloat3(pScale.label.c_str(), glm::value_ptr(scale.value));
     });
+
+    for (auto& e : outOfDateTags)
+    {
+        ecs.RemoveComponents<RayTagged>(e);
+    }
     ImGui::End();
 
     ImGui::Render();

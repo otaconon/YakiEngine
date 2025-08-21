@@ -62,13 +62,18 @@ void InputSystem::processMouseButtonEvents(Controller& controller)
             if (event.type == SDL_EVENT_MOUSE_BUTTON_DOWN && !ImGui::GetIO().WantCaptureMouse)
             {
                 auto& ecs = Ecs::GetInstance();
-                ecs.Each<Hovered>([&ecs](Hori::Entity e, Hovered&) {
-                    if (ecs.GetComponentArray<Hovered>().Size() > 1)
+                std::vector<Hori::Entity> outOfDateHovers;
+                ecs.Each<Hovered>([&ecs, &outOfDateHovers](Hori::Entity e, Hovered&) {
+                    if (ecs.GetComponentArray<Hovered>().Size() - outOfDateHovers.size() > 1)
                     {
-                        ecs.RemoveComponents<Hovered>(e);
+                        outOfDateHovers.push_back(e);
+                        return;
                     }
                     ecs.AddComponents(e, RayTagged{});
                 });
+                for (auto& e: outOfDateHovers)
+                    ecs.RemoveComponents<Hovered>(e);
+
                 controller.mouseButtonLeftPressed = true;
             }
             else

@@ -17,10 +17,12 @@ void TransformSystem::Update(float dt)
             if (parent.value.Valid())
             {
                 auto localToParent = ecs.GetComponent<LocalToParent>(e);
+                r.value = glm::quat(glm::vec3(r.pitch, r.yaw, r.roll));
                 localToParent->value = glm::translate(glm::mat4(1.f), t.value) *  glm::toMat4(r.value) * glm::scale(glm::mat4(1.f), s.value);
             }
             else // Top node
             {
+                r.value = glm::quat(glm::vec3(r.pitch, r.yaw, r.roll));
                 glm::mat4 newValue = glm::translate(glm::mat4(1.f), t.value) *  glm::toMat4(r.value) * glm::scale(glm::mat4(1.f), s.value);
                 if (newValue == localToWorld.value)
                     return;

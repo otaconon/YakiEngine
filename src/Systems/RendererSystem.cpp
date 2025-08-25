@@ -141,7 +141,9 @@ void RenderSystem::renderGui(float dt)
         }
 
         ImGui::InputFloat3(pTranslation.label.c_str(), glm::value_ptr(translation.value));
-        ImGui::InputFloat3(pRotation.label.c_str(), glm::value_ptr(rotation.value));
+        ImGui::InputFloat("pitch", &rotation.pitch);
+        ImGui::InputFloat("yaw", &rotation.yaw);
+        ImGui::InputFloat("roll", &rotation.roll);
         ImGui::InputFloat3(pScale.label.c_str(), glm::value_ptr(scale.value));
     });
 

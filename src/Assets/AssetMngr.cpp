@@ -348,7 +348,12 @@ std::shared_ptr<GltfObject> AssetMngr::loadGltfImpl(const std::filesystem::path&
 				glm::quat rot(transform.rotation[3], transform.rotation[0], transform.rotation[1], transform.rotation[2]);
 				glm::vec3 sc(transform.scale[0], transform.scale[1], transform.scale[2]);
 				ecs.GetComponent<Translation>(newNode)->value = tl;
-				ecs.GetComponent<Rotation>(newNode)->value = rot;
+				auto rotation = ecs.GetComponent<Rotation>(newNode);
+				rotation->value = rot;
+				auto euler = glm::eulerAngles(rotation->value);
+				rotation->pitch = euler.x;
+				rotation->yaw = euler.y;
+				rotation->roll = euler.z;
 				ecs.GetComponent<Scale>(newNode)->value = sc;
 			}
 		},

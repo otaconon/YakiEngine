@@ -17,7 +17,7 @@ vec3 lit(vec3 l, vec3 n, vec3 v) {
     vec3 r_l = reflect(-l, n);
     float s = clamp(100.0 * dot(r_l, v) - 97.0, 0.0, 1.0);
     vec3 highlightColor = vec3(2, 2, 2);
-    return mix(vec3(0.6, 0.2, 0.2), highlightColor, s);
+    return highlightColor * s;
 }
 
 void main()
@@ -33,9 +33,20 @@ void main()
         vec3 lightPos = lightBuffer.pointLights[i].position.xyz;
         vec3 l = normalize(lightPos - vPosition);
         float NdL = clamp(dot(n, l), 0.0f, 1.0f);
-        outFragColor.rgb += NdL * lightBuffer.pointLights[i].color.rgb * lit(l, n, v);
-    }
-    outFragColor.rgb += ambient;
 
+        vec3 diffuse = NdL * lightBuffer.pointLights[i].color.rgb * color;
+        vec3 specular = lightBuffer.pointLights[i].color.rgb * lit(l, n, v);
+
+        outFragColor.rgb += diffuse + specular;
+    }
+
+
+    outFragColor += vec4(ambient, 1.0);
     outObjectId = inObjectId;
+
+    // Render normals
+    /*
+    vec3 normalColor = n * 0.5 + 0.5;
+    outFragColor = vec4(normalColor, 1.0);
+    */
 }

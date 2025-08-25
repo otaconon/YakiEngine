@@ -19,6 +19,6 @@ target_link_libraries(YakiEngine PRIVATE HECS Vulkan::Headers GPUOpen::VulkanMem
 target_include_directories(YakiEngine PRIVATE ${Stb_INCLUDE_DIR})
 
 add_custom_target(compile_shader
-        COMMAND glslc ../shaders/vertex/basic_mesh.vert -o ../shaders/vertex/vert.spv
+        COMMAND glslc ../shaders/vertex/basic_mesh.vert -o ../shaders/vertex/vert.spv -gVS
         COMMENT "Compiling shader: first_triangle.vert"
 )

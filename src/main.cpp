@@ -21,7 +21,7 @@
 #include "Systems/PerformanceMeasureSystem.h"
 
 constexpr uint32_t numDirectionalLights = 0;
-constexpr uint32_t numPointLights = 3;
+constexpr uint32_t numPointLights = 1;
 
 int main() {
     auto& ecs = Ecs::GetInstance();
@@ -52,7 +52,7 @@ int main() {
 	auto allMeshes = AssetMngr::LoadGltf("../assets/meshes/basicmesh.glb");
 
 	// Load scene
-	auto scene = AssetMngr::LoadGltf("../assets/scenes/Baccalarska.glb");
+	auto scene = AssetMngr::LoadGltf("../assets/scenes/Sponza.glb");
 
 	// Create camera entity
 	Hori::Entity camera = ecs.CreateEntity();
@@ -69,7 +69,7 @@ int main() {
 	for (auto& e : lights)
 	{
 		e = ecs.CreateEntity();
-		ecs.AddComponents(e, PointLight({0.5f, 0.3f, 0.2f, 1.f}, {1.0f, 0.0f, 0.0f, 1.f}));
+		ecs.AddComponents(e, PointLight({0.5f, 0.5f, 0.5f, 1.f}, {1.0f, 0.0f, 0.0f, 1.f}));
 		auto mesh = allMeshes->meshes.begin()->second;
 		register_object(e, mesh, Translation{{3.f, 3.f, 0.f}});
 	}

@@ -70,7 +70,7 @@ VkImageSubresourceRange VkInit::image_subresource_range(VkImageAspectFlags aspec
     return subImage;
 }
 
-VkImageCreateInfo VkInit::image_create_info(VkFormat format, VkImageUsageFlags usageFlags, VkExtent3D extent)
+VkImageCreateInfo VkInit::image_create_info(VkFormat format, VkImageUsageFlags usageFlags, VkExtent3D extent, uint32_t mipLevels = 1)
 {
     VkImageCreateInfo info {
         .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
@@ -78,7 +78,7 @@ VkImageCreateInfo VkInit::image_create_info(VkFormat format, VkImageUsageFlags u
         .imageType = VK_IMAGE_TYPE_2D,
         .format = format,
         .extent = extent,
-        .mipLevels = 1,
+        .mipLevels = mipLevels,
         .arrayLayers = 1,
         .samples = VK_SAMPLE_COUNT_1_BIT,
         .tiling = VK_IMAGE_TILING_OPTIMAL,

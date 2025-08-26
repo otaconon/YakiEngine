@@ -37,8 +37,10 @@ private:
     VkImageView m_view{};
     VkExtent3D m_extent{};
     VkFormat m_format{};
+    uint32_t m_mipLevels;
 
-    void createImage(VkImageUsageFlags usage, bool mipmapped);
+    void createImage(VkImageUsageFlags usage);
+    void generateMipMaps(VkCommandBuffer cmd);
 
     VkImageLayout getFinalLayout(VkFormat format, VkImageUsageFlags usage);
 };

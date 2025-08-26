@@ -21,7 +21,7 @@
 #include "Systems/PerformanceMeasureSystem.h"
 
 constexpr uint32_t numDirectionalLights = 1;
-constexpr uint32_t numPointLights = 0;
+constexpr uint32_t numPointLights = 1;
 
 int main() {
     auto& ecs = Ecs::GetInstance();

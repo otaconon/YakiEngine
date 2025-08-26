@@ -191,14 +191,16 @@ std::shared_ptr<GltfObject> AssetMngr::loadGltfImpl(const std::filesystem::path&
             passType = MaterialPass::Transparent;
         }
 
-        MaterialResources materialResources;
-		materialResources.colorImage = m_defaultTextures.whiteTexture;
-		materialResources.colorSampler = m_defaultTextures.samplerLinear;
-		materialResources.metalRoughImage = m_defaultTextures.whiteTexture;
-		materialResources.metalRoughSampler = m_defaultTextures.samplerLinear;
-        materialResources.dataBuffer = file.materialDataBuffer->buffer;
-        materialResources.dataBufferOffset = data_index * sizeof(MaterialConstants);
-        // grab textures from gltf file
+        MaterialResources materialResources {
+        	.colorImage = m_defaultTextures.whiteTexture,
+        	.colorSampler = m_defaultTextures.samplerLinear,
+        	.metalRoughImage = m_defaultTextures.whiteTexture,
+        	.metalRoughSampler = m_defaultTextures.samplerLinear,
+        	.dataBuffer = file.materialDataBuffer->buffer,
+        	.dataBufferOffset = static_cast<uint32_t>(data_index * sizeof(MaterialConstants))
+        };
+
+		// grab textures from gltf file
         if (mat.pbrData.baseColorTexture.has_value()) {
             size_t img = gltf.textures[mat.pbrData.baseColorTexture.value().textureIndex].imageIndex.value();
             size_t sampler = gltf.textures[mat.pbrData.baseColorTexture.value().textureIndex].samplerIndex.value();
@@ -397,7 +399,7 @@ std::shared_ptr<Texture> AssetMngr::loadTextureImpl(fastgltf::Asset& asset, fast
                     imagesize.height = height;
                     imagesize.depth = 1;
 
-                    newTexture = std::make_shared<Texture>(m_ctx, m_ctx->GetAllocator(), data, imagesize, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_USAGE_SAMPLED_BIT, false);
+                    newTexture = std::make_shared<Texture>(m_ctx, m_ctx->GetAllocator(), data, imagesize, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_USAGE_SAMPLED_BIT, true);
 
                     stbi_image_free(data);
                 }
@@ -410,7 +412,7 @@ std::shared_ptr<Texture> AssetMngr::loadTextureImpl(fastgltf::Asset& asset, fast
                     imagesize.height = height;
                     imagesize.depth = 1;
 
-                    newTexture = std::make_shared<Texture>(m_ctx, m_ctx->GetAllocator(), data, imagesize, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_USAGE_SAMPLED_BIT, false);
+                    newTexture = std::make_shared<Texture>(m_ctx, m_ctx->GetAllocator(), data, imagesize, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_USAGE_SAMPLED_BIT, true);
 
                     stbi_image_free(data);
                 }
@@ -431,7 +433,7 @@ std::shared_ptr<Texture> AssetMngr::loadTextureImpl(fastgltf::Asset& asset, fast
 						   imagesize.height = height;
 						   imagesize.depth = 1;
 
-						   newTexture = std::make_shared<Texture>(m_ctx, m_ctx->GetAllocator(), data, imagesize, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_USAGE_SAMPLED_BIT, false);
+						   newTexture = std::make_shared<Texture>(m_ctx, m_ctx->GetAllocator(), data, imagesize, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_USAGE_SAMPLED_BIT, true);
 
 						   stbi_image_free(data);
 					   }

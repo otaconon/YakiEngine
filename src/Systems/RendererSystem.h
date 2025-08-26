@@ -11,7 +11,7 @@ class Renderer;
 
 class RenderSystem : public Hori::System {
 public:
-    RenderSystem(Renderer& renderer);
+    explicit RenderSystem(Renderer& renderer);
 
     void Update(float dt) override;
 
@@ -19,7 +19,7 @@ private:
     Renderer* m_renderer;
 
     void renderDrawables(const glm::mat4& viewproj);
-    void renderGui(float dt);
+    void renderGui(float dt) const;
     void renderColliders();
 
     bool isVisible(const RenderObject& obj, const glm::mat4& viewproj);

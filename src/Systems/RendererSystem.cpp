@@ -72,7 +72,7 @@ void RenderSystem::renderDrawables(const glm::mat4& viewproj)
     });
 
     std::vector<size_t> order(objects.size());
-    std::iota(order.begin(), order.end(), 0);
+    std::ranges::iota(order, 0);
 
     std::ranges::sort(order, [&objects](const auto& iA, const auto& iB) {
         auto& A = objects[iA];
@@ -86,7 +86,7 @@ void RenderSystem::renderDrawables(const glm::mat4& viewproj)
     m_renderer->RenderObjects(objects, order);
 }
 
-void RenderSystem::renderGui(float dt)
+void RenderSystem::renderGui(float dt) const
 {
     auto& ecs = Ecs::GetInstance();
 
@@ -199,7 +199,6 @@ bool RenderSystem::isVisible(const RenderObject& obj, const glm::mat4& viewproj)
     glm::vec3 max = { -1.5, -1.5, -1.5 };
 
     for (int c = 0; c < 8; c++) {
-        // project each corner into clip space
         glm::vec4 v = matrix * glm::vec4(obj.bounds.origin + (corners[c] * obj.bounds.extents), 1.f);
 
         // perspective correction
@@ -207,8 +206,9 @@ bool RenderSystem::isVisible(const RenderObject& obj, const glm::mat4& viewproj)
         v.y = v.y / v.w;
         v.z = v.z / v.w;
 
-        min = glm::min(glm::vec3 { v.x, v.y, v.z }, min);
-        max = glm::max(glm::vec3 { v.x, v.y, v.z }, max);
+        // Add or subtract 0.1f because of imprecision
+        min = glm::min(glm::vec3 { v.x, v.y, v.z }, min) - 0.1f;
+        max = glm::max(glm::vec3 { v.x, v.y, v.z }, max) + 0.1f;
     }
 
     // check the clip space box is within the view

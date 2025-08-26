@@ -298,6 +298,7 @@ std::shared_ptr<GltfObject> AssetMngr::loadGltfImpl(const std::filesystem::path&
 				newSurface.material = materials[0];
 			}
 
+			// calculate surface bounds
 			glm::vec3 minpos = vertices[initial_vtx].position;
 			glm::vec3 maxpos = vertices[initial_vtx].position;
 			for (int i = initial_vtx; i < vertices.size(); i++) {
@@ -320,7 +321,6 @@ std::shared_ptr<GltfObject> AssetMngr::loadGltfImpl(const std::filesystem::path&
 	for (fastgltf::Node& node : gltf.nodes) {
 		Hori::Entity newNode = ecs.CreateEntity();
 
-		// find if the node has a mesh, and if it does hook it to the mesh pointer and allocate it with the meshnode class
 		if (node.meshIndex.has_value())
 		{
 			std::shared_ptr<Mesh> mesh = meshes[*node.meshIndex];

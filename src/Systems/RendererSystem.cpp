@@ -120,9 +120,9 @@ void RenderSystem::renderGui(float dt)
 
     ImGui::Begin("Stats");
     auto stats = m_renderer->GetRenderingStats();
-    ImGui::Text(std::format("Frames per second: {}", ecs.GetSingletonComponent<FramesPerSecond>()->value).c_str());
-    ImGui::Text(std::format("Draw calls count: {}", stats.drawcallCount).c_str());
-    ImGui::Text(std::format("Triangle count: {}", stats.triangleCount).c_str());
+    ImGui::Text("Frames per second: %d", static_cast<int>(ecs.GetSingletonComponent<FramesPerSecond>()->value));
+    ImGui::Text("Draw calls count: %d", stats.drawcallCount);
+    ImGui::Text("Triangle count: %d", stats.triangleCount);
     ImGui::End();
 
     if (m_showElements.test(static_cast<size_t>(ShowImGui::PointLights)))

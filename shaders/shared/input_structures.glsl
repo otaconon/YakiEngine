@@ -30,6 +30,7 @@ layout (set = 0, binding = 1, std430) readonly buffer LightBuffer {
 layout(set = 1, binding = 0) uniform GLTFMaterialData{
     vec4 colorFactors;
     vec4 metal_rough_factors;
+    vec4 specular_color_factors;
 } materialData;
 
 layout(set = 1, binding = 1) uniform sampler2D colorTex;

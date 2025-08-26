@@ -176,13 +176,13 @@ std::shared_ptr<GltfObject> AssetMngr::loadGltfImpl(const std::filesystem::path&
         materials.push_back(newMat);
         file.materials[mat.name.c_str()] = newMat;
 
-        MaterialConstants constants;
-        constants.colorFactors.x = mat.pbrData.baseColorFactor[0];
-        constants.colorFactors.y = mat.pbrData.baseColorFactor[1];
-        constants.colorFactors.z = mat.pbrData.baseColorFactor[2];
-        constants.colorFactors.w = mat.pbrData.baseColorFactor[3];
-        constants.metalRoughtFactors.x = mat.pbrData.metallicFactor;
-        constants.metalRoughtFactors.y = mat.pbrData.roughnessFactor;
+        MaterialConstants constants {
+        	.colorFactors {mat.pbrData.baseColorFactor[0], mat.pbrData.baseColorFactor[1], mat.pbrData.baseColorFactor[2], mat.pbrData.baseColorFactor[3]},
+			.metalRoughtFactors {mat.pbrData.metallicFactor, mat.pbrData.roughnessFactor, 0.f, 0.f},
+        };
+		if (mat.specular)
+			constants.specularColorFactors = {mat.specular->specularColorFactor.x(), mat.specular->specularColorFactor.y(), mat.specular->specularColorFactor.z(), mat.specular->specularFactor};
+
         // write material parameters to buffer
         sceneMaterialConstants[data_index] = constants;
 

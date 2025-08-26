@@ -11,7 +11,8 @@
 struct MaterialConstants {
     glm::vec4 colorFactors;
     glm::vec4 metalRoughtFactors;
-    glm::vec4 extra[14];
+    glm::vec4 specularColorFactors;
+    glm::vec4 extra[13];
 };
 static_assert(sizeof(MaterialConstants) == 256);
 

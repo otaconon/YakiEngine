@@ -16,7 +16,7 @@ layout (location = 1) out uint outObjectId;
 vec3 lit(vec3 l, vec3 n, vec3 v) {
     vec3 r_l = reflect(-l, n);
     float s = clamp(100.0 * dot(r_l, v) - 97.0, 0.0, 1.0);
-    vec3 highlightColor = vec3(2, 2, 2);
+    vec3 highlightColor = (materialData.specular_color_factors.xyz * materialData.specular_color_factors.w);
     return highlightColor * s;
 }
 

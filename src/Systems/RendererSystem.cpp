@@ -140,6 +140,22 @@ void RenderSystem::renderGui(float dt)
         pointLightList.End();
     }
 
+    if (m_showElements.test(static_cast<size_t>(ShowImGui::DirectionalLights)))
+    {
+        ItemList<DirectionalLight> pointLightList([](DirectionalLight& dirLight) {
+            ImGui::InputFloat4("Color", glm::value_ptr(dirLight.color));
+            ImGui::InputFloat4("Direction", glm::value_ptr(dirLight.direction));
+        });
+        pointLightList.Begin("Directional lights", {"XXX"});
+        uint32_t idx = 0;
+        ecs.Each<DirectionalLight>([&pointLightList, &idx](Hori::Entity, DirectionalLight& light) {
+            pointLightList.AddItem(light, std::format("directional light {}", idx));
+            idx++;
+        });
+
+        pointLightList.End();
+    }
+
     /*
     uint32_t id = 0;
     ImGui::Begin("Light info");

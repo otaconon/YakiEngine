@@ -20,8 +20,8 @@
 #include "Assets/GltfUtils.h"
 #include "Systems/PerformanceMeasureSystem.h"
 
-constexpr uint32_t numDirectionalLights = 0;
-constexpr uint32_t numPointLights = 2;
+constexpr uint32_t numDirectionalLights = 1;
+constexpr uint32_t numPointLights = 0;
 
 int main() {
     auto& ecs = Ecs::GetInstance();

@@ -13,6 +13,8 @@
 #include "../Components/RayTagged.h"
 #include "../ImGuiUtils.h"
 #include "../Components/DirectionalLight.h"
+#include "../Gui/ItemList.h"
+
 
 RenderSystem::RenderSystem(Renderer& renderer)
     : m_renderer(&renderer)
@@ -86,13 +88,30 @@ void RenderSystem::renderDrawables(const glm::mat4& viewproj)
     m_renderer->RenderObjects(objects, order);
 }
 
-void RenderSystem::renderGui(float dt) const
+void RenderSystem::renderGui(float dt)
 {
     auto& ecs = Ecs::GetInstance();
 
     ImGui_ImplVulkan_NewFrame();
     ImGui_ImplSDL3_NewFrame();
     ImGui::NewFrame();
+
+    if (ImGui::BeginMainMenuBar())
+    {
+		if (ImGui::BeginMenu("object data"))
+		{
+			if (ImGui::MenuItem("point lights"))
+			{
+                m_showElements.flip(static_cast<size_t>(ShowImGui::PointLights));
+			}
+            if (ImGui::MenuItem("directional lights"))
+            {
+                m_showElements.flip(static_cast<size_t>(ShowImGui::DirectionalLights));
+            }
+		    ImGui::EndMenu();
+		}
+		ImGui::EndMainMenuBar();
+    }
 
     ImGui::Begin("SceneData");
     auto sceneData = ecs.GetSingletonComponent<GPUSceneData>();
@@ -106,6 +125,22 @@ void RenderSystem::renderGui(float dt) const
     ImGui::Text(std::format("Triangle count: {}", stats.triangleCount).c_str());
     ImGui::End();
 
+    if (m_showElements.test(static_cast<size_t>(ShowImGui::PointLights)))
+    {
+        ItemList<PointLight> pointLightList([](PointLight& pointLight) {
+            ImGui::InputFloat4("Color", glm::value_ptr(pointLight.color));
+        });
+        pointLightList.Begin("Point lights", {"XXX"});
+        uint32_t idx = 0;
+        ecs.Each<PointLight>([&pointLightList, &idx](Hori::Entity, PointLight& light) {
+            pointLightList.AddItem(light, std::format("point light {}", idx));
+            idx++;
+        });
+
+        pointLightList.End();
+    }
+
+    /*
     uint32_t id = 0;
     ImGui::Begin("Light info");
     ecs.Each<DirectionalLight>([&id](Hori::Entity, DirectionalLight& light) {
@@ -115,13 +150,7 @@ void RenderSystem::renderGui(float dt) const
         ImGui::InputFloat3("Direction", glm::value_ptr(light.direction));
         ImGui::PopID();
     });
-    ecs.Each<PointLight>([&id](Hori::Entity, PointLight& light) {
-        ImGui::PushID(std::format("Point light##{}", id++).c_str());
-        ImGui::Text("Point light");
-        ImGui::InputFloat4("Color", glm::value_ptr(light.color));
-        ImGui::PopID();
-   });
-    ImGui::End();
+    */
 
     ImGui::Begin("Controller");
     ecs.Each<Controller>([](Hori::Entity, Controller& controller) {
@@ -142,7 +171,9 @@ void RenderSystem::renderGui(float dt) const
 
         ImGui::InputFloat3(pTranslation.label.c_str(), glm::value_ptr(translation.value));
         ImGui::InputFloat("pitch", &rotation.pitch);
+        ImGui::SameLine();
         ImGui::InputFloat("yaw", &rotation.yaw);
+        ImGui::SameLine();
         ImGui::InputFloat("roll", &rotation.roll);
         ImGui::InputFloat3(pScale.label.c_str(), glm::value_ptr(scale.value));
     });

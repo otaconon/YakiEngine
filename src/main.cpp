@@ -21,7 +21,7 @@
 #include "Systems/PerformanceMeasureSystem.h"
 
 constexpr uint32_t numDirectionalLights = 0;
-constexpr uint32_t numPointLights = 1;
+constexpr uint32_t numPointLights = 2;
 
 int main() {
     auto& ecs = Ecs::GetInstance();
@@ -64,14 +64,24 @@ int main() {
 	lightData->numDirectionalLights = numDirectionalLights;
 	lightData->numPointLights = numPointLights;
 
-	// Create light entity
-	std::array<Hori::Entity, numPointLights> lights;
-	for (auto& e : lights)
+	// Create point lights
+	std::array<Hori::Entity, numPointLights> pointLights;
+	for (auto& e : pointLights)
 	{
 		e = ecs.CreateEntity();
-		ecs.AddComponents(e, PointLight({0.5f, 0.5f, 0.5f, 1.f}, {1.0f, 0.0f, 0.0f, 1.f}));
+		ecs.AddComponents(e, PointLight{{0.5f, 0.5f, 0.5f, 1.f}, {1.0f, 0.0f, 0.0f, 1.f}});
 		auto mesh = allMeshes->meshes.begin()->second;
 		register_object(e, mesh, Translation{{3.f, 3.f, 0.f}});
+	}
+
+	// Create directional lights
+	std::array<Hori::Entity, numDirectionalLights> directionalLights;
+	for (auto& e : directionalLights)
+	{
+		e = ecs.CreateEntity();
+		ecs.AddComponents(e, DirectionalLight{{0.5f, 0.5f, 0.5f, 1.f}, {0.5f, 0.5f, 0.0f, 1.f}});
+		auto mesh = allMeshes->meshes.begin()->second;
+		register_object(e, mesh, Translation{{3.f, 10.f, 0.f}});
 	}
 
 	/*

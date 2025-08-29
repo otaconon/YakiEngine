@@ -18,22 +18,22 @@
 #include "Components/RenderComponents.h"
 
 
-RenderSystem::RenderSystem(Renderer& renderer)
-    : m_renderer(&renderer)
+RenderSystem::RenderSystem(Renderer* renderer)
+    : m_renderer(renderer)
 {}
 
 void RenderSystem::Update(float dt)
 {
     auto& ecs = Ecs::GetInstance();
-    auto sceneData = ecs.GetSingletonComponent<GPUSceneData>();
+    auto& sceneData = m_renderer->GetGpuSceneData();
     Camera camera;
     ecs.Each<Camera, Translation>([&camera, &sceneData](Hori::Entity, Camera& cam, Translation& pos) {
         camera = cam;
-        sceneData->eyePos = glm::vec4(pos.value, 1.0f);
+        sceneData.eyePos = glm::vec4(pos.value, 1.0f);
     });
-    sceneData->proj = camera.projection;
-    sceneData->view = camera.view;
-    sceneData->viewproj = camera.viewProjection;
+    sceneData.proj = camera.projection;
+    sceneData.view = camera.view;
+    sceneData.viewproj = camera.viewProjection;
 
     m_renderer->BeginRendering();
     m_renderer->Begin3DRendering();
@@ -116,8 +116,8 @@ void RenderSystem::renderGui(float dt)
     }
 
     ImGui::Begin("SceneData");
-    auto sceneData = ecs.GetSingletonComponent<GPUSceneData>();
-    ImGui::InputFloat4("Ambient color", glm::value_ptr(sceneData->ambientColor));
+    auto& sceneData = m_renderer->GetGpuSceneData();
+    ImGui::InputFloat4("Ambient color", glm::value_ptr(sceneData.ambientColor));
     ImGui::End();
 
     ImGui::Begin("Stats");
@@ -177,32 +177,29 @@ void RenderSystem::renderGui(float dt)
     });
     ImGui::End();
 
-    /*
-     *TODO: fix this
     ImGui::Begin("Object info");
     std::vector<Hori::Entity> outOfDateTags;
-    ecs.Each<RayTagged, Translation, Rotation, Scale, Property<Translation>, Property<Rotation>, Property<Scale>>
-    ([&ecs, &outOfDateTags](Hori::Entity e, RayTagged, Translation& translation, Rotation& rotation, Scale& scale, Property<Translation>& pTranslation, Property<Rotation>& pRotation, Property<Scale>& pScale) {
+    ecs.Each<RayTagged, Translation, Rotation, Scale>
+    ([&ecs, &outOfDateTags](Hori::Entity e, RayTagged, Translation& translation, Rotation& rotation, Scale& scale) {
         if (ecs.GetComponentArray<RayTagged>().Size() - outOfDateTags.size() > 1)
         {
             outOfDateTags.push_back(e);
             return;
         }
 
-        ImGui::InputFloat3(pTranslation.label.c_str(), glm::value_ptr(translation.value));
+        ImGui::InputFloat3("translation", glm::value_ptr(translation.value));
         ImGui::InputFloat("pitch", &rotation.pitch);
         ImGui::SameLine();
         ImGui::InputFloat("yaw", &rotation.yaw);
         ImGui::SameLine();
         ImGui::InputFloat("roll", &rotation.roll);
-        ImGui::InputFloat3(pScale.label.c_str(), glm::value_ptr(scale.value));
+        ImGui::InputFloat3("scale", glm::value_ptr(scale.value));
     });
     for (auto& e : outOfDateTags)
     {
         ecs.RemoveComponents<RayTagged>(e);
     }
     ImGui::End();
-    */
 
     ImGui::Render();
     m_renderer->RenderImGui();

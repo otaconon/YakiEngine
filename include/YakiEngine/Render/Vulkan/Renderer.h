@@ -44,6 +44,8 @@ public:
     [[nodiscard]] VkDescriptorSetLayout GetSceneDataDescriptorLayout();
     [[nodiscard]] uint32_t GetHoveredEntityId();
     [[nodiscard]] RenderingStats GetRenderingStats();
+    [[nodiscard]] GPUSceneData& GetGpuSceneData();
+    [[nodiscard]] GPULightData& GetGpuLightData();
 
     void WriteMaterialConstants(MaterialConstants& materialConstants);
 

@@ -44,6 +44,12 @@ foreach(SHADER_FILE ${SHADER_SOURCES})
   )
 endforeach()
 
+add_custom_command(TARGET YakiEngine POST_BUILD
+  COMMAND ${CMAKE_COMMAND} -E copy_directory
+  ${CMAKE_SOURCE_DIR}/assets
+  $<TARGET_FILE_DIR:YakiEngine>/assets
+)
+
 add_custom_target(Shaders ALL DEPENDS ${SPIRV_FILES})
 
 add_dependencies(YakiEngine Shaders)

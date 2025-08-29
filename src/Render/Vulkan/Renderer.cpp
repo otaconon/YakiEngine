@@ -469,11 +469,11 @@ void Renderer::initDescriptors()
 void Renderer::initWireframePipeline()
 {
 	VkShaderModule meshFragShader;
-	if (!VkUtil::load_shader_module("../shaders/fragment/wireframe.frag.spv", m_ctx->GetDevice(), &meshFragShader))
+	if (!VkUtil::load_shader_module("shaders/fragment/wireframe.frag.spv", m_ctx->GetDevice(), &meshFragShader))
 		std::println("Error when building the triangle fragment shader module");
 
 	VkShaderModule meshVertexShader;
-	if (!VkUtil::load_shader_module("../shaders/vertex/wireframe.vert.spv", m_ctx->GetDevice(), &meshVertexShader))
+	if (!VkUtil::load_shader_module("shaders/vertex/wireframe.vert.spv", m_ctx->GetDevice(), &meshVertexShader))
 		std::println("Error when building the triangle vertex shader module");
 
 	VkPushConstantRange matrixRange {
@@ -605,6 +605,14 @@ uint32_t Renderer::GetHoveredEntityId()
 RenderingStats Renderer::GetRenderingStats()
 {
 	return m_stats;
+}
+
+GPUSceneData& Renderer::GetGpuSceneData() {
+    return m_gpuSceneData;
+}
+
+GPULightData& Renderer::GetGpuLightData() {
+    return m_gpuLightData;
 }
 
 void Renderer::WriteMaterialConstants(MaterialConstants& materialConstants)

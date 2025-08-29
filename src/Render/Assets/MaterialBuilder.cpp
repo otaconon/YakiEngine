@@ -16,11 +16,11 @@ MaterialBuilder::~MaterialBuilder()
 void MaterialBuilder::BuildPipelines(Swapchain& swapchain, VkDescriptorSetLayout gpuSceneDataDescriptorLayout)
 {
     VkShaderModule meshFragShader;
-	if (!VkUtil::load_shader_module("../shaders/fragment/materials.frag.spv", m_ctx->GetDevice(), &meshFragShader))
+	if (!VkUtil::load_shader_module("shaders/fragment/materials.frag.spv", m_ctx->GetDevice(), &meshFragShader))
 		std::println("Error when building the triangle fragment shader module");
 
 	VkShaderModule meshVertexShader;
-	if (!VkUtil::load_shader_module("../shaders/vertex/materials.vert.spv", m_ctx->GetDevice(), &meshVertexShader))
+	if (!VkUtil::load_shader_module("shaders/vertex/materials.vert.spv", m_ctx->GetDevice(), &meshVertexShader))
 		std::println("Error when building the triangle vertex shader module");
 
 	VkPushConstantRange matrixRange {

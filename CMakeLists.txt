@@ -10,6 +10,3 @@ include(dependencies.cmake)
 add_subdirectory("src/Core")
 add_subdirectory("src/Render")
 add_subdirectory("src/App")
-
-file(COPY ${CMAKE_SOURCE_DIR}/assets DESTINATION ${CMAKE_BINARY_DIR})
-

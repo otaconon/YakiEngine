@@ -42,20 +42,18 @@ int main() {
 	ecs.AddSystem<CameraSystem>(CameraSystem());
 	ecs.AddSystem<MovementSystem>(MovementSystem());
 	ecs.AddSystem<TransformSystem>(TransformSystem());
-	ecs.AddSystem<LightingSystem>(LightingSystem());
-	ecs.AddSystem<RenderSystem>(renderer);
+	ecs.AddSystem<LightingSystem>(&renderer);
+	ecs.AddSystem<RenderSystem>(&renderer);
 	ecs.AddSystem<PerformanceMeasureSystem>(PerformanceMeasureSystem());
 
 	ecs.AddSingletonComponent(FramesPerSecond{});
-	ecs.AddSingletonComponent(GPUSceneData{});
-	ecs.AddSingletonComponent(GPULightData{});
 	ecs.AddSingletonComponent(MouseMode{});
 
 	// Create object entities
-	auto allMeshes = AssetMngr::LoadGltf("../assets/meshes/basicmesh.glb");
+	auto allMeshes = AssetMngr::LoadGltf("assets/meshes/basicmesh.glb");
 
 	// Load scene
-	auto scene = AssetMngr::LoadGltf("../assets/scenes/Sponza.glb");
+	auto scene = AssetMngr::LoadGltf("assets/scenes/Sponza.glb");
 
 	// Create camera entity
 	Hori::Entity camera = ecs.CreateEntity();
@@ -63,11 +61,12 @@ int main() {
 	ecs.AddComponents(camera, Translation{{0, -10.f, -10.f}}, Rotation{}, Scale{}, LocalToWorld{}, LocalToParent{}, ParentToLocal{}, Parent{}, Children{});
 
 	// Init lights data
-	auto lightData = ecs.GetSingletonComponent<GPULightData>();
-	lightData->numDirectionalLights = numDirectionalLights;
-	lightData->numPointLights = numPointLights;
+	auto& lightData = renderer.GetGpuLightData();
+	lightData.numDirectionalLights = numDirectionalLights;
+	lightData.numPointLights = numPointLights;
 
 	// Create point lights
+
 	std::array<Hori::Entity, numPointLights> pointLights;
 	for (auto& e : pointLights)
 	{
@@ -98,8 +97,8 @@ int main() {
 	});*/
 
 	// Initialize scene
-	auto sceneData = ecs.GetSingletonComponent<GPUSceneData>();
-	sceneData->ambientColor = glm::vec4(.1f, .1f, .1f, 1.f);
+    auto& sceneData = renderer.GetGpuSceneData();
+	sceneData.ambientColor = glm::vec4(.1f, .1f, .1f, 1.f);
 
 	// Initialize input singleton components
 	ecs.AddSingletonComponent(InputQueue<SDL_KeyboardEvent>());

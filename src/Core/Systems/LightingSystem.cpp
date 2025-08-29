@@ -6,16 +6,18 @@
 #include "Components/Translation.h"
 
 
-LightingSystem::LightingSystem() = default;
+LightingSystem::LightingSystem(Renderer* renderer)
+    : m_renderer(renderer)
+{}
 
 void LightingSystem::Update(float dt)
 {
     auto& ecs = Ecs::GetInstance();
 
     // TODO: This shouldn't be done every frame, its inefficient
-    auto lightData = ecs.GetSingletonComponent<GPULightData>();
-    auto& directionalLights = lightData->directionalLights;
-    auto& pointLights = lightData->pointLights;
+    auto& lightData = m_renderer->GetGpuLightData();
+    auto& directionalLights = lightData.directionalLights;
+    auto& pointLights = lightData.pointLights;
     assert(ecs.GetComponentArray<DirectionalLight>().Size() <= directionalLights.size());
     size_t idx = 0;
     ecs.Each<DirectionalLight>([&directionalLights, &idx](Hori::Entity, DirectionalLight& dirLight) {

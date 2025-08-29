@@ -19,7 +19,7 @@ class Renderer;
 
 class RenderSystem : public Hori::System {
 public:
-    explicit RenderSystem(Renderer& renderer);
+    explicit RenderSystem(Renderer* renderer);
 
     void Update(float dt) override;
 

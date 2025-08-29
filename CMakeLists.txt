@@ -7,9 +7,9 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 include(dependencies.cmake)
 
-add_subdirectory("src")
-add_subdirectory("shaders")
+add_subdirectory("src/Core")
+add_subdirectory("src/Render")
+add_subdirectory("src/App")
 
 file(COPY ${CMAKE_SOURCE_DIR}/assets DESTINATION ${CMAKE_BINARY_DIR})
-add_dependencies(YakiEngine Shaders)
 

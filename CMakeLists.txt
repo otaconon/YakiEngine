@@ -7,6 +7,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 include(dependencies.cmake)
 
-add_subdirectory("src/Core")
-add_subdirectory("src/Render")
-add_subdirectory("src/App")
+add_subdirectory("Src/Core")
+add_subdirectory("Src/Render")
+add_subdirectory("Src/App")

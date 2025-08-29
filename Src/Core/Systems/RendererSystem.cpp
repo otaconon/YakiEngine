@@ -158,18 +158,6 @@ void RenderSystem::renderGui(float dt)
         pointLightList.End();
     }
 
-    /*
-    uint32_t id = 0;
-    ImGui::Begin("Light info");
-    ecs.Each<DirectionalLight>([&id](Hori::Entity, DirectionalLight& light) {
-        ImGui::PushID(std::format("Directional light##{}", id++).c_str());
-        ImGui::Text("Directional light");
-        ImGui::InputFloat4("Color", glm::value_ptr(light.color));
-        ImGui::InputFloat3("Direction", glm::value_ptr(light.direction));
-        ImGui::PopID();
-    });
-    */
-
     ImGui::Begin("Controller");
     ecs.Each<Controller>([](Hori::Entity, Controller& controller) {
         ImGui::InputFloat("Speed", &controller.speed);

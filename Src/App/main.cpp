@@ -13,14 +13,14 @@
 #include "Systems/CameraSystem.h"
 #include "Systems/InputSystem.h"
 #include "Systems/LightingSystem.h"
-#include "../../include/YakiEngine/Core/Assets/AssetMngr.h"
+#include "Assets/AssetMngr.h"
 #include "Assets/GltfUtils.h"
 #include "Components/RenderComponents.h"
 #include "Components/CoreComponents.h"
 #include "HECS/Core/Entity.h"
 #include "Systems/PerformanceMeasureSystem.h"
 #include "Vulkan/VulkanContext.h"
-#include "../../include/YakiEngine/Render/Assets/utils.h"
+#include "Assets/utils.h"
 #include "SDL3/SDL_events.h"
 
 constexpr uint32_t numDirectionalLights = 1;
@@ -50,10 +50,10 @@ int main() {
 	ecs.AddSingletonComponent(MouseMode{});
 
 	// Create object entities
-	auto allMeshes = AssetMngr::LoadGltf("assets/meshes/basicmesh.glb");
+	auto allMeshes = AssetMngr::LoadGltf("Assets/meshes/basicmesh.glb");
 
 	// Load scene
-	auto scene = AssetMngr::LoadGltf("assets/scenes/Sponza.glb");
+	auto scene = AssetMngr::LoadGltf("Assets/scenes/Sponza.glb");
 
 	// Create camera entity
 	Hori::Entity camera = ecs.CreateEntity();
@@ -66,7 +66,6 @@ int main() {
 	lightData.numPointLights = numPointLights;
 
 	// Create point lights
-
 	std::array<Hori::Entity, numPointLights> pointLights;
 	for (auto& e : pointLights)
 	{

@@ -1,4 +1,4 @@
-#include "../../../include/YakiEngine/Core/Systems/MovementSystem.h"
+#include "../../../Include/YakiEngine/Core/Systems/MovementSystem.h"
 
 #include <print>
 #define GLM_ENABLE_EXPERIMENTAL

@@ -36,7 +36,7 @@ foreach(SHADER_FILE ${SHADER_SOURCES})
 
   add_custom_command(
     OUTPUT  ${SPIRV_FILE}
-    COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:YakiEngine>/shaders"
+    COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:YakiEngine>/Shaders"
     COMMAND ${GLSLC} ${SHADER_FILE} -o ${SPIRV_FILE}
     DEPENDS ${SHADER_FILE}
     COMMENT "Compiling shader: ${REL_PATH}"

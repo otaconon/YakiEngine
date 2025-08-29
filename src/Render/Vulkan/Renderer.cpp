@@ -1,4 +1,4 @@
-#include "Renderer.h"
+#include "Vulkan/Renderer.h"
 
 #include <imgui.h>
 #include <stdexcept>
@@ -13,14 +13,13 @@
 #include <vk_mem_alloc.h>
 #include <SDL3/SDL_mouse.h>
 
-#include "ImGuiStyles.h"
-#include "PipelineBuilder.h"
-#include "VkInit.h"
-#include "../Ecs.h"
-#include "Descriptors/DescriptorLayoutBuilder.h"
-#include "../Components/Components.h"
-#include "../DefaultData.h"
-#include "Descriptors/DescriptorWriter.h"
+#include "Vulkan/ImGuiStyles.h"
+#include "Vulkan/PipelineBuilder.h"
+#include "Vulkan/VkInit.h"
+#include "Vulkan/Descriptors/DescriptorLayoutBuilder.h"
+#include "Components/RenderComponents.h"
+#include "Vulkan/DefaultData.h"
+#include "Vulkan/Descriptors/DescriptorWriter.h"
 
 Renderer::Renderer(SDL_Window* window, VulkanContext* ctx)
     : m_window{window},
@@ -137,12 +136,12 @@ void Renderer::Begin3DRendering()
 	Buffer gpuSceneDataBuffer(m_ctx->GetAllocator(), sizeof(GPUSceneData), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU);
 	GPUSceneData* sceneUniformData;
 	vmaMapMemory(gpuSceneDataBuffer.allocator, gpuSceneDataBuffer.allocation, reinterpret_cast<void**>(&sceneUniformData));
-	*sceneUniformData = *Ecs::GetInstance().GetSingletonComponent<GPUSceneData>();
+	*sceneUniformData = m_gpuSceneData;
 	vmaUnmapMemory(gpuSceneDataBuffer.allocator, gpuSceneDataBuffer.allocation);
 
 	// Light buffer
 	Buffer lightBuffer(m_ctx->GetAllocator(), sizeof(GPULightData), VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU);
-	auto lightData = *Ecs::GetInstance().GetSingletonComponent<GPULightData>();
+	auto lightData = m_gpuLightData;
 	GPULightData* mappedLightData;
 	vmaMapMemory(lightBuffer.allocator, lightBuffer.allocation, reinterpret_cast<void**>(&mappedLightData));
 	*mappedLightData = lightData;

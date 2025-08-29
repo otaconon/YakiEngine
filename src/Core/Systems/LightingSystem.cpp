@@ -1,9 +1,9 @@
-#include "../../../include/YakiEngine/Render/Systems/LightingSystem.h"
+#include "Systems/LightingSystem.h"
 
-#include "../../../include/YakiEngine/Core/Ecs.h"
-#include "../../../include/YakiEngine/Render/Components/DirectionalLight.h"
-#include "../Vulkan/VkTypes.h"
-#include "../../../include/YakiEngine/Core/Components/Translation.h"
+#include "Ecs.h"
+#include "Components/DirectionalLight.h"
+#include "Vulkan/VkTypes.h"
+#include "Components/Translation.h"
 
 
 LightingSystem::LightingSystem() = default;

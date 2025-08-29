@@ -1,7 +1,7 @@
-#include "../../../include/YakiEngine/Render/Systems/PerformanceMeasureSystem.h"
+#include "Systems/PerformanceMeasureSystem.h"
 
-#include "../../../include/YakiEngine/Core/Ecs.h"
-#include "../../../include/YakiEngine/Render/Components/FramesPerSecond.h"
+#include "Ecs.h"
+#include "Components/FramesPerSecond.h"
 
 PerformanceMeasureSystem::PerformanceMeasureSystem()
 {

@@ -1,9 +1,9 @@
 #pragma once
 
 #include <glm/glm.hpp>
-#include <World.h>
 
-#include "../../../../src/Components/Components.h"
+#include <HECS/Core/World.h>
+#include "Components/RenderComponents.h"
 
 class CameraSystem : public Hori::System
 {

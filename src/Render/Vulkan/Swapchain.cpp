@@ -1,4 +1,4 @@
-#include "Swapchain.h"
+#include "Vulkan/Swapchain.h"
 
 #include <algorithm>
 #include <imgui_impl_vulkan.h>
@@ -6,8 +6,9 @@
 #include <ranges>
 #include <SDL3/SDL_events.h>
 
-#include "VkInit.h"
-#include "VkUtils.h"
+#include "Vulkan/VkInit.h"
+#include "Vulkan/VkUtils.h"
+#include "Vulkan/VulkanContext.h"
 
 Swapchain::Swapchain(VulkanContext* ctx, SDL_Window* window)
     : m_ctx{ctx},

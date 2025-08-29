@@ -1,4 +1,4 @@
-#include "DescriptorLayoutBuilder.h"
+#include "Vulkan/Descriptors/DescriptorLayoutBuilder.h"
 
 DescriptorLayoutBuilder::DescriptorLayoutBuilder() = default;
 

@@ -1,10 +1,10 @@
-#include "../../../include/YakiEngine/Core/Systems/TransformSystem.h"
+#include "Systems/TransformSystem.h"
 
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/quaternion.hpp>
 
-#include "../../../include/YakiEngine/Core/Ecs.h"
-#include "../../Components/Components.h"
+#include "Ecs.h"
+#include "Components/CoreComponents.h"
 
 TransformSystem::TransformSystem() = default;
 

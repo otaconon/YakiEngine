@@ -2,8 +2,8 @@
 
 #include <array>
 
-#include "../../../../src/Render/Vulkan/VkInit.h"
-#include "../../../../src/Render/Vulkan/VulkanContext.h"
+#include "Vulkan/VkInit.h"
+#include "Vulkan/VulkanContext.h"
 
 class PipelineBuilder
 {

@@ -3,7 +3,9 @@
 #include <imgui.h>
 #include <SDL3/SDL_events.h>
 
+#include "Components/Hovered.h"
 #include "Components/InputQueue.h"
+#include "Components/RayTagged.h"
 
 InputSystem::InputSystem(SDL_Window* window)
     : m_window{window}

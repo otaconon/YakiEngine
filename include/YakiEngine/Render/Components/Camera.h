@@ -2,8 +2,6 @@
 
 #include <glm/glm.hpp>
 
-#include "../../../../src/Components/Components.h"
-
 struct Camera {
     float near{0.1f};
     float far{5000.f};

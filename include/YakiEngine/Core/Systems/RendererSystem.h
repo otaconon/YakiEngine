@@ -1,12 +1,13 @@
 #pragma once
 
 #include <bitset>
-#include <System.h>
+#include <HECS/Core/System.h>
 #include <vector>
+#include <glm/glm.hpp>
 
-#include "../../Core/Components/Drawable.h"
-#include "../../Core/Ecs.h"
-#include "../Vulkan/Renderer.h"
+#include "Ecs.h"
+#include "Vulkan/Renderer.h"
+#include "Vulkan/VkTypes.h"
 
 enum class ShowImGui : std::uint8_t
 {

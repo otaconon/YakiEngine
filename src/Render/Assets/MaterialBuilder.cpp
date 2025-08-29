@@ -1,5 +1,5 @@
-#include "../Vulkan/PipelineBuilder.h"
-#include "../../../include/YakiEngine/Core/Assets/MaterialBuilder.h"
+#include "Vulkan/PipelineBuilder.h"
+#include "Assets/MaterialBuilder.h"
 
 MaterialBuilder::MaterialBuilder(VulkanContext* ctx)
 	: m_ctx(ctx)

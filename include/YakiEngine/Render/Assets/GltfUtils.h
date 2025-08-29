@@ -9,12 +9,12 @@
 #include <fastgltf/util.hpp>
 #include <fastgltf/types.hpp>
 
-#include "../Vulkan/VulkanContext.h"
-#include "../Vulkan/Buffer.h"
+#include "Vulkan/VulkanContext.h"
+#include "Vulkan/Buffer.h"
 #include "GltfObject.h"
-#include "../Vulkan/Renderer.h"
+#include "Vulkan/Renderer.h"
 #include "Mesh.h"
-#include "../../../../src/Core/Assets/MaterialBuilder.h"
+#include "Assets/MaterialBuilder.h"
 
 namespace GltfUtils
 {

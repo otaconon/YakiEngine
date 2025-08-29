@@ -1,12 +1,12 @@
-#include "VulkanContext.h"
+#include "Vulkan/VulkanContext.h"
 
 #include <print>
 #include <set>
 #include <stdexcept>
 #include <SDL3/SDL_vulkan.h>
 
-#include "VkInit.h"
-#include "VkUtils.h"
+#include "Vulkan/VkInit.h"
+#include "Vulkan/VkUtils.h"
 
 #ifdef NDEBUG
     constexpr bool g_enableValidationLayers = false;

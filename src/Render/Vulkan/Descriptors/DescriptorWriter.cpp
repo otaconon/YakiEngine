@@ -1,4 +1,4 @@
-#include "DescriptorWriter.h"
+#include "Vulkan/Descriptors/DescriptorWriter.h"
 
 DescriptorWriter::DescriptorWriter() = default;
 

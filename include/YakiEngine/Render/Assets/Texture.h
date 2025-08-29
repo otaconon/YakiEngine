@@ -3,9 +3,9 @@
 #include <vk_mem_alloc.h>
 #include <vulkan/vulkan.h>
 
-#include "../Vulkan/Buffer.h"
-#include "../Vulkan/VkInit.h"
-#include "../Vulkan/VulkanContext.h"
+#include "Vulkan/Buffer.h"
+#include "Vulkan/VkInit.h"
+#include "Vulkan/VulkanContext.h"
 #include "Asset.h"
 
 class Texture final : public Asset

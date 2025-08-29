@@ -1,15 +1,12 @@
-#include "../../../include/YakiEngine/Core/Assets/GltfUtils.h"
+#include "Assets/GltfUtils.h"
 
-#include <iostream>
 #include <vk_mem_alloc.h>
 
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/quaternion.hpp>
 
-#include "../../include/YakiEngine/Core/Ecs.h"
-#include "../Components/Components.h"
-#include "../../../include/YakiEngine/Core/Assets/Mesh.h"
-#include "../Vulkan/VulkanContext.h"
+#include "Assets/Mesh.h"
+#include "Vulkan/VulkanContext.h"
 
 std::optional<std::vector<std::shared_ptr<Mesh>>> GltfUtils::load_gltf_meshes(VulkanContext* ctx, const std::filesystem::path& filePath)
 {

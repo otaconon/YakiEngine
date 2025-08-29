@@ -1,6 +1,6 @@
-#include "Texture.h"
+#include "Assets/Texture.h"
 
-#include "../Vulkan/VkUtils.h"
+#include "Vulkan/VkUtils.h"
 
 Texture::Texture() = default;
 

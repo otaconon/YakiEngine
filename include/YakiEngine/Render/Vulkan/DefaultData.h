@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../../Assets/Texture.h"
+#include "../Assets/Texture.h"
 
 struct DefaultTextures
 {

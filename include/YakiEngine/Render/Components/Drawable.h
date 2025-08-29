@@ -1,8 +1,8 @@
 #pragma once
 
-#include "../Vulkan/VkUtils.h"
-#include "../Vulkan/VkTypes.h"
-#include "../../../../src/Assets/Mesh.h"
+#include "Vulkan/VkUtils.h"
+#include "Vulkan/VkTypes.h"
+#include "Assets/Mesh.h"
 
 
 struct Drawable {

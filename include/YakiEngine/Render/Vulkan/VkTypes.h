@@ -8,8 +8,8 @@
 #include "Buffer.h"
 #include "Descriptors/DescriptorAllocator.h"
 #include "DeletionQueue.h"
-#include "../Components/DirectionalLight.h"
-#include "../Components/PointLight.h"
+#include "Components/DirectionalLight.h"
+#include "Components/PointLight.h"
 
 struct FrameData
 {

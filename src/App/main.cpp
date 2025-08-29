@@ -13,14 +13,14 @@
 #include "Systems/CameraSystem.h"
 #include "Systems/InputSystem.h"
 #include "Systems/LightingSystem.h"
-#include "Assets/AssetMngr.h"
+#include "../../include/YakiEngine/Core/Assets/AssetMngr.h"
 #include "Assets/GltfUtils.h"
 #include "Components/RenderComponents.h"
 #include "Components/CoreComponents.h"
 #include "HECS/Core/Entity.h"
 #include "Systems/PerformanceMeasureSystem.h"
 #include "Vulkan/VulkanContext.h"
-#include "utils.h"
+#include "../../include/YakiEngine/Render/Assets/utils.h"
 #include "SDL3/SDL_events.h"
 
 constexpr uint32_t numDirectionalLights = 1;

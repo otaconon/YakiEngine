@@ -18,5 +18,6 @@ target_link_libraries(YakiCore PUBLIC
   imgui::imgui
   glm::glm
   fastgltf::fastgltf
+  yaki::render
   hecs::hecs
 )

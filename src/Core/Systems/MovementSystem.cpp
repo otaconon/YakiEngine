@@ -9,8 +9,8 @@
 #include <glm/gtc/quaternion.hpp>
 #include <glm/gtx/rotate_vector.hpp>
 
-#include "../../../include/YakiEngine/Core/Ecs.h"
-#include "../../Components/Components.h"
+#include "Ecs.h"
+#include "Components/CoreComponents.h"
 
 MovementSystem::MovementSystem() = default;
 

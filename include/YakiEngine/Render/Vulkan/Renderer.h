@@ -2,12 +2,12 @@
 
 #include <array>
 
-#include "../../../../src/Render/Vulkan/Swapchain.h"
-#include "../../../../src/Render/Vulkan/VkTypes.h"
-#include "../../../../src/Render/Vulkan/VulkanContext.h"
-#include "../Components/Drawable.h"
-#include "../DefaultData.h"
-#include "../Assets/MaterialBuilder.h"
+#include "Swapchain.h"
+#include "VkTypes.h"
+#include "VulkanContext.h"
+#include "Components/Drawable.h"
+#include "DefaultData.h"
+#include "Assets/MaterialBuilder.h"
 
 constexpr uint32_t FRAME_OVERLAP = 2;
 
@@ -72,6 +72,8 @@ private:
     VkDescriptorSet m_globalDescriptor;
     VkDescriptorSet m_drawImageDescriptors{};
 
+    GPUSceneData m_gpuSceneData;
+    GPULightData m_gpuLightData;
     PickingResources m_pickingResources;
     RenderingStats m_stats;
 

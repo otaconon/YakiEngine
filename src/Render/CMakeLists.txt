@@ -8,6 +8,7 @@ target_include_directories(YakiRender PUBLIC ${CMAKE_SOURCE_DIR}/include/YakiEng
 FetchContent_MakeAvailable(VulkanMemoryAllocator)
 FetchContent_MakeAvailable(SDL3)
 FetchContent_MakeAvailable(stb)
+FetchContent_MakeAvailable(hecs)
 
 find_package(Vulkan REQUIRED)
 find_package(imgui CONFIG REQUIRED)
@@ -18,4 +19,5 @@ target_link_libraries(YakiRender PUBLIC
   GPUOpen::VulkanMemoryAllocator
   SDL3::SDL3
   imgui::imgui
+  hecs::hecs
 )

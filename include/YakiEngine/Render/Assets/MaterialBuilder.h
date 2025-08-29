@@ -3,10 +3,11 @@
 #include <vulkan/vulkan.h>
 
 #include "Asset.h"
-#include "../Vulkan/VulkanContext.h"
-#include "../Vulkan/Swapchain.h"
-#include "../Vulkan/Descriptors/DescriptorWriter.h"
-#include "../Vulkan/Descriptors/DescriptorLayoutBuilder.h"
+#include "Texture.h"
+#include "Vulkan/VulkanContext.h"
+#include "Vulkan/Swapchain.h"
+#include "Vulkan/Descriptors/DescriptorWriter.h"
+#include "Vulkan/Descriptors/DescriptorLayoutBuilder.h"
 
 struct MaterialConstants {
     glm::vec4 colorFactors;

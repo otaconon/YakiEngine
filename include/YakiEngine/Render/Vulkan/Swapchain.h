@@ -2,9 +2,9 @@
 #include <vector>
 #include <vulkan/vulkan_core.h>
 
-#include "../../../../src/Render/Vulkan/VulkanContext.h"
-#include "../../../../src/Render/Vulkan/VkUtils.h"
-#include "../../../../src/Render/Vulkan/VkTypes.h"
+#include "Vulkan/VulkanContext.h"
+#include "Vulkan/VkUtils.h"
+#include "Vulkan/VkTypes.h"
 #include "../Assets/Texture.h"
 
 class Swapchain {

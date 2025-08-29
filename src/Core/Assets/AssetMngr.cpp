@@ -1,12 +1,15 @@
-#include "AssetMngr.h"
+#include "Assets/AssetMngr.h"
 
 #define GLM_ENABLE_EXPERIMENTAL
 #include <stb_image.h>
 #include <glm/gtx/quaternion.hpp>
 
-#include "../../include/YakiEngine/Core/Ecs.h"
-#include "../Components/Components.h"
-#include "../../include/YakiEngine/App/utils.h"
+#include "Ecs.h"
+#include "Components/CoreComponents.h"
+#include "Assets/AssetHandle.h"
+#include "Assets/MaterialBuilder.h"
+#include "Vulkan/VulkanContext.h"
+#include "Assets/utils.h"
 
 AssetMngr::AssetMngr(VulkanContext* ctx, MaterialBuilder* materialBuilder)
     : m_ctx{ctx},

@@ -1,6 +1,7 @@
-#include "../../../include/YakiEngine/Render/Systems/CameraSystem.h"
+#include "Systems/CameraSystem.h"
 
-#include "../../../include/YakiEngine/Core/Ecs.h"
+#include "Ecs.h"
+#include "Components/LocalToWorld.h"
 
 CameraSystem::CameraSystem() = default;
 

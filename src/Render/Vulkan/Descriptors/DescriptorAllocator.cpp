@@ -1,4 +1,4 @@
-#include "DescriptorAllocator.h"
+#include "Vulkan/Descriptors/DescriptorAllocator.h"
 
 DescriptorAllocator::DescriptorAllocator() = default;
 

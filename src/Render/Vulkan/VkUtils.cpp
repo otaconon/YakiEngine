@@ -1,9 +1,9 @@
-#include "VkUtils.h"
+#include "Vulkan/VkUtils.h"
 
 #include <fstream>
 #include <print>
 
-#include "VkInit.h"
+#include "Vulkan/VkInit.h"
 
 SwapChainSupportDetails VkUtil::query_swapchain_support(VkPhysicalDevice device, VkSurfaceKHR surface) {
     SwapChainSupportDetails details;

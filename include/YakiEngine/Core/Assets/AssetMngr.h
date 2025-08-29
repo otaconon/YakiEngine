@@ -6,11 +6,11 @@
 #include <filesystem>
 #include <print>
 
-#include "Asset.h"
-#include "AssetHandle.h"
-#include "Mesh.h"
+#include "../../Render/Assets/Asset.h"
+#include "../../Render/Assets/AssetHandle.h"
+#include "../../Render/Assets/Mesh.h"
 #include "Vulkan/VulkanContext.h"
-#include "MaterialBuilder.h"
+#include "../../Render/Assets/MaterialBuilder.h"
 #include "Assets/GltfUtils.h"
 #include "Assets/Texture.h"
 

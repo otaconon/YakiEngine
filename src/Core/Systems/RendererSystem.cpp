@@ -1,5 +1,5 @@
-#include "../../../include/YakiEngine/Render/Systems/RendererSystem.h"
-#include "../../../include/YakiEngine/Render/Components/Camera.h"
+#include "Systems/RendererSystem.h"
+#include "Components/Camera.h"
 
 #define GLM_ENABLE_EXPERIMENTAL
 #include <imgui.h>
@@ -9,11 +9,13 @@
 #include <glm/glm.hpp>
 #include <glm/ext/matrix_transform.hpp>
 #include <glm/gtx/quaternion.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
-#include "../../../include/YakiEngine/Core/Components/RayTagged.h"
-#include "../ImGuiUtils.h"
-#include "../../../include/YakiEngine/Render/Components/DirectionalLight.h"
-#include "../../Gui/ItemList.h"
+#include "Components/RayTagged.h"
+#include "Components/DirectionalLight.h"
+#include "Gui/ItemList.h"
+#include "Components/CoreComponents.h"
+#include "Components/RenderComponents.h"
 
 
 RenderSystem::RenderSystem(Renderer& renderer)
@@ -175,6 +177,8 @@ void RenderSystem::renderGui(float dt)
     });
     ImGui::End();
 
+    /*
+     *TODO: fix this
     ImGui::Begin("Object info");
     std::vector<Hori::Entity> outOfDateTags;
     ecs.Each<RayTagged, Translation, Rotation, Scale, Property<Translation>, Property<Rotation>, Property<Scale>>
@@ -193,12 +197,12 @@ void RenderSystem::renderGui(float dt)
         ImGui::InputFloat("roll", &rotation.roll);
         ImGui::InputFloat3(pScale.label.c_str(), glm::value_ptr(scale.value));
     });
-
     for (auto& e : outOfDateTags)
     {
         ecs.RemoveComponents<RayTagged>(e);
     }
     ImGui::End();
+    */
 
     ImGui::Render();
     m_renderer->RenderImGui();

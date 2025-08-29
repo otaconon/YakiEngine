@@ -1,8 +1,8 @@
 #pragma once
 
-#include <World.h>
+#include <HECS/Core/World.h>
 #include <glm/glm.hpp>
-#include "../../../../src/Components/Components.h"
+#include "Components/CoreComponents.h"
 
 class TransformSystem : public Hori::System
 {

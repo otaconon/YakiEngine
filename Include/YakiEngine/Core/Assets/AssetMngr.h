@@ -11,7 +11,7 @@
 #include "../../Render/Assets/Mesh.h"
 #include "Vulkan/VulkanContext.h"
 #include "../../Render/Assets/MaterialBuilder.h"
-#include "Assets/GltfUtils.h"
+#include "GltfUtils.h"
 #include "Assets/Texture.h"
 
 class AssetMngr

@@ -4,8 +4,7 @@
 #include <vector>
 
 #include "Asset.h"
-#include "../Vulkan/VkTypes.h"
-
+#include "Vulkan/VkTypes.h"
 
 struct Mesh : Asset
 {

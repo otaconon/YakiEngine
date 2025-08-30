@@ -15,8 +15,6 @@ enum class ShowImGui : std::uint8_t
     DirectionalLights
 };
 
-class Renderer;
-
 class RenderSystem : public Hori::System {
 public:
     explicit RenderSystem(Renderer* renderer);

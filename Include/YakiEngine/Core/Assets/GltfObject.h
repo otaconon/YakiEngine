@@ -5,7 +5,7 @@
 #include <string>
 #include <unordered_map>
 
-#include "Mesh.h"
+#include "Assets/Mesh.h"
 #include "Assets/Texture.h"
 #include "Vulkan/VkTypes.h"
 #include "Vulkan/VulkanContext.h"

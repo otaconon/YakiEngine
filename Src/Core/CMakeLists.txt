@@ -3,7 +3,7 @@ file(GLOB_RECURSE SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp")
 add_library(YakiCore STATIC ${SOURCES})
 add_library(yaki::core ALIAS YakiCore)
 
-target_include_directories(YakiCore PUBLIC ${CMAKE_SOURCE_DIR}/include/YakiEngine/Core)
+target_include_directories(YakiCore PUBLIC ${CMAKE_SOURCE_DIR}/include/YakiEngine/Core ${CMAKE_SOURCE_DIR}/include/YakiEngine/Ecs)
 
 FetchContent_MakeAvailable(SDL3)
 FetchContent_MakeAvailable(stb)

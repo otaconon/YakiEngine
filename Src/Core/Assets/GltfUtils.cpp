@@ -1,4 +1,4 @@
-#include "Assets/GltfUtils.h"
+#include "../../../Include/YakiEngine/Core/Assets/GltfUtils.h"
 
 #include <vk_mem_alloc.h>
 

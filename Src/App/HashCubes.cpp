@@ -18,12 +18,14 @@ HashCubes::HashCubes()
 	m_allMeshes = AssetMngr::LoadGltf("Assets/meshes/basicmesh.glb");
     m_cubeMesh = std::next(m_allMeshes->meshes.begin(), 1)->second;
 
-    constexpr uint32_t cubesRes = 10;
+    constexpr uint32_t cubesRes = 100;
     for (int i = 0; i < cubesRes; i++)
     {
         for (int j = 0; j < cubesRes; j++)
         {
             auto e = ecs.CreateEntity();
+            //auto mesh = m_cubeMesh;
+            //ecs.AddComponents(e, std::move(mesh), Translation{{i, j, 0.f}});
             register_object(e, m_cubeMesh, Translation{{i, j, 0.f}});
         }
     }

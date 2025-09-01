@@ -17,7 +17,7 @@ MovementSystem::MovementSystem() = default;
 void MovementSystem::Update(float dt)
 {
     auto& ecs = Ecs::GetInstance();
-    ecs.Each<Controller, Translation, Rotation, Scale>([dt](Hori::Entity, Controller& controller, Translation& t, Rotation& r, Scale& s) {
+    ecs.Each<Controller, Translation, Rotation, Scale>([&ecs, dt](Hori::Entity e, Controller& controller, Translation& t, Rotation& r, Scale& s) {
         float smoothFactor = 1.0f - exp(-30.0f * dt);
         controller.smoothedDx = glm::mix(controller.smoothedDx, controller.dx, smoothFactor);
         controller.smoothedDy = glm::mix(controller.smoothedDy, controller.dy, smoothFactor);
@@ -28,6 +28,8 @@ void MovementSystem::Update(float dt)
         r.value = glm::quat(glm::vec3(r.pitch, r.yaw, r.roll));
 
         glm::vec3 velocity = r.value * controller.direction * controller.speed * dt;
+
+        ecs.AddComponents(e, DirtyTransform{});
         t.value += velocity;
     });
 }

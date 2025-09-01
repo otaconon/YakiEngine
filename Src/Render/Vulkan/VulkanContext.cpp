@@ -140,6 +140,7 @@ void VulkanContext::createLogicalDevice()
 
     VkPhysicalDeviceFeatures deviceFeatures {
         .independentBlend = VK_TRUE,
+        .multiDrawIndirect = VK_TRUE,
         .fillModeNonSolid = VK_TRUE
     };
 

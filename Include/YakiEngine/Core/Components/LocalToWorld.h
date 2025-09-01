@@ -5,5 +5,4 @@
 struct LocalToWorld
 {
     glm::mat4 value{1.f};
-    bool dirty{true};
 };

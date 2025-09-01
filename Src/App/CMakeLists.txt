@@ -3,6 +3,8 @@ file(GLOB_RECURSE SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp")
 add_executable(YakiEngine ${SOURCES})
 include_directories(${CMAKE_SOURCE_DIR}/include/YakiEngine/App)
 
+set_property(TARGET YakiEngine PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:YakiEngine>")
+
 FetchContent_MakeAvailable(VulkanMemoryAllocator)
 FetchContent_MakeAvailable(SDL3)
 FetchContent_MakeAvailable(stb)

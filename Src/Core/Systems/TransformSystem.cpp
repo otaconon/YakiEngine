@@ -12,15 +12,14 @@ void TransformSystem::Update(float dt)
 {
     auto& ecs = Ecs::GetInstance();
 
-    ecs.ParallelEach<Translation, Rotation, Scale, LocalToWorld, Parent>(
-        [&ecs](Hori::Entity e, Translation& t, Rotation& r, Scale& s, LocalToWorld& localToWorld, Parent& parent) {
+    ecs.Each<DirtyTransform, Translation, Rotation, Scale, LocalToWorld, LocalToParent, Parent>(
+        [&ecs](Hori::Entity e, DirtyTransform&, Translation& t, Rotation& r, Scale& s, LocalToWorld& localToWorld, LocalToParent& localToParent, Parent& parent) {
             if (parent.value.Valid())
             {
-                auto localToParent = ecs.GetComponent<LocalToParent>(e);
                 r.value = glm::quat(glm::vec3(r.pitch, r.yaw, r.roll));
-                localToParent->value = glm::translate(glm::mat4(1.f), t.value) *  glm::toMat4(r.value) * glm::scale(glm::mat4(1.f), s.value);
+                localToParent.value = glm::translate(glm::mat4(1.f), t.value) *  glm::toMat4(r.value) * glm::scale(glm::mat4(1.f), s.value);
             }
-            else // Top node
+            else
             {
                 r.value = glm::quat(glm::vec3(r.pitch, r.yaw, r.roll));
                 glm::mat4 newValue = glm::translate(glm::mat4(1.f), t.value) *  glm::toMat4(r.value) * glm::scale(glm::mat4(1.f), s.value);
@@ -28,11 +27,10 @@ void TransformSystem::Update(float dt)
                     return;
 
                 localToWorld.value = std::move(newValue);
-                localToWorld.dirty = true;
             }
     });
 
-    ecs.Each<LocalToWorld, Children, Parent>([&](Hori::Entity entity, LocalToWorld& localToWorld, Children& children, Parent& parent) {
+    ecs.Each<DirtyTransform, LocalToWorld, Children, Parent>([&](Hori::Entity entity, DirtyTransform&, LocalToWorld& localToWorld, Children& children, Parent& parent) {
         if (parent.value.Valid())
             return;
 
@@ -41,7 +39,7 @@ void TransformSystem::Update(float dt)
             updateHierarchy(e, &localToWorld);
         }
 
-        localToWorld.dirty = false;
+        ecs.RemoveComponents<DirtyTransform>(entity);
    });
 }
 
@@ -50,24 +48,11 @@ void TransformSystem::updateHierarchy(Hori::Entity entity, const LocalToWorld* p
     auto& ecs = Ecs::GetInstance();
     auto localToWorld = ecs.GetComponent<LocalToWorld>(entity);
 
-    if (parentToWorld->dirty)
-    {
-        glm::mat4 localToParent = ecs.GetComponent<LocalToParent>(entity)->value;
-        localToWorld->value = parentToWorld->value * localToParent;
-        localToWorld->dirty = true;
-    }
-
-    /*
-    if (ecs.HasComponents<ParentToLocal>(entity)) {
-        auto parentToLocal = ecs.GetComponent<ParentToLocal>(entity);
-        parentToLocal->value = glm::inverse(localToParent->value);
-    }
-    */
+    glm::mat4 localToParent = ecs.GetComponent<LocalToParent>(entity)->value;
+    localToWorld->value = parentToWorld->value * localToParent;
 
     auto children = ecs.GetComponent<Children>(entity);
     for (Hori::Entity child : children->value) {
         updateHierarchy(child, localToWorld);
     }
-
-    localToWorld->dirty = false;
 }

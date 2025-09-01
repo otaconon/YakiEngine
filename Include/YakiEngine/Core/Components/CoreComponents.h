@@ -11,3 +11,4 @@
 #include "Rotation.h"
 #include "Scale.h"
 #include "Translation.h"
+#include "DirtyTransform.h"

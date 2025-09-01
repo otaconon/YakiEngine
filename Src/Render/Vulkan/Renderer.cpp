@@ -22,7 +22,7 @@
 #include "Vulkan/RenderObject.h"
 #include "Vulkan/Descriptors/DescriptorWriter.h"
 
-constexpr size_t MAX_COMMANDS = 1000;
+constexpr size_t MAX_COMMANDS = 100000;
 
 Renderer::Renderer(SDL_Window* window, VulkanContext* ctx)
     : m_window{window},

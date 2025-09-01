@@ -70,8 +70,8 @@ void RenderSystem::renderDrawables(const glm::mat4& viewproj)
                 .vertexBufferAddress = drawable.mesh->meshBuffers->vertexBufferAddress
             };
 
-            if (isVisible(obj, viewproj))
-                objects.push_back(obj);
+            //if (isVisible(obj, viewproj))
+            objects.push_back(obj);
         }
     });
 

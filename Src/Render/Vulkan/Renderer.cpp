@@ -209,26 +209,6 @@ void Renderer::RenderObjects(std::span<RenderObject> objects, std::span<size_t> 
 	}
 }
 
-void Renderer::RenderWireframes(std::vector<WireframeObject>& objects)
-{
-	VkCommandBuffer cmd = getCurrentFrame().commandBuffer;
-	for (auto& [indexCount, firstIndex, indexBuffer, transform, vertexBufferAddress] : objects)
-	{
-		vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, m_wireframePipeline);
-		vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, m_wireframePipelineLayout, 0, 1, &m_globalDescriptor, 0, nullptr );
-
-		vkCmdBindIndexBuffer(cmd, indexBuffer, 0, VK_INDEX_TYPE_UINT32);
-
-		GPUDrawPushConstants pushConstants {
-			.worldMatrix = transform,
-			.vertexBuffer = vertexBufferAddress
-		};
-		vkCmdPushConstants(cmd, m_wireframePipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(GPUDrawPushConstants), &pushConstants);
-
-		vkCmdDrawIndexed(cmd, indexCount, 1, firstIndex, 0, 0);
-	}
-}
-
 void Renderer::End3DRendering()
 {
 	VkCommandBuffer cmd = getCurrentFrame().commandBuffer;

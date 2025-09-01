@@ -33,7 +33,6 @@ public:
     void BeginRendering();
     void Begin3DRendering();
     void RenderObjects(std::span<RenderObject> objects, std::span<size_t> order);
-    void RenderWireframes(std::vector<WireframeObject>& objects);
     void End3DRendering();
     void RenderImGui();
     void EndRendering();
@@ -52,10 +51,6 @@ private:
 	VulkanContext* m_ctx;
 
     Swapchain m_swapchain;
-
-    VkDescriptorSetLayout m_wireframeDescriptorSetLayout;
-    VkPipelineLayout m_wireframePipelineLayout;
-    VkPipeline m_wireframePipeline;
 
     DeletionQueue m_deletionQueue;
 

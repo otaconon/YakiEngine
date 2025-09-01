@@ -56,14 +56,15 @@ Renderer::~Renderer()
 
 void Renderer::BeginRendering()
 {
+	// Synchronize
 	VK_CHECK(vkWaitForFences(m_ctx->GetDevice(), 1, &getCurrentFrame().renderFence, true, UINT64_MAX));
 
 	getCurrentFrame().deletionQueue.Flush();
 	getCurrentFrame().frameDescriptors.ClearPools(m_ctx->GetDevice());
 	VK_CHECK(vkResetFences(m_ctx->GetDevice(), 1, &getCurrentFrame().renderFence));
+	VK_CHECK(vkResetCommandBuffer(getCurrentFrame().commandBuffer, 0));
 
-	getCurrentFrame().deletionQueue.Flush();
-
+	// Setup swapchain
 	if (m_swapchain.IsResized())
 	{
 		m_swapchain.RecreateSwapchain();
@@ -76,37 +77,20 @@ void Renderer::BeginRendering()
 		m_swapchain.SetResized(true);
 		return;
 	}
+
 	if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR)
 		throw std::runtime_error("failed to acquire swap chain image!");
-
-	VK_CHECK(vkResetFences(m_ctx->GetDevice(), 1, &getCurrentFrame().renderFence));
-	VK_CHECK(vkResetCommandBuffer(getCurrentFrame().commandBuffer, 0));
 
 	VkCommandBuffer cmd = getCurrentFrame().commandBuffer;
 	VkCommandBufferBeginInfo cmdBeginInfo = VkInit::command_buffer_begin_info(VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
 	VK_CHECK(vkBeginCommandBuffer(cmd, &cmdBeginInfo));
-
-	VkViewport viewport {
-		.x = 0.0f,
-		.y = 0.0f,
-		.width = static_cast<float>(m_swapchain.GetExtent().width),
-		.height = static_cast<float>(m_swapchain.GetExtent().height),
-		.minDepth = 0.0f,
-		.maxDepth = 1.0f
-	};
-	vkCmdSetViewport(cmd, 0, 1, &viewport);
-
-	VkRect2D scissor {
-		.offset = {0, 0},
-		.extent = m_swapchain.GetExtent()
-	};
-	vkCmdSetScissor(cmd, 0, 1, &scissor);
 
 	// Setup image layout
 	VkUtil::transition_image(cmd, m_swapchain.GetDrawImage().GetImage(), VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_GENERAL);
 	VkUtil::transition_image(cmd, m_swapchain.GetDepthImage().GetImage(), VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL);
 	VkUtil::transition_image(cmd, m_pickingResources.texture->GetImage(), VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_GENERAL);
 
+	// Clear image
 	std::array<VkClearValue, 2> clearValues{};
 	clearValues[0].color = {{0.0f, 0.0f, 0.0f, 1.0f}};
 	clearValues[1].depthStencil = {1.0f, 0};
@@ -161,7 +145,6 @@ void Renderer::RenderObjects(std::span<RenderObject> objects, std::span<size_t> 
 	for (auto& idx : order)
 	{
 		auto& [objectId, indexCount, firstIndex, indexBuffer, material, bounds, transform, vertexBufferAddress] = objects[idx];
-
 		if (material != lastMaterial)
 		{
 			lastMaterial = material;
@@ -222,7 +205,7 @@ void Renderer::End3DRendering()
 	VkUtil::transition_image(cmd, m_pickingResources.texture->GetImage(), VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
 	VkBufferImageCopy region{};
 	float mouseX, mouseY;
-	SDL_GetMouseState(&mouseX, &mouseY); // I Would rather not use sdl in the renderer
+	SDL_GetMouseState(&mouseX, &mouseY);
 	region.imageOffset = {static_cast<int>(mouseX), static_cast<int>(mouseY), 0};
 	region.imageExtent = {1, 1, 1};
 	region.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
@@ -241,7 +224,7 @@ void Renderer::RenderImGui()
 	VkUtil::copy_image_to_image(cmd, m_swapchain.GetDrawImage().GetImage(), m_swapchain.GetImage(m_currentImageIndex), drawExtent, m_swapchain.GetExtent());
 	VkUtil::transition_image(cmd, m_swapchain.GetImage(m_currentImageIndex), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 
-	std::array<VkRenderingAttachmentInfo, 1> colorAttachments { VkInit::color_attachment_info(m_swapchain.GetImageView(m_currentImageIndex), nullptr, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL) };
+	std::array colorAttachments { VkInit::color_attachment_info(m_swapchain.GetImageView(m_currentImageIndex), nullptr, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL) };
 	VkRenderingInfo renderInfo = VkInit::rendering_info(m_swapchain.GetExtent(), colorAttachments, nullptr);
 
 	vkCmdBeginRendering(cmd, &renderInfo);

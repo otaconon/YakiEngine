@@ -5,7 +5,7 @@
 
 [[nodiscard]] inline Drawable create_drawable(std::shared_ptr<Mesh> mesh)
 {
-    Drawable drawable{mesh, {}, {}, {glm::mat4{1.f}, glm::mat4{}, glm::mat4{}}};
+    Drawable drawable{mesh, {glm::mat4{1.f}, glm::mat4{}, glm::mat4{}}};
     return drawable;
 }
 

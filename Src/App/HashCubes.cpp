@@ -16,7 +16,17 @@ HashCubes::HashCubes()
     auto& ecs = Ecs::GetInstance();
 
 	m_allMeshes = AssetMngr::LoadGltf("Assets/meshes/basicmesh.glb");
-    m_cubeMesh = std::next(m_allMeshes->meshes.begin(), 2)->second;
+    m_cubeMesh = std::next(m_allMeshes->meshes.begin(), 1)->second;
+
+    constexpr uint32_t cubesRes = 10;
+    for (int i = 0; i < cubesRes; i++)
+    {
+        for (int j = 0; j < cubesRes; j++)
+        {
+            auto e = ecs.CreateEntity();
+            register_object(e, m_cubeMesh, Translation{{i, j, 0.f}});
+        }
+    }
 
     Hori::Entity camera = ecs.CreateEntity();
     ecs.AddComponents(camera, Camera{}, Controller{});

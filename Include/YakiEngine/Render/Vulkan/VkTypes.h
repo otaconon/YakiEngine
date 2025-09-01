@@ -15,6 +15,7 @@ struct FrameData
 {
     VkCommandPool commandPool{};
     VkCommandBuffer commandBuffer{};
+    std::unique_ptr<Buffer> indirectDrawBuffer;
 
     VkSemaphore swapchainSemaphore{}, renderSemaphore{};
     VkFence renderFence{};
@@ -118,21 +119,6 @@ struct GeoSurface
     uint32_t count;
     Bounds bounds;
     std::shared_ptr<MaterialInstance> material;
-};
-
-struct RenderObject
-{
-    uint32_t objectId;
-
-    uint32_t indexCount;
-    uint32_t firstIndex;
-    VkBuffer indexBuffer;
-
-    MaterialInstance* material;
-    Bounds bounds;
-
-    glm::mat4 transform;
-    VkDeviceAddress vertexBufferAddress;
 };
 
 struct ComputePipeline

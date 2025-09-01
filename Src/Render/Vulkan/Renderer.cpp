@@ -19,7 +19,10 @@
 #include "Vulkan/Descriptors/DescriptorLayoutBuilder.h"
 #include "Components/RenderComponents.h"
 #include "Vulkan/DefaultData.h"
+#include "Vulkan/RenderObject.h"
 #include "Vulkan/Descriptors/DescriptorWriter.h"
+
+constexpr size_t MAX_COMMANDS = 1000;
 
 Renderer::Renderer(SDL_Window* window, VulkanContext* ctx)
     : m_window{window},
@@ -135,61 +138,98 @@ void Renderer::Begin3DRendering()
 	getCurrentFrame().deletionQueue.PushBuffer(std::move(lightBuffer));
 }
 
-void Renderer::RenderObjects(std::span<RenderObject> objects, std::span<size_t> order)
+void Renderer::RenderObjects(std::span<RenderObject> objects)
 {
 	VkCommandBuffer cmd = getCurrentFrame().commandBuffer;
 
-	MaterialPipeline* lastPipeline{nullptr};
-	MaterialInstance* lastMaterial{nullptr};
-	VkBuffer lastIndexBuffer{VK_NULL_HANDLE};
-	for (auto& idx : order)
+	std::vector<IndirectBatch> draws = packObjects(objects);
+
+	Buffer* indirectBuffer = getCurrentFrame().indirectDrawBuffer.get();
+	VkDrawIndexedIndirectCommand* drawCommands;
+	vmaMapMemory(indirectBuffer->allocator, indirectBuffer->allocation, reinterpret_cast<void**>(&drawCommands));
+	for (auto [idx, object]: std::views::enumerate(objects))
 	{
-		auto& [objectId, indexCount, firstIndex, indexBuffer, material, bounds, transform, vertexBufferAddress] = objects[idx];
-		if (material != lastMaterial)
-		{
-			lastMaterial = material;
-			if (material->pipeline != lastPipeline)
-			{
-				lastPipeline = material->pipeline;
-				vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, material->pipeline->pipeline);
-				vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, material->pipeline->layout, 0, 1, &m_globalDescriptor, 0, nullptr );
+		drawCommands[idx].indexCount = object.mesh->indices.size();
+		drawCommands[idx].instanceCount = 1;
+		drawCommands[idx].firstIndex = 0;
+		drawCommands[idx].vertexOffset = 0;
+		drawCommands[idx].firstInstance = idx;
+	}
+	vmaUnmapMemory(indirectBuffer->allocator, indirectBuffer->allocation);
 
-				VkViewport viewport {
-					.x = 0.0f,
-					.y = 0.0f,
-					.width = static_cast<float>(m_swapchain.GetExtent().width),
-					.height = static_cast<float>(m_swapchain.GetExtent().height),
-					.minDepth = 0.0f,
-					.maxDepth = 1.0f
-				};
-				vkCmdSetViewport(cmd, 0, 1, &viewport);
+	VkViewport viewport {
+		.x = 0.0f,
+		.y = 0.0f,
+		.width = static_cast<float>(m_swapchain.GetExtent().width),
+		.height = static_cast<float>(m_swapchain.GetExtent().height),
+		.minDepth = 0.0f,
+		.maxDepth = 1.0f
+	};
+	vkCmdSetViewport(cmd, 0, 1, &viewport);
 
-				VkRect2D scissor {
-					.offset = {0, 0},
-					.extent = m_swapchain.GetExtent()
-				};
-				vkCmdSetScissor(cmd, 0, 1, &scissor);
-			}
-			vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, material->pipeline->layout, 1, 1, &material->materialSet, 0, nullptr );
-		}
+	VkRect2D scissor {
+		.offset = {0, 0},
+		.extent = m_swapchain.GetExtent()
+	};
+	vkCmdSetScissor(cmd, 0, 1, &scissor);
 
-		if (lastIndexBuffer != indexBuffer)
-		{
-			lastIndexBuffer = indexBuffer;
-			vkCmdBindIndexBuffer(cmd, indexBuffer, 0, VK_INDEX_TYPE_UINT32);
-		}
+	for (auto& [transform, mesh, material, first, count]: draws)
+	{
+		vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, material->pipeline->pipeline);
+		vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, material->pipeline->layout, 0, 1, &m_globalDescriptor, 0, nullptr );
+		vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, material->pipeline->layout, 1, 1, &material->materialSet, 0, nullptr );
+
+		vkCmdBindIndexBuffer(cmd, mesh->meshBuffers->indexBuffer.buffer, 0, VK_INDEX_TYPE_UINT32);
 
 		GPUDrawPushConstants pushConstants {
-			.worldMatrix = transform,
-			.vertexBuffer = vertexBufferAddress,
-			.objectId = objectId
+			.worldMatrix = glm::mat4{1.f},
+			.vertexBuffer = mesh->meshBuffers->vertexBufferAddress,
+			.objectId = 1
 		};
 		vkCmdPushConstants(cmd, material->pipeline->layout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(GPUDrawPushConstants), &pushConstants);
 
-		vkCmdDrawIndexed(cmd, indexCount, 1, firstIndex, 0, 0);
+		VkDeviceSize indirectOffset = first * sizeof(VkDrawIndexedIndirectCommand);
+		uint32_t drawStride = sizeof(VkDrawIndexedIndirectCommand);
+
+		vkCmdDrawIndexedIndirect(cmd, getCurrentFrame().indirectDrawBuffer->buffer, indirectOffset, count, drawStride);
+
 		m_stats.drawcallCount++;
-		m_stats.triangleCount += indexCount / 3;
+		m_stats.triangleCount += mesh->indices.size() / 3;
 	}
+}
+
+std::vector<IndirectBatch> Renderer::packObjects(std::span<RenderObject> objects)
+{
+	std::vector<IndirectBatch> draws;
+	draws.push_back({
+		.transform = objects[0].transform,
+		.mesh = objects[0].mesh,
+		.material = objects[0].material,
+		.first = 0,
+		.count = 0
+	});
+
+	for (uint32_t i = 1; i < objects.size(); i++)
+	{
+		bool sameMesh = objects[i].mesh == draws.back().mesh;
+		bool sameMaterial = objects[i].material == draws.back().material;
+
+		if(sameMesh && sameMaterial)
+		{
+			draws.back().count++;
+		}
+		else
+		{
+			draws.push_back({
+				.mesh = objects[i].mesh,
+				.material = objects[i].material,
+				.first = i,
+				.count = 1
+			});
+		}
+	}
+
+	return draws;
 }
 
 void Renderer::End3DRendering()
@@ -281,6 +321,8 @@ void Renderer::initCommands()
 		VK_CHECK(vkCreateCommandPool(m_ctx->GetDevice(), &commandPoolInfo, nullptr, &m_frames[i].commandPool));
 		VkCommandBufferAllocateInfo cmdAllocInfo = VkInit::command_buffer_allocate_info(m_frames[i].commandPool, 1);
 		VK_CHECK(vkAllocateCommandBuffers(m_ctx->GetDevice(), &cmdAllocInfo, &m_frames[i].commandBuffer));
+
+		m_frames[i].indirectDrawBuffer = std::make_unique<Buffer>(m_ctx->GetAllocator(), MAX_COMMANDS * sizeof(VkDrawIndexedIndirectCommand), VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU);
 	}
 }
 

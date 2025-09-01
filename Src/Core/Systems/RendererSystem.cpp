@@ -63,6 +63,7 @@ void RenderSystem::renderDrawables(const glm::mat4& viewproj)
                 .indexCount = count,
                 .firstIndex = startIndex,
                 .indexBuffer = drawable.mesh->meshBuffers->indexBuffer.buffer,
+                .mesh = drawable.mesh.get(),
                 .material = material.get(),
                 .bounds = bounds,
                 .transform = localToWorld.value,
@@ -86,7 +87,7 @@ void RenderSystem::renderDrawables(const glm::mat4& viewproj)
             return A.material < B.material;
     });
 
-    m_renderer->RenderObjects(objects, order);
+    m_renderer->RenderObjects(objects);
 }
 
 void RenderSystem::renderGui(float dt)

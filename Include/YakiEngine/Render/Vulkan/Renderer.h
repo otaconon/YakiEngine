@@ -7,6 +7,7 @@
 #include "VulkanContext.h"
 #include "Components/Drawable.h"
 #include "DefaultData.h"
+#include "RenderObject.h"
 #include "Assets/MaterialBuilder.h"
 
 constexpr uint32_t FRAME_OVERLAP = 2;
@@ -25,6 +26,15 @@ struct PickingResources
     uint32_t entityId;
 };
 
+struct IndirectBatch
+{
+    glm::mat4 transform;
+    Mesh* mesh;
+    MaterialInstance* material;
+    uint32_t first;
+    uint32_t count;
+};
+
 class Renderer {
 public:
     Renderer(SDL_Window* window, VulkanContext* ctx);
@@ -32,7 +42,7 @@ public:
 
     void BeginRendering();
     void Begin3DRendering();
-    void RenderObjects(std::span<RenderObject> objects, std::span<size_t> order);
+    void RenderObjects(std::span<RenderObject> objects);
     void End3DRendering();
     void RenderImGui();
     void EndRendering();
@@ -84,6 +94,8 @@ private:
 
     VkCommandBuffer beginSingleTimeCommands(VkCommandPool& commandPool) const;
     void endSingleTimeCommands(VkCommandPool& commandPool, VkCommandBuffer& commandBuffer) const;
+
+    std::vector<IndirectBatch> packObjects(std::span<RenderObject> objects);
 
     FrameData& getCurrentFrame();
 };

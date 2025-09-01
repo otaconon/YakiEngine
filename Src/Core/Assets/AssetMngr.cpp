@@ -228,8 +228,8 @@ std::shared_ptr<GltfObject> AssetMngr::loadGltfImpl(const std::filesystem::path&
 		newmesh->name = mesh.name;
 
 		// clear the mesh arrays each mesh, we dont want to merge them by error
-		indices.clear();
-		vertices.clear();
+		indices = {};
+		vertices = {};
 
 		for (auto&& p : mesh.primitives) {
 			GeoSurface newSurface;
@@ -319,6 +319,8 @@ std::shared_ptr<GltfObject> AssetMngr::loadGltfImpl(const std::filesystem::path&
 		}
 
 		newmesh->meshBuffers = GltfUtils::upload_mesh(m_ctx, vertices, indices);
+		newmesh->indices = std::move(indices);
+		newmesh->vertices = std::move(vertices);
 	}
 
 	// load all nodes and their meshes

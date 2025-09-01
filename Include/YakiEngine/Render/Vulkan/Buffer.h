@@ -69,6 +69,24 @@ struct Buffer
         Cleanup();
     }
 
+    template<typename T>
+    void MapMemoryFromValue(const T& value)
+    {
+        T* data;
+        vmaMapMemory(allocator, allocation, reinterpret_cast<void**>(&data));
+        *data = value;
+        vmaUnmapMemory(allocator, allocation);
+    }
+
+    template<typename T>
+    void MapMemoryToValue(T& value)
+    {
+        T* data;
+        vmaMapMemory(allocator, allocation, reinterpret_cast<void**>(&data));
+        value = *data;
+        vmaUnmapMemory(allocator, allocation);
+    }
+
     VkBuffer buffer = VK_NULL_HANDLE;
     VmaAllocator allocator;
     VmaAllocation allocation;

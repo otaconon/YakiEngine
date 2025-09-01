@@ -133,18 +133,11 @@ void Renderer::Begin3DRendering()
 
 	// Scene data
 	Buffer gpuSceneDataBuffer(m_ctx->GetAllocator(), sizeof(GPUSceneData), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU);
-	GPUSceneData* sceneUniformData;
-	vmaMapMemory(gpuSceneDataBuffer.allocator, gpuSceneDataBuffer.allocation, reinterpret_cast<void**>(&sceneUniformData));
-	*sceneUniformData = m_gpuSceneData;
-	vmaUnmapMemory(gpuSceneDataBuffer.allocator, gpuSceneDataBuffer.allocation);
+	gpuSceneDataBuffer.MapMemoryFromValue(m_gpuSceneData);
 
-	// Light buffer
+	// Light data
 	Buffer lightBuffer(m_ctx->GetAllocator(), sizeof(GPULightData), VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU);
-	auto lightData = m_gpuLightData;
-	GPULightData* mappedLightData;
-	vmaMapMemory(lightBuffer.allocator, lightBuffer.allocation, reinterpret_cast<void**>(&mappedLightData));
-	*mappedLightData = lightData;
-	vmaUnmapMemory(lightBuffer.allocator, lightBuffer.allocation);
+	lightBuffer.MapMemoryFromValue(m_gpuLightData);
 
 	m_globalDescriptor = getCurrentFrame().frameDescriptors.Allocate(m_ctx->GetDevice(), m_gpuSceneDataDescriptorLayout);
 	{
@@ -306,11 +299,7 @@ void Renderer::EndRendering()
 	else if (result != VK_SUCCESS)
 		throw std::runtime_error("failed to present swap chain image!");
 
-	void* mappedData;
-	vmaMapMemory(m_pickingResources.stagingBuffer->allocator, m_pickingResources.stagingBuffer->allocation, &mappedData);
-	m_pickingResources.entityId = *static_cast<uint32_t*>(mappedData);
-	vmaUnmapMemory(m_pickingResources.stagingBuffer->allocator, m_pickingResources.stagingBuffer->allocation);
-
+	m_pickingResources.stagingBuffer->MapMemoryToValue(m_pickingResources.entityId);
 	m_currentFrame = (m_currentFrame + 1) % FRAME_OVERLAP;
 }
 
@@ -528,11 +517,6 @@ VkDescriptorSetLayout Renderer::GetSceneDataDescriptorLayout()
 
 uint32_t Renderer::GetHoveredEntityId()
 {
-	void* mappedData;
-	vmaMapMemory(m_pickingResources.stagingBuffer->allocator, m_pickingResources.stagingBuffer->allocation, &mappedData);
-	m_pickingResources.entityId = *static_cast<uint32_t*>(mappedData);
-	vmaUnmapMemory(m_pickingResources.stagingBuffer->allocator, m_pickingResources.stagingBuffer->allocation);
-
 	return m_pickingResources.entityId;
 }
 
@@ -547,12 +531,4 @@ GPUSceneData& Renderer::GetGpuSceneData() {
 
 GPULightData& Renderer::GetGpuLightData() {
     return m_gpuLightData;
-}
-
-void Renderer::WriteMaterialConstants(MaterialConstants& materialConstants)
-{
-	vmaMapMemory(m_materialConstantsBuffer.allocator, m_materialConstantsBuffer.allocation, reinterpret_cast<void**>(&materialConstants));
-	materialConstants.colorFactors = glm::vec4{1,1,1,1};
-	materialConstants.metalRoughtFactors = glm::vec4{1,0.5,0,0};
-	vmaUnmapMemory(m_materialConstantsBuffer.allocator, m_materialConstantsBuffer.allocation);
 }

@@ -47,8 +47,6 @@ public:
     [[nodiscard]] GPUSceneData& GetGpuSceneData();
     [[nodiscard]] GPULightData& GetGpuLightData();
 
-    void WriteMaterialConstants(MaterialConstants& materialConstants);
-
 private:
     SDL_Window* m_window;
 	VulkanContext* m_ctx;

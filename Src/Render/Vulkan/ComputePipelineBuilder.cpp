@@ -27,7 +27,6 @@ VkPipeline ComputePipelineBuilder::GetPipeline() const { return m_pipeline; }
 VkPipelineLayout ComputePipelineBuilder::GetPipelineLayout() const { return m_pipelineLayout; }
 DescriptorAllocator& ComputePipelineBuilder::GetDescriptorAllocator() { return m_descriptorAllocator; }
 
-
 void ComputePipelineBuilder::SetLayout(VkPipelineLayout layout)
 {
     m_pipelineLayout = layout;

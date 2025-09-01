@@ -87,13 +87,10 @@ private:
     void initSyncObjects();
     void initDescriptorAllocator();
     void initDescriptors();
-    void initWireframePipeline();
     void initPicking();
 
     VkCommandBuffer beginSingleTimeCommands(VkCommandPool& commandPool) const;
     void endSingleTimeCommands(VkCommandPool& commandPool, VkCommandBuffer& commandBuffer) const;
 
     FrameData& getCurrentFrame();
-
-    static VkRenderingAttachmentInfo attachmentInfo(VkImageView view, VkClearValue* clear, VkImageLayout layout = VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL);
 };

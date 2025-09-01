@@ -33,7 +33,6 @@ Renderer::Renderer(SDL_Window* window, VulkanContext* ctx)
 	initImgui();
 	initDescriptorAllocator();
 	initDescriptors();
-	initWireframePipeline();
 	initPicking();
 }
 
@@ -466,53 +465,6 @@ void Renderer::initDescriptors()
 	}
 }
 
-void Renderer::initWireframePipeline()
-{
-	VkShaderModule meshFragShader;
-	if (!VkUtil::load_shader_module("shaders/fragment/wireframe.frag.spv", m_ctx->GetDevice(), &meshFragShader))
-		std::println("Error when building the triangle fragment shader module");
-
-	VkShaderModule meshVertexShader;
-	if (!VkUtil::load_shader_module("shaders/vertex/wireframe.vert.spv", m_ctx->GetDevice(), &meshVertexShader))
-		std::println("Error when building the triangle vertex shader module");
-
-	VkPushConstantRange matrixRange {
-		.stageFlags = VK_SHADER_STAGE_VERTEX_BIT,
-		.offset = 0,
-		.size = sizeof(GPUDrawPushConstants)
-	};
-
-	VkDescriptorSetLayout layouts[] = { m_gpuSceneDataDescriptorLayout };
-	VkPipelineLayoutCreateInfo mesh_layout_info = VkInit::pipeline_layout_create_info();
-	mesh_layout_info.setLayoutCount = 1;
-	mesh_layout_info.pSetLayouts = layouts;
-	mesh_layout_info.pPushConstantRanges = &matrixRange;
-	mesh_layout_info.pushConstantRangeCount = 1;
-
-	VK_CHECK(vkCreatePipelineLayout(m_ctx->GetDevice(), &mesh_layout_info, nullptr, &m_wireframePipelineLayout));
-
-	PipelineBuilder pipelineBuilder(m_ctx);
-	pipelineBuilder.SetShaders(meshVertexShader, meshFragShader);
-	pipelineBuilder.SetInputTopology(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
-	pipelineBuilder.SetPolygonMode(VK_POLYGON_MODE_LINE);
-	pipelineBuilder.SetCullMode(VK_CULL_MODE_BACK_BIT, VK_FRONT_FACE_CLOCKWISE);
-	pipelineBuilder.SetMultisamplingNone();
-	pipelineBuilder.DisableBlending();
-	pipelineBuilder.EnableDepthTest(true);
-	pipelineBuilder.SetColorAttachmentFormat(m_swapchain.GetDrawImage().GetFormat());
-	pipelineBuilder.SetDepthFormat(m_swapchain.GetDepthImage().GetFormat());
-	pipelineBuilder.SetLayout(m_wireframePipelineLayout);
-
-	m_wireframePipeline = pipelineBuilder.CreatePipeline();
-	m_deletionQueue.PushFunction([this]() {
-		vkDestroyPipeline(m_ctx->GetDevice(), m_wireframePipeline, nullptr);
-		vkDestroyPipelineLayout(m_ctx->GetDevice(), m_wireframePipelineLayout, nullptr);
-	});
-
-	vkDestroyShaderModule(m_ctx->GetDevice(), meshFragShader, nullptr);
-	vkDestroyShaderModule(m_ctx->GetDevice(), meshVertexShader, nullptr);
-}
-
 void Renderer::initPicking()
 {
 	m_pickingResources.texture = std::make_shared<Texture>(m_ctx, m_ctx->GetAllocator(), VkExtent3D{m_swapchain.GetExtent().width, m_swapchain.GetExtent().height, 1}, VK_FORMAT_R32_UINT, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT, false);
@@ -558,24 +510,6 @@ void Renderer::endSingleTimeCommands(VkCommandPool& commandPool, VkCommandBuffer
 }
 
 FrameData& Renderer::getCurrentFrame() { return m_frames[m_currentFrame % FRAME_OVERLAP]; }
-
-
-VkRenderingAttachmentInfo Renderer::attachmentInfo(VkImageView view, VkClearValue* clear, VkImageLayout layout)
-{
-	VkRenderingAttachmentInfo colorAttachment {
-		.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO,
-		.pNext = nullptr,
-		.imageView = view,
-		.imageLayout = layout,
-		.loadOp = clear ? VK_ATTACHMENT_LOAD_OP_CLEAR : VK_ATTACHMENT_LOAD_OP_LOAD,
-		.storeOp = VK_ATTACHMENT_STORE_OP_STORE,
-	};
-
-	if (clear)
-		colorAttachment.clearValue = *clear;
-
-	return colorAttachment;
-}
 
 void Renderer::WaitIdle()
 {

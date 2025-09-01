@@ -33,19 +33,21 @@ struct Vertex
 
     Vertex()
         : position{},
-        uv_x{},
-        normal{},
-        color{},
-        uv_y{}
-    {}
+          uv_x{},
+          normal{},
+          color{},
+          uv_y{}
+    {
+    }
 
     Vertex(const glm::vec3& p, const glm::vec3 n, const glm::vec4& c, const glm::vec2& t)
         : position{p},
-        uv_x{t.x},
-        normal{n},
-        color{c},
-        uv_y{t.y}
-    {}
+          uv_x{t.x},
+          normal{n},
+          color{c},
+          uv_y{t.y}
+    {
+    }
 };
 
 struct GPUMeshBuffers
@@ -55,7 +57,8 @@ struct GPUMeshBuffers
     VkDeviceAddress vertexBufferAddress;
 };
 
-struct GPUDrawPushConstants {
+struct GPUDrawPushConstants
+{
     glm::mat4 worldMatrix;
     VkDeviceAddress vertexBuffer;
     uint32_t objectId;
@@ -72,6 +75,7 @@ struct GPUSceneData
 
 static constexpr uint32_t MAX_DIRECTIONAL_LIGHTS = 10;
 static constexpr uint32_t MAX_POINT_LIGHTS = 10;
+
 struct GPULightData
 {
     uint32_t numDirectionalLights;
@@ -81,18 +85,21 @@ struct GPULightData
     std::array<PointLight, MAX_POINT_LIGHTS> pointLights;
 };
 
-enum class MaterialPass :uint8_t {
+enum class MaterialPass :uint8_t
+{
     MainColor,
     Transparent,
     Other
 };
 
-struct MaterialPipeline {
+struct MaterialPipeline
+{
     VkPipeline pipeline;
     VkPipelineLayout layout;
 };
 
-struct MaterialInstance {
+struct MaterialInstance
+{
     MaterialPipeline* pipeline;
     VkDescriptorSet materialSet;
     MaterialPass passType;
@@ -105,14 +112,16 @@ struct Bounds
     glm::vec3 extents;
 };
 
-struct GeoSurface {
+struct GeoSurface
+{
     uint32_t startIndex;
     uint32_t count;
     Bounds bounds;
     std::shared_ptr<MaterialInstance> material;
 };
 
-struct RenderObject {
+struct RenderObject
+{
     uint32_t objectId;
 
     uint32_t indexCount;
@@ -126,12 +135,8 @@ struct RenderObject {
     VkDeviceAddress vertexBufferAddress;
 };
 
-struct WireframeObject
+struct ComputePipeline
 {
-    uint32_t indexCount;
-    uint32_t firstIndex;
-    VkBuffer indexBuffer;
-
-    glm::mat4 transform;
-    VkDeviceAddress vertexBufferAddress;
+    VkPipeline pipeline;
+    VkPipelineLayout layout;
 };

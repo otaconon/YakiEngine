@@ -22,6 +22,7 @@ void MovementSystem::Update(float dt)
         controller.smoothedDx = glm::mix(controller.smoothedDx, controller.dx, smoothFactor);
         controller.smoothedDy = glm::mix(controller.smoothedDy, controller.dy, smoothFactor);
 
+        // TODO: Use RotateEulerCommand instead
         r.pitch -= controller.smoothedDy * dt;
         r.yaw -= controller.smoothedDx * dt;
         r.pitch = glm::clamp(r.pitch, -glm::half_pi<float>(), glm::half_pi<float>());
@@ -29,7 +30,6 @@ void MovementSystem::Update(float dt)
 
         glm::vec3 velocity = r.value * controller.direction * controller.speed * dt;
 
-        ecs.AddComponents(e, DirtyTransform{});
-        t.value += velocity;
+        ecs.AddComponents(e, MoveCommand{velocity});
     });
 }

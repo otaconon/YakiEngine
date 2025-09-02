@@ -12,7 +12,26 @@ void TransformSystem::Update(float dt)
 {
     auto& ecs = Ecs::GetInstance();
 
-    ecs.Each<DirtyTransform, Translation, Rotation, Scale, LocalToWorld, LocalToParent, Parent>(
+    // Kind of annoying, have to remember to not give one entity two move commands because first one will get discarded
+    ecs.Each<MoveCommand, Translation>([&ecs](Hori::Entity e, MoveCommand& cmd, Translation& t){
+        t.value += cmd.value;
+        ecs.AddComponents(e, DirtyTransform{});
+        ecs.RemoveComponents<MoveCommand>(e);
+    });
+    ecs.Each<RotateEulerCommand, Rotation>([&ecs](Hori::Entity e, RotateEulerCommand& cmd, Rotation& r){
+        r.pitch += cmd.value.x;
+        r.yaw += cmd.value.y;
+        r.roll += cmd.value.z;
+        ecs.AddComponents(e, DirtyTransform{});
+        ecs.RemoveComponents<RotateEulerCommand>(e);
+    });
+    ecs.Each<ScaleCommand, Scale>([&ecs](Hori::Entity e, ScaleCommand& cmd, Scale& s){
+        s.value += cmd.value;
+        ecs.AddComponents(e, DirtyTransform{});
+        ecs.RemoveComponents<ScaleCommand>(e);
+    });
+
+    ecs.ParallelEach<DirtyTransform, Translation, Rotation, Scale, LocalToWorld, LocalToParent, Parent>(
         [&ecs](Hori::Entity e, DirtyTransform&, Translation& t, Rotation& r, Scale& s, LocalToWorld& localToWorld, LocalToParent& localToParent, Parent& parent) {
             if (parent.value.Valid())
             {

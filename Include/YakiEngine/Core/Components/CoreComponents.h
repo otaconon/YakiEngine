@@ -12,3 +12,6 @@
 #include "Scale.h"
 #include "Translation.h"
 #include "DirtyTransform.h"
+#include "MoveCommand.h"
+#include "RotateEulerCommand.h"
+#include "ScaleCommand.h"

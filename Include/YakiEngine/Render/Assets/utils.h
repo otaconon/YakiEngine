@@ -15,5 +15,5 @@ inline void register_object(Hori::Entity e, std::shared_ptr<Mesh> mesh = nullptr
     if (mesh)
         ecs.AddComponents(e, create_drawable(mesh));
 
-    ecs.AddComponents(e, std::move(pos), Rotation{}, Scale{{1.f, 1.f, 1.f}}, LocalToWorld{}, LocalToParent{}, ParentToLocal{}, Children{}, Parent{});
+    ecs.AddComponents(e, std::move(pos), Rotation{}, Scale{{1.f, 1.f, 1.f}}, LocalToWorld{}, LocalToParent{}, ParentToLocal{}, Children{}, Parent{}, DirtyTransform{});
 }

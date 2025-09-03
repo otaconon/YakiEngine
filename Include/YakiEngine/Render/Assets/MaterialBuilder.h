@@ -2,7 +2,7 @@
 
 #include <vulkan/vulkan.h>
 
-#include "Asset.h"
+#include "../../Core/Assets/Asset.h"
 #include "Texture.h"
 #include "Vulkan/VulkanContext.h"
 #include "Vulkan/Swapchain.h"

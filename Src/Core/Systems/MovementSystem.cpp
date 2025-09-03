@@ -29,7 +29,8 @@ void MovementSystem::Update(float dt)
         r.value = glm::quat(glm::vec3(r.pitch, r.yaw, r.roll));
 
         glm::vec3 velocity = r.value * controller.direction * controller.speed * dt;
-
-        ecs.AddComponents(e, MoveCommand{velocity});
+        t.value += velocity;
+        //ecs.AddComponents(e, MoveCommand{velocity});
+        ecs.AddComponents(e, DirtyTransform{});
     });
 }

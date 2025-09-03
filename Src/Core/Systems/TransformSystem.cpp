@@ -45,7 +45,7 @@ void TransformSystem::Update(float dt)
                 if (newValue == localToWorld.value)
                     return;
 
-                localToWorld.value = std::move(newValue);
+                localToWorld.value = newValue;
             }
     });
 

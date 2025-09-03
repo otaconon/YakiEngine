@@ -40,7 +40,13 @@ FetchContent_Declare(
 )
 
 FetchContent_Declare(
+        SpirvCross
+        GIT_REPOSITORY https://github.com/KhronosGroup/SPIRV-Cross.git
+        GIT_TAG MoltenVK-1.1.5
+        GIT_SHALLOW TRUE
+)
+
+FetchContent_Declare(
         hecs
         GIT_REPOSITORY https://github.com/Nignik/HECS.git
-        GIT_TAG v1.0.3
 )

@@ -3,7 +3,7 @@
 #include <string>
 #include <vector>
 
-#include "Asset.h"
+#include "../../Core/Assets/Asset.h"
 #include "Vulkan/VkTypes.h"
 
 struct Mesh : Asset

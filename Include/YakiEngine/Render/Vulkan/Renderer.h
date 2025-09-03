@@ -42,7 +42,8 @@ public:
 
     void BeginRendering();
     void Begin3DRendering();
-    void RenderObjects(std::span<RenderObject> objects);
+    void RenderObjectsIndirect(std::span<RenderObject> objects);
+    void RenderObjects(std::span<RenderObject> objects, std::span<size_t> order);
     void End3DRendering();
     void RenderImGui();
     void EndRendering();

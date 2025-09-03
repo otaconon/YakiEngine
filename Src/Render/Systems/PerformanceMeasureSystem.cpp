@@ -1,4 +1,4 @@
-#include "Systems/PerformanceMeasureSystem.h"
+#include "../../../Include/YakiEngine/Render/Systems/PerformanceMeasureSystem.h"
 
 #include "Ecs.h"
 #include "Components/FramesPerSecond.h"

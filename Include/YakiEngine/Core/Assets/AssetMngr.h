@@ -6,11 +6,11 @@
 #include <filesystem>
 #include <print>
 
-#include "../../Render/Assets/Asset.h"
-#include "../../Render/Assets/AssetHandle.h"
-#include "../../Render/Assets/Mesh.h"
+#include "Assets/Asset.h"
+#include "Assets/AssetHandle.h"
+#include "Assets/Mesh.h"
 #include "Vulkan/VulkanContext.h"
-#include "../../Render/Assets/MaterialBuilder.h"
+#include "Assets/MaterialBuilder.h"
 #include "GltfUtils.h"
 #include "Assets/Texture.h"
 
@@ -58,17 +58,14 @@ public:
 private:
     inline static AssetMngr* s_instance;
 
-    VulkanContext* m_ctx;
     uint32_t m_currentHandleId{0};
     std::unordered_map<AssetHandle, std::shared_ptr<Asset>> m_registry;
 
-    DeletionQueue m_deletionQueue;
-
-    DefaultTextures m_defaultTextures;
-    MaterialBuilder* m_materialBuilder;
+    //DefaultTextures m_defaultTextures;
+    //MaterialBuilder* m_materialBuilder;
 
 private:
-    explicit AssetMngr(VulkanContext* ctx, MaterialBuilder* materialBuilder);
+    AssetMngr();
     ~AssetMngr();
     AssetMngr(const AssetMngr&) = default;
     AssetMngr& operator=(const AssetMngr&) = default;
@@ -79,5 +76,5 @@ private:
     [[nodiscard]] AssetHandle registerAssetImpl(std::shared_ptr<Asset> asset);
     [[nodiscard]] std::vector<AssetHandle> loadMeshesImpl(const std::filesystem::path& path);
     [[nodiscard]] std::shared_ptr<GltfObject> loadGltfImpl(const std::filesystem::path& path);
-    [[nodiscard]] std::shared_ptr<Texture> loadTextureImpl(fastgltf::Asset& asset, fastgltf::Image image);
+    //[[nodiscard]] std::shared_ptr<Texture> loadTextureImpl(fastgltf::Asset& asset, fastgltf::Image image);
 };

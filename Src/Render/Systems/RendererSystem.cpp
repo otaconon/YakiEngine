@@ -1,4 +1,4 @@
-#include "Systems/RendererSystem.h"
+#include "../../../Include/YakiEngine/Render/Systems/RendererSystem.h"
 #include "Components/Camera.h"
 
 #define GLM_ENABLE_EXPERIMENTAL
@@ -87,7 +87,7 @@ void RenderSystem::renderDrawables(const glm::mat4& viewproj)
             return A.material < B.material;
     });
 
-    m_renderer->RenderObjects(objects);
+    m_renderer->RenderObjects(objects, order);
 }
 
 void RenderSystem::renderGui(float dt)

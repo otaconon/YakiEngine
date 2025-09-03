@@ -1,4 +1,4 @@
-#include "Systems/LightingSystem.h"
+#include "../../../Include/YakiEngine/Render/Systems/LightingSystem.h"
 
 #include "Ecs.h"
 #include "Components/DirectionalLight.h"

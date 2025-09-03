@@ -2,11 +2,12 @@
 
 #include <vk_mem_alloc.h>
 #include <vulkan/vulkan.h>
+#include <fastgltf/core.hpp>
 
 #include "Vulkan/Buffer.h"
 #include "Vulkan/VkInit.h"
 #include "Vulkan/VulkanContext.h"
-#include "Asset.h"
+#include "../../Core/Assets/Asset.h"
 
 class Texture final : public Asset
 {
@@ -14,6 +15,7 @@ public:
     Texture();
     Texture(VulkanContext* ctx, VmaAllocator allocator, void* data, VkExtent3D size, VkFormat format, VkImageUsageFlags usage, bool mipmapped);
     Texture(VulkanContext* ctx, VmaAllocator allocator, VkExtent3D size, VkFormat format, VkImageUsageFlags usage, bool mipmapped);
+    Texture(fastgltf::Asset& gltfAsset, fastgltf::Image& gltfImage);
 
     ~Texture() override;
     void Cleanup();

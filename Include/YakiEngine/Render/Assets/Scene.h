@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Mesh.h"
+#include "ShaderEffect.h"
 #include "Texture.h"
 
 #include <iostream>
@@ -21,7 +22,7 @@ private:
   std::unordered_map<std::string, std::shared_ptr<Mesh>> m_meshes;
   std::unordered_map<std::string, Hori::Entity> m_nodes;
   std::unordered_map<std::string, std::shared_ptr<Texture>> m_images;
-  std::unordered_map<std::string, std::shared_ptr<MaterialInstance>> m_materials;
+  std::unordered_map<std::string, std::shared_ptr<Material>> m_materials;
 
   std::vector<VkSampler> m_samplers;
 

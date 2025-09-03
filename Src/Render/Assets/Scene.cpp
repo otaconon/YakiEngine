@@ -12,6 +12,7 @@
 #include "Assets/AssetHandle.h"
 #include "Assets/AssetMngr.h"
 #include "Assets/GltfUtils.h"
+#include "Assets/ShaderEffect.h"
 #include "Assets/utils.h"
 #include "Vulkan/VkTypes.h"
 
@@ -77,7 +78,7 @@ Scene::Scene(VulkanContext *ctx, const std::filesystem::path &path)
   std::vector<std::shared_ptr<Mesh>> meshes;
   std::vector<Hori::Entity> nodes;
   std::vector<std::shared_ptr<Texture>> images;
-  std::vector<std::shared_ptr<MaterialInstance>> materials;
+  std::vector<std::shared_ptr<Material>> materials;
 
   for (fastgltf::Image &image : gltf.images) {
     std::shared_ptr<Texture> texture = std::make_shared<Texture>(gltf, image);
@@ -93,21 +94,22 @@ Scene::Scene(VulkanContext *ctx, const std::filesystem::path &path)
 
   m_materialDataBuffer = std::make_shared<Buffer>(m_ctx->GetAllocator(), sizeof(MaterialConstants) * gltf.materials.size(), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU);
   int data_index = 0;
-  MaterialConstants *sceneMaterialConstants = static_cast<MaterialConstants *>(m_materialDataBuffer->info.pMappedData);
+  ShaderParameters *sceneMaterialConstants = static_cast<ShaderParameters *>(m_materialDataBuffer->info.pMappedData);
   for (fastgltf::Material &mat : gltf.materials) {
-    std::shared_ptr<MaterialInstance> newMat = std::make_shared<MaterialInstance>();
+    auto newMat = std::make_shared<Material>();
     materials.push_back(newMat);
     m_materials[mat.name.c_str()] = newMat;
 
-    MaterialConstants constants{
-        .colorFactors{mat.pbrData.baseColorFactor[0], mat.pbrData.baseColorFactor[1], mat.pbrData.baseColorFactor[2], mat.pbrData.baseColorFactor[3]},
-        .metalRoughtFactors{mat.pbrData.metallicFactor, mat.pbrData.roughnessFactor, 0.f, 0.f},
+    *newMat->parameters = {
+      .colorFactors{mat.pbrData.baseColorFactor[0], mat.pbrData.baseColorFactor[1], mat.pbrData.baseColorFactor[2], mat.pbrData.baseColorFactor[3]},
+      .metalRoughtFactors{mat.pbrData.metallicFactor, mat.pbrData.roughnessFactor, 0.f, 0.f}
     };
+
     if (mat.specular)
-      constants.specularColorFactors = {mat.specular->specularColorFactor.x(), mat.specular->specularColorFactor.y(), mat.specular->specularColorFactor.z(), mat.specular->specularFactor};
+      newMat->parameters->specularColorFactors = {mat.specular->specularColorFactor.x(), mat.specular->specularColorFactor.y(), mat.specular->specularColorFactor.z(), mat.specular->specularFactor};
 
     // write material parameters to buffer
-    sceneMaterialConstants[data_index] = constants;
+    sceneMaterialConstants[data_index] = *newMat->parameters;
 
     MaterialPass passType = MaterialPass::MainColor;
     if (mat.alphaMode == fastgltf::AlphaMode::Blend) {

@@ -1,6 +1,5 @@
 #pragma once
 
-
 #include <vulkan/vulkan_core.h>
 #include <glm/glm.hpp>
 #include <array>
@@ -78,23 +77,18 @@ struct GPULightData {
   std::array<PointLight, MAX_POINT_LIGHTS> pointLights;
 };
 
-enum class MaterialPass :uint8_t {
-  MainColor,
-  Transparent,
-  Other
-};
-
 struct Bounds {
   glm::vec3 origin;
   float sphereRadius;
   glm::vec3 extents;
 };
 
+struct Material;
 struct GeoSurface {
   uint32_t startIndex;
   uint32_t count;
   Bounds bounds;
-  std::shared_ptr<MaterialInstance> material;
+  std::shared_ptr<Material> material;
 };
 
 struct ComputePipeline {

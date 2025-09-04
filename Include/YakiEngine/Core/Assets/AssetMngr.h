@@ -8,7 +8,6 @@
 
 #include "Assets/Asset.h"
 #include "Assets/AssetHandle.h"
-#include "GltfUtils.h"
 
 class AssetMngr
 {

@@ -6,9 +6,8 @@
 #include "VkTypes.h"
 #include "VulkanContext.h"
 #include "Components/Drawable.h"
-#include "DefaultData.h"
+#include "Components/DefaultData.h"
 #include "RenderObject.h"
-#include "Assets/MaterialBuilder.h"
 
 constexpr uint32_t FRAME_OVERLAP = 2;
 

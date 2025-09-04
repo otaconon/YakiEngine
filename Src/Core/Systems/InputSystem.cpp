@@ -3,7 +3,6 @@
 #include <imgui.h>
 #include <SDL3/SDL_events.h>
 
-#include "Components/Hovered.h"
 #include "Components/InputQueue.h"
 #include "Components/RayTagged.h"
 
@@ -62,6 +61,8 @@ void InputSystem::processMouseButtonEvents(Controller& controller)
         {
             if (event.type == SDL_EVENT_MOUSE_BUTTON_DOWN && !ImGui::GetIO().WantCaptureMouse)
             {
+              // TODO: Uncomment this
+              /*
                 auto& ecs = Ecs::GetInstance();
                 std::vector<Hori::Entity> outOfDateHovers;
                 ecs.Each<Hovered>([&ecs, &outOfDateHovers](Hori::Entity e, Hovered&) {
@@ -74,7 +75,7 @@ void InputSystem::processMouseButtonEvents(Controller& controller)
                 });
                 for (auto& e: outOfDateHovers)
                     ecs.RemoveComponents<Hovered>(e);
-
+                */
                 controller.mouseButtonLeftPressed = true;
             }
             else

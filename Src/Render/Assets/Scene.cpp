@@ -12,8 +12,10 @@
 #include "Assets/AssetHandle.h"
 #include "Assets/AssetMngr.h"
 #include "Assets/GltfUtils.h"
+#include "Assets/Material.h"
 #include "Assets/ShaderEffect.h"
 #include "Assets/utils.h"
+#include "Components/DefaultData.h"
 #include "Vulkan/VkTypes.h"
 
 Scene::Scene(VulkanContext *ctx, const std::filesystem::path &path)
@@ -80,6 +82,7 @@ Scene::Scene(VulkanContext *ctx, const std::filesystem::path &path)
   std::vector<std::shared_ptr<Texture>> images;
   std::vector<std::shared_ptr<Material>> materials;
 
+  DefaultData* defaultData = Ecs::GetInstance().GetSingletonComponent<DefaultData>();
   for (fastgltf::Image &image : gltf.images) {
     std::shared_ptr<Texture> texture = std::make_shared<Texture>(gltf, image);
     if (texture->GetImage()) {
@@ -87,12 +90,12 @@ Scene::Scene(VulkanContext *ctx, const std::filesystem::path &path)
       images.push_back(texture);
       m_images[image.name.c_str()] = texture;
     } else {
-      images.push_back(m_defaultTextures.errorTexture);
+      images.push_back(defaultData->errorTexture);
       std::cout << "gltf failed to load texture " << image.name << std::endl;
     }
   }
 
-  m_materialDataBuffer = std::make_shared<Buffer>(m_ctx->GetAllocator(), sizeof(MaterialConstants) * gltf.materials.size(), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU);
+  m_materialDataBuffer = std::make_shared<Buffer>(m_ctx->GetAllocator(), sizeof(ShaderParameters) * gltf.materials.size(), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU);
   int data_index = 0;
   ShaderParameters *shaderParams = static_cast<ShaderParameters *>(m_materialDataBuffer->info.pMappedData);
   for (fastgltf::Material &mat : gltf.materials) {
@@ -102,7 +105,7 @@ Scene::Scene(VulkanContext *ctx, const std::filesystem::path &path)
 
     *newMat->parameters = {
       .colorFactors{mat.pbrData.baseColorFactor[0], mat.pbrData.baseColorFactor[1], mat.pbrData.baseColorFactor[2], mat.pbrData.baseColorFactor[3]},
-      .metalRoughtFactors{mat.pbrData.metallicFactor, mat.pbrData.roughnessFactor, 0.f, 0.f}
+      .metalRoughFactors{mat.pbrData.metallicFactor, mat.pbrData.roughnessFactor, 0.f, 0.f}
     };
 
     if (mat.specular)
@@ -111,18 +114,18 @@ Scene::Scene(VulkanContext *ctx, const std::filesystem::path &path)
     // write material parameters to buffer
     shaderParams[data_index] = *newMat->parameters;
 
-    MaterialPass passType = MaterialPass::MainColor;
+    TransparencyMode passType = TransparencyMode::Opaque;
     if (mat.alphaMode == fastgltf::AlphaMode::Blend) {
-      passType = MaterialPass::Transparent;
+      passType = TransparencyMode::Transparent;
     }
 
     MaterialResources materialResources{
-        .colorImage = m_defaultTextures.whiteTexture,
-        .colorSampler = m_defaultTextures.samplerLinear,
-        .metalRoughImage = m_defaultTextures.whiteTexture,
-        .metalRoughSampler = m_defaultTextures.samplerLinear,
+        .colorImage = defaultData->errorTexture,
+        .colorSampler = defaultData->samplerLinear,
+        .metalRoughImage = defaultData->errorTexture,
+        .metalRoughSampler = defaultData->samplerLinear,
         .dataBuffer = m_materialDataBuffer->buffer,
-        .dataBufferOffset = static_cast<uint32_t>(data_index * sizeof(MaterialConstants))
+        .dataBufferOffset = static_cast<uint32_t>(data_index * sizeof(ShaderParameters))
     };
 
     if (mat.pbrData.baseColorTexture.has_value()) {
@@ -135,7 +138,17 @@ Scene::Scene(VulkanContext *ctx, const std::filesystem::path &path)
       materialResources.colorSampler = m_samplers[sampler];
     }
 
-    *newMat = m_materialBuilder->WriteMaterial(passType, materialResources, m_descriptorPool);
+    newMat->original = defaultData->opaquePass;
+    DescriptorAllocator descriptorAllocator{};
+    newMat->passSets[1] = descriptorAllocator.Allocate(m_ctx->GetDevice(), newMat->original->passShaders[0]->effect->descriptorSetLayouts[1]); // Possibly needs a fix here
+
+    DescriptorWriter writer{};
+    writer.Clear();
+    writer.WriteBuffer(0, materialResources.dataBuffer, sizeof(ShaderParameters), materialResources.dataBufferOffset, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER);
+    writer.WriteImage(1, materialResources.colorImage->GetView(), materialResources.colorSampler, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER);
+    writer.WriteImage(2, materialResources.metalRoughImage->GetView(), materialResources.metalRoughSampler, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER);
+    writer.UpdateSet(m_ctx->GetDevice(), newMat->passSets[1]);
+
     data_index++;
   }
 

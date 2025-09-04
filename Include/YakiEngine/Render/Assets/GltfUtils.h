@@ -11,10 +11,8 @@
 
 #include "Vulkan/VulkanContext.h"
 #include "Vulkan/Buffer.h"
-#include "GltfObject.h"
 #include "Vulkan/Renderer.h"
-#include "../../Render/Assets/Mesh.h"
-#include "Assets/MaterialBuilder.h"
+#include "Assets/Mesh.h"
 
 namespace GltfUtils
 {

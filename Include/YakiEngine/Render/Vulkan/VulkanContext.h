@@ -1,11 +1,8 @@
 #pragma once
 
 #include <functional>
-#include <memory>
-#include <optional>
 #include <vector>
 #include <SDL3/SDL_video.h>
-#include <vulkan/vulkan.h>
 
 #include "VkTypes.h"
 

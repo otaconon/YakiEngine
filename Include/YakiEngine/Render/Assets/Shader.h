@@ -1,14 +1,12 @@
 #pragma once
 
-#include "../../../../build/release/_deps/spirvcross-src/spirv_cross.hpp"
-#include "Vulkan/VkInit.h"
+#include <spirv_cross/spirv_cross.hpp>
 #include "Vulkan/VulkanContext.h"
 #include "Vulkan/Descriptors/DescriptorLayoutBuilder.h"
 
 #include <filesystem>
 #include <fstream>
 #include <map>
-#include <vulkan/vulkan.h>
 
 struct Shader {
   VkShaderModule module;

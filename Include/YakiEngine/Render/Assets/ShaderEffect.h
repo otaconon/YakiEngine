@@ -35,7 +35,8 @@ struct ShaderEffect {
 
   std::vector<ShaderStage> stages;
 
-  ShaderEffect(VulkanContext *ctx, std::filesystem::path vertPath, std::filesystem::path fragPath) {
+  ShaderEffect(VulkanContext *ctx, std::filesystem::path vertPath, std::filesystem::path fragPath)
+    : ctx{ctx} {
     VkShaderModule vertShader;
     VkShaderModule fragShader;
 
@@ -47,6 +48,8 @@ struct ShaderEffect {
 
     stages.emplace_back(vertShader, VK_SHADER_STAGE_VERTEX_BIT);
     stages.emplace_back(fragShader, VK_SHADER_STAGE_FRAGMENT_BIT);
+
+
 
   }
 
@@ -75,15 +78,6 @@ struct EffectTemplate {
 
   ShaderParameters *defaultParameters;
   TransparencyMode transparency;
-};
-
-struct Material {
-  EffectTemplate *original;
-  std::vector<VkDescriptorSet> passSets;
-
-  std::vector<Texture> textures;
-
-  ShaderParameters *parameters;
 };
 
 struct MaterialInfo {

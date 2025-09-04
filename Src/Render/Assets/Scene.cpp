@@ -94,7 +94,7 @@ Scene::Scene(VulkanContext *ctx, const std::filesystem::path &path)
 
   m_materialDataBuffer = std::make_shared<Buffer>(m_ctx->GetAllocator(), sizeof(MaterialConstants) * gltf.materials.size(), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU);
   int data_index = 0;
-  ShaderParameters *sceneMaterialConstants = static_cast<ShaderParameters *>(m_materialDataBuffer->info.pMappedData);
+  ShaderParameters *shaderParams = static_cast<ShaderParameters *>(m_materialDataBuffer->info.pMappedData);
   for (fastgltf::Material &mat : gltf.materials) {
     auto newMat = std::make_shared<Material>();
     materials.push_back(newMat);
@@ -109,7 +109,7 @@ Scene::Scene(VulkanContext *ctx, const std::filesystem::path &path)
       newMat->parameters->specularColorFactors = {mat.specular->specularColorFactor.x(), mat.specular->specularColorFactor.y(), mat.specular->specularColorFactor.z(), mat.specular->specularFactor};
 
     // write material parameters to buffer
-    sceneMaterialConstants[data_index] = *newMat->parameters;
+    shaderParams[data_index] = *newMat->parameters;
 
     MaterialPass passType = MaterialPass::MainColor;
     if (mat.alphaMode == fastgltf::AlphaMode::Blend) {

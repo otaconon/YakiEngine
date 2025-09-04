@@ -43,3 +43,4 @@ struct ShaderPass {
 private:
   VulkanContext *m_ctx;
 };
+

@@ -17,6 +17,7 @@
 #include "Assets/utils.h"
 #include "Components/DefaultData.h"
 #include "Vulkan/VkTypes.h"
+#include "Vulkan/Descriptors/DescriptorWriter.h"
 
 Scene::Scene(VulkanContext *ctx, const std::filesystem::path &path)
   : m_ctx{ctx} {
@@ -119,7 +120,16 @@ Scene::Scene(VulkanContext *ctx, const std::filesystem::path &path)
       passType = TransparencyMode::Transparent;
     }
 
-    MaterialResources materialResources{
+    struct MaterialResources {
+      std::shared_ptr<Texture> colorImage;
+      VkSampler colorSampler;
+      std::shared_ptr<Texture> metalRoughImage;
+      VkSampler metalRoughSampler;
+      VkBuffer dataBuffer;
+      uint32_t dataBufferOffset;
+    };
+
+    MaterialResources materialResources {
         .colorImage = defaultData->errorTexture,
         .colorSampler = defaultData->samplerLinear,
         .metalRoughImage = defaultData->errorTexture,
@@ -140,7 +150,7 @@ Scene::Scene(VulkanContext *ctx, const std::filesystem::path &path)
 
     newMat->original = defaultData->opaquePass;
     DescriptorAllocator descriptorAllocator{};
-    newMat->passSets[1] = descriptorAllocator.Allocate(m_ctx->GetDevice(), newMat->original->passShaders[0]->effect->descriptorSetLayouts[1]); // Possibly needs a fix here
+    newMat->passSets[1] = descriptorAllocator.Allocate(m_ctx->GetDevice(), newMat->original->passShaders[MeshPassType::Forward]->effect->descriptorSetLayouts[1]); // Possibly needs a fix here
 
     DescriptorWriter writer{};
     writer.Clear();

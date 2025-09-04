@@ -19,11 +19,6 @@ enum class TransparencyMode {
   Transparent
 };
 
-enum class MeshPassType {
-  Transparency,
-  Forward
-};
-
 struct ShaderStage {
   Shader* shader;
   VkShaderStageFlagBits stage;

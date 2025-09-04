@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Shader.h"
 #include "Texture.h"
 
 #include <array>
@@ -23,72 +24,54 @@ enum class MeshPassType {
   Forward
 };
 
+struct ShaderStage {
+  Shader* shader;
+  VkShaderStageFlagBits stage;
+};
+
 struct ShaderEffect {
-  VulkanContext *ctx;
   VkPipelineLayout pipelineLayout;
   std::array<VkDescriptorSetLayout, 4> descriptorSetLayouts;
-
-  struct ShaderStage {
-    VkShaderModule shaderModule;
-    VkShaderStageFlagBits stage;
-  };
-
   std::vector<ShaderStage> stages;
 
-  ShaderEffect(VulkanContext *ctx, std::filesystem::path vertPath, std::filesystem::path fragPath)
-    : ctx{ctx} {
-    VkShaderModule vertShader;
-    VkShaderModule fragShader;
+  ShaderEffect(VulkanContext *ctx, Shader *vertShader, Shader *fragShader)
+    : m_ctx{ctx} {
+    std::array<DescriptorLayoutBuilder, 4> builders;
 
-    if (!VkUtil::load_shader_module(vertPath, ctx->GetDevice(), &vertShader))
-      std::println("Error when building the triangle vertex shader module");
+    stages = {{vertShader, VK_SHADER_STAGE_VERTEX_BIT}, {fragShader, VK_SHADER_STAGE_FRAGMENT_BIT}};
 
-    if (!VkUtil::load_shader_module(fragPath, ctx->GetDevice(), &fragShader))
-      std::println("Error when building the triangle fragment shader module");
+    // TODO: Dont assume whats below
+    // Assume that descriptor sets are shared for vertex and fragment shader
+    for (const auto &[set, binding] : vertShader->ubos | std::views::keys) {
+      builders[set].AddBinding(binding, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER);
+    }
+    for (const auto &[set, binding] : vertShader->ssbos | std::views::keys) {
+      builders[set].AddBinding(binding, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER);
+    }
+    for (const auto &[set, binding] : vertShader->sampledImages | std::views::keys) {
+      builders[set].AddBinding(binding, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER);
+    }
 
-    stages.emplace_back(vertShader, VK_SHADER_STAGE_VERTEX_BIT);
-    stages.emplace_back(fragShader, VK_SHADER_STAGE_FRAGMENT_BIT);
+    for (const auto& [descSetLayouts, builder] : std::views::zip(descriptorSetLayouts, builders)) {
+      descSetLayouts = builder.Build(m_ctx->GetDevice(), VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_VERTEX_BIT);
+    }
 
+    VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo = VkInit::pipeline_layout_create_info();
+    pipelineLayoutCreateInfo.pSetLayouts = descriptorSetLayouts.data();
+    pipelineLayoutCreateInfo.setLayoutCount = descriptorSetLayouts.size();
+    pipelineLayoutCreateInfo.pPushConstantRanges = vertShader->pushConstantRanges.data();
+    pipelineLayoutCreateInfo.pushConstantRangeCount = vertShader->pushConstantRanges.size();
 
-
+    VK_CHECK(vkCreatePipelineLayout(m_ctx->GetDevice(), &pipelineLayoutCreateInfo, nullptr, &pipelineLayout));
   }
 
   ~ShaderEffect() {
-    for (auto &[shaderModule, stage] : stages) {
-      vkDestroyShaderModule(ctx->GetDevice(), shaderModule, nullptr);
-    }
+      vkDestroyPipelineLayout(m_ctx->GetDevice(), pipelineLayout, nullptr);
+      for (auto& descSetLayout : descriptorSetLayouts) {
+        vkDestroyDescriptorSetLayout(m_ctx->GetDevice(), descSetLayout, nullptr);
+      }
   }
-};
 
-struct ShaderPass {
-  ShaderEffect *effect{nullptr};
-  VkPipeline pipeline{VK_NULL_HANDLE};
-  VkPipelineLayout layout{VK_NULL_HANDLE};
-};
-
-struct ShaderParameters {
-  glm::vec4 colorFactors;
-  glm::vec4 metalRoughtFactors;
-  glm::vec4 specularColorFactors;
-  glm::vec4 extra[13];
-};
-
-struct EffectTemplate {
-  std::vector<ShaderPass *> passShaders;
-
-  ShaderParameters *defaultParameters;
-  TransparencyMode transparency;
-};
-
-struct MaterialInfo {
-  std::string baseEffect;
-  std::unordered_map<std::string, std::string> textures; //name -> path
-  std::unordered_map<std::string, std::string> customProperties;
-  TransparencyMode transparency;
-};
-
-struct MaterialData {
-  std::vector<Texture> textures;
-  ShaderParameters *parameters;
-  std::string baseTemplate;
+private:
+  VulkanContext *m_ctx;
 };

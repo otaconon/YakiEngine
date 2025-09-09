@@ -1,26 +1,23 @@
 #pragma once
 
-#include <imgui.h>
 #include <imgui_impl_sdl3.h>
-#include <imgui_impl_vulkan.h>
 #include <iostream>
 #include <tracy/Tracy.hpp>
 
 #include "Ecs.h"
 #include "Vulkan/Renderer.h"
 #include "SDL/Window.h"
-#include "../../Include/YakiEngine/Render/Systems/RendererSystem.h"
+#include "Systems/RendererSystem.h"
 #include "Systems/MovementSystem.h"
 #include "Systems/TransformSystem.h"
-#include "../../Include/YakiEngine/Render/Systems/CameraSystem.h"
+#include "Systems/CameraSystem.h"
 #include "Systems/InputSystem.h"
-#include "../../Include/YakiEngine/Render/Systems/LightingSystem.h"
+#include "Systems/LightingSystem.h"
 #include "Assets/AssetMngr.h"
-#include "Assets/GltfUtils.h"
 #include "Components/RenderComponents.h"
 #include "Components/CoreComponents.h"
 #include "HECS/Core/Entity.h"
-#include "../../Include/YakiEngine/Render/Systems/PerformanceMeasureSystem.h"
+#include "Systems/PerformanceMeasureSystem.h"
 #include "Vulkan/VulkanContext.h"
 #include "Assets/utils.h"
 #include "SDL3/SDL_events.h"
@@ -37,10 +34,6 @@ inline void RunSponza()
 	Renderer renderer(mainWindow.window(), &ctx);
 	DeletionQueue deletionQueue;
 
-	MaterialBuilder materialBuilder(&ctx);
-	materialBuilder.BuildPipelines(renderer.GetSwapchain(), renderer.GetSceneDataDescriptorLayout());
-	AssetMngr::Initialize(&ctx, &materialBuilder);
-
 	ecs.AddSystem<InputSystem>(InputSystem(mainWindow.window()));
 	ecs.AddSystem<CameraSystem>(CameraSystem());
 	ecs.AddSystem<MovementSystem>(MovementSystem());
@@ -53,10 +46,10 @@ inline void RunSponza()
 	ecs.AddSingletonComponent(MouseMode{});
 
 	// Create object entities
-	auto allMeshes = AssetMngr::LoadGltf("Assets/meshes/basicmesh.glb");
+	auto allMeshes = std::make_shared<Scene>(&ctx, "Assets/meshes/basicmesh.glb");
 
 	// Load scene
-	auto scene = AssetMngr::LoadGltf("Assets/scenes/Sponza.glb");
+	auto scene = std::make_shared<Scene>(&ctx, "Assets/scenes/Sponza.glb");
 
 	// Create camera entity
 	Hori::Entity camera = ecs.CreateEntity();
@@ -74,7 +67,7 @@ inline void RunSponza()
 	{
 		e = ecs.CreateEntity();
 		ecs.AddComponents(e, PointLight{{0.5f, 0.5f, 0.5f, 1.f}, {1.0f, 0.0f, 0.0f, 1.f}});
-		auto mesh = allMeshes->meshes.begin()->second;
+		auto mesh = allMeshes->m_meshes.begin()->second;
 		register_object(e, mesh, Translation{{3.f, 3.f, 0.f}});
 	}
 
@@ -84,7 +77,7 @@ inline void RunSponza()
 	{
 		e = ecs.CreateEntity();
 		ecs.AddComponents(e, DirectionalLight{{0.5f, 0.5f, 0.5f, 1.f}, {0.5f, 0.5f, 0.0f, 1.f}});
-		auto mesh = allMeshes->meshes.begin()->second;
+		auto mesh = allMeshes->m_meshes.begin()->second;
 		register_object(e, mesh, Translation{{3.f, 10.f, 0.f}});
 	}
 
@@ -141,5 +134,4 @@ inline void RunSponza()
 
 	deletionQueue.Flush();
 	ecs.Destroy();
-	AssetMngr::Shutdown();
 }

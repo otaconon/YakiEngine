@@ -1,49 +1,32 @@
 #pragma once
 
-#include <imgui.h>
-#include <imgui_impl_sdl3.h>
-#include <imgui_impl_vulkan.h>
-#include <iostream>
-#include <tracy/Tracy.hpp>
 
-#include "Ecs.h"
 #include "Vulkan/Renderer.h"
 #include "SDL/Window.h"
-#include "../../Include/YakiEngine/Render/Systems/RendererSystem.h"
-#include "Systems/MovementSystem.h"
-#include "Systems/TransformSystem.h"
-#include "../../Include/YakiEngine/Render/Systems/CameraSystem.h"
-#include "Systems/InputSystem.h"
-#include "../../Include/YakiEngine/Render/Systems/LightingSystem.h"
+
 #include "Assets/AssetMngr.h"
 #include "Assets/GltfUtils.h"
-#include "Components/RenderComponents.h"
-#include "Components/CoreComponents.h"
-#include "HECS/Core/Entity.h"
-#include "../../Include/YakiEngine/Render/Systems/PerformanceMeasureSystem.h"
+#include "Assets/Scene.h"
+
 #include "Vulkan/VulkanContext.h"
-#include "Assets/utils.h"
-#include "SDL3/SDL_events.h"
 
-class HashCubes
-{
+class HashCubes {
 public:
-	HashCubes();
-	~HashCubes();
+  HashCubes();
+  ~HashCubes();
 
-	void Run();
-
-private:
-	Window m_window{};
-	VulkanContext m_ctx;
-	Renderer m_renderer;
-
-	MaterialBuilder m_materialBuilder;
-	DeletionQueue m_deletionQueue;
-
-	std::shared_ptr<GltfObject> m_allMeshes;
-	std::shared_ptr<Mesh> m_cubeMesh;
+  void Run();
 
 private:
-	void initEcs();
+  Window m_window{};
+  VulkanContext m_ctx;
+  Renderer m_renderer;
+
+  DeletionQueue m_deletionQueue;
+
+  std::shared_ptr<Scene> m_allMeshes;
+  std::shared_ptr<Mesh> m_cubeMesh;
+
+private:
+  void initEcs();
 };

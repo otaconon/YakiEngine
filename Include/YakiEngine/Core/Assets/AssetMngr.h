@@ -31,13 +31,10 @@ public:
 
 private:
     uint32_t m_currentHandleId{0};
-    std::unordered_map<AssetHandle, std::shared_ptr<Asset>> m_registry;
+    std::unordered_map<AssetHandle, std::shared_ptr<Asset>> m_registry{};
 
 private:
     AssetMngr() = default;
-    ~AssetMngr();
-
-    void initDefaultTextures();
 
     [[nodiscard]] std::shared_ptr<Asset> getAssetImpl(AssetHandle handle);
     [[nodiscard]] AssetHandle registerAssetImpl(std::shared_ptr<Asset> asset);

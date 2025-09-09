@@ -150,14 +150,14 @@ Scene::Scene(VulkanContext *ctx, const std::filesystem::path &path)
 
     newMat->original = defaultData->opaquePass;
     DescriptorAllocator descriptorAllocator{};
-    newMat->passSets[1] = descriptorAllocator.Allocate(m_ctx->GetDevice(), newMat->original->passShaders[MeshPassType::Forward]->effect->descriptorSetLayouts[1]); // Possibly needs a fix here
+    newMat->passSets[MeshPassType::Forward] = descriptorAllocator.Allocate(m_ctx->GetDevice(), newMat->original->passShaders[MeshPassType::Forward]->effect->descriptorSetLayouts[1]); // Possibly needs a fix here
 
     DescriptorWriter writer{};
     writer.Clear();
     writer.WriteBuffer(0, materialResources.dataBuffer, sizeof(ShaderParameters), materialResources.dataBufferOffset, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER);
     writer.WriteImage(1, materialResources.colorImage->GetView(), materialResources.colorSampler, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER);
     writer.WriteImage(2, materialResources.metalRoughImage->GetView(), materialResources.metalRoughSampler, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER);
-    writer.UpdateSet(m_ctx->GetDevice(), newMat->passSets[1]);
+    writer.UpdateSet(m_ctx->GetDevice(), newMat->passSets[MeshPassType::Forward]);
 
     data_index++;
   }

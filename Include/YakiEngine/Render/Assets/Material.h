@@ -23,7 +23,7 @@ struct EffectTemplate {
 
 struct Material {
   EffectTemplate *original;
-  std::vector<VkDescriptorSet> passSets;
+  EnumAccessArray<VkDescriptorSet, MeshPassType, sizeof(MeshPassType) / sizeof(uint8_t)> passSets;
 
   std::vector<Texture> textures;
 

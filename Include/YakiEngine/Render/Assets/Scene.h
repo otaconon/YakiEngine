@@ -11,15 +11,19 @@
 #include <print>
 #include <HECS/Core/World.h>
 
+class HashCubes;
+
 class Scene {
 public:
   Scene(VulkanContext* ctx, const std::filesystem::path& path);
   ~Scene();
 
+  std::unordered_map<std::string, std::shared_ptr<Mesh>> m_meshes;
 private:
+  friend HashCubes; // TODO: Remove this line
+
   VulkanContext* m_ctx;
 
-  std::unordered_map<std::string, std::shared_ptr<Mesh>> m_meshes;
   std::unordered_map<std::string, Hori::Entity> m_nodes;
   std::unordered_map<std::string, std::shared_ptr<Texture>> m_images;
   std::unordered_map<std::string, std::shared_ptr<Material>> m_materials;

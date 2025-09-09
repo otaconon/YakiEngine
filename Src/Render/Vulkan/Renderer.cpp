@@ -165,9 +165,11 @@ void Renderer::RenderObjectsIndirect(std::span<RenderObject> objects) {
   vkCmdSetScissor(cmd, 0, 1, &scissor);
 
   for (auto &[transform, mesh, material, first, count] : draws) {
-    vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, material->pipeline->pipeline);
-    vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, material->pipeline->layout, 0, 1, &m_globalDescriptor, 0, nullptr);
-    vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, material->pipeline->layout, 1, 1, &material->materialSet, 0, nullptr);
+    ShaderPass *forwardPass = material->original->passShaders[MeshPassType::Forward];
+    VkDescriptorSet forwardDescriptorSet = material->passSets[MeshPassType::Forward];
+    vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, forwardPass->pipeline);
+    vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, forwardPass->effect->pipelineLayout, 0, 1, &m_globalDescriptor, 0, nullptr);
+    vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, forwardPass->effect->pipelineLayout, 1, 1, &forwardDescriptorSet, 0, nullptr);
 
     vkCmdBindIndexBuffer(cmd, mesh->meshBuffers->indexBuffer.buffer, 0, VK_INDEX_TYPE_UINT32);
 
@@ -176,7 +178,7 @@ void Renderer::RenderObjectsIndirect(std::span<RenderObject> objects) {
         .vertexBuffer = mesh->meshBuffers->vertexBufferAddress,
         .objectId = 1
     };
-    vkCmdPushConstants(cmd, material->pipeline->layout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(GPUDrawPushConstants), &pushConstants);
+    vkCmdPushConstants(cmd, forwardPass->effect->pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(GPUDrawPushConstants), &pushConstants);
 
     VkDeviceSize indirectOffset = first * sizeof(VkDrawIndexedIndirectCommand);
     uint32_t drawStride = sizeof(VkDrawIndexedIndirectCommand);
@@ -191,48 +193,40 @@ void Renderer::RenderObjectsIndirect(std::span<RenderObject> objects) {
 void Renderer::RenderObjects(std::span<RenderObject> objects, std::span<size_t> order) {
   VkCommandBuffer cmd = getCurrentFrame().commandBuffer;
 
-  MaterialPipeline *lastPipeline{nullptr};
-  MaterialInstance *lastMaterial{nullptr};
-  VkBuffer lastIndexBuffer{VK_NULL_HANDLE};
+  VkViewport viewport{
+      .x = 0.0f,
+      .y = 0.0f,
+      .width = static_cast<float>(m_swapchain.GetExtent().width),
+      .height = static_cast<float>(m_swapchain.GetExtent().height),
+      .minDepth = 0.0f,
+      .maxDepth = 1.0f
+  };
+  vkCmdSetViewport(cmd, 0, 1, &viewport);
+
+  VkRect2D scissor{
+      .offset = {0, 0},
+      .extent = m_swapchain.GetExtent()
+  };
+  vkCmdSetScissor(cmd, 0, 1, &scissor);
+
   for (auto &idx : order) {
-    auto &[objectId, indexCount, firstIndex, indexBuffer, mesh, material, bounds, transform, vertexBufferAddress] = objects[idx];
-    if (material != lastMaterial) {
-      lastMaterial = material;
-      if (material->pipeline != lastPipeline) {
-        lastPipeline = material->pipeline;
-        vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, material->pipeline->pipeline);
-        vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, material->pipeline->layout, 0, 1, &m_globalDescriptor, 0, nullptr);
+    auto& [objectId, indexCount, firstIndex, indexBuffer, mesh, material, bounds, transform, vertexBufferAddress] = objects[idx];
+    ShaderPass *forwardPass = material->original->passShaders[MeshPassType::Forward];
+    VkDescriptorSet forwardDescriptorSet = material->passSets[MeshPassType::Forward];
 
-        VkViewport viewport{
-            .x = 0.0f,
-            .y = 0.0f,
-            .width = static_cast<float>(m_swapchain.GetExtent().width),
-            .height = static_cast<float>(m_swapchain.GetExtent().height),
-            .minDepth = 0.0f,
-            .maxDepth = 1.0f
-        };
-        vkCmdSetViewport(cmd, 0, 1, &viewport);
+    vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, forwardPass->pipeline);
+    vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, forwardPass->effect->pipelineLayout, 0, 1, &m_globalDescriptor, 0, nullptr);
+    vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, forwardPass->effect->pipelineLayout, 1, 1, &forwardDescriptorSet, 0, nullptr);
 
-        VkRect2D scissor{
-            .offset = {0, 0},
-            .extent = m_swapchain.GetExtent()
-        };
-        vkCmdSetScissor(cmd, 0, 1, &scissor);
-      }
-      vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, material->pipeline->layout, 1, 1, &material->materialSet, 0, nullptr);
-    }
-
-    if (lastIndexBuffer != indexBuffer) {
-      lastIndexBuffer = indexBuffer;
-      vkCmdBindIndexBuffer(cmd, indexBuffer, 0, VK_INDEX_TYPE_UINT32);
-    }
+    vkCmdBindIndexBuffer(cmd, indexBuffer, 0, VK_INDEX_TYPE_UINT32);
 
     GPUDrawPushConstants pushConstants{
         .worldMatrix = transform,
         .vertexBuffer = vertexBufferAddress,
         .objectId = objectId
     };
-    vkCmdPushConstants(cmd, material->pipeline->layout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(GPUDrawPushConstants), &pushConstants);
+
+    vkCmdPushConstants(cmd, forwardPass->effect->pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(GPUDrawPushConstants), &pushConstants);
 
     vkCmdDrawIndexed(cmd, indexCount, 1, firstIndex, 0, 0);
     m_stats.drawcallCount++;

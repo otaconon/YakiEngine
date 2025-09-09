@@ -14,7 +14,7 @@ struct RenderObject
     VkBuffer indexBuffer;
 
     Mesh* mesh;
-    MaterialInstance* material;
+    Material* material;
     Bounds bounds;
 
     glm::mat4 transform;

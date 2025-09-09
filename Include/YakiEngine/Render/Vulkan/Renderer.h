@@ -29,7 +29,7 @@ struct IndirectBatch
 {
     glm::mat4 transform;
     Mesh* mesh;
-    MaterialInstance* material;
+    Material* material;
     uint32_t first;
     uint32_t count;
 };

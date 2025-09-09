@@ -12,22 +12,23 @@ struct ShaderParameters {
 
 enum class MeshPassType : uint8_t {
   Transparency,
-  Forward
+  Forward,
+  Count
 };
 
 struct EffectTemplate {
-  EnumAccessArray<ShaderPass*, MeshPassType, sizeof(MeshPassType) / sizeof(uint8_t)> passShaders;
+  EnumAccessArray<ShaderPass*, MeshPassType, static_cast<size_t>(MeshPassType::Count)> passShaders;
   ShaderParameters *defaultParameters;
   TransparencyMode transparency;
 };
 
 struct Material {
   EffectTemplate *original;
-  EnumAccessArray<VkDescriptorSet, MeshPassType, sizeof(MeshPassType) / sizeof(uint8_t)> passSets;
+  EnumAccessArray<VkDescriptorSet, MeshPassType, static_cast<size_t>(MeshPassType::Count)> passSets;
 
   std::vector<Texture> textures;
 
-  ShaderParameters *parameters;
+  ShaderParameters parameters;
 };
 
 struct MaterialInfo {

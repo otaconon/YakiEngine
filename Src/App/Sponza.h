@@ -25,113 +25,110 @@
 constexpr uint32_t numDirectionalLights = 1;
 constexpr uint32_t numPointLights = 1;
 
-inline void RunSponza()
-{
-    auto& ecs = Ecs::GetInstance();
+inline void RunSponza() {
+  auto &ecs = Ecs::GetInstance();
 
-	Window mainWindow;
-	VulkanContext ctx{mainWindow.window()};
-	Renderer renderer(mainWindow.window(), &ctx);
-	DeletionQueue deletionQueue;
+  Window mainWindow;
+  VulkanContext ctx{mainWindow.window()};
+  Renderer renderer(mainWindow.window(), &ctx);
+  DeletionQueue deletionQueue;
 
-	ecs.AddSystem<InputSystem>(InputSystem(mainWindow.window()));
-	ecs.AddSystem<CameraSystem>(CameraSystem());
-	ecs.AddSystem<MovementSystem>(MovementSystem());
-	ecs.AddSystem<TransformSystem>(TransformSystem());
-	ecs.AddSystem<LightingSystem>(&renderer);
-	ecs.AddSystem<RenderSystem>(&renderer);
-	ecs.AddSystem<PerformanceMeasureSystem>(PerformanceMeasureSystem());
+  ecs.AddSystem<InputSystem>(InputSystem(mainWindow.window()));
+  ecs.AddSystem<CameraSystem>(CameraSystem());
+  ecs.AddSystem<MovementSystem>(MovementSystem());
+  ecs.AddSystem<TransformSystem>(TransformSystem());
+  ecs.AddSystem<LightingSystem>(&renderer);
+  ecs.AddSystem<RenderSystem>(&renderer);
+  ecs.AddSystem<PerformanceMeasureSystem>(PerformanceMeasureSystem());
 
-	ecs.AddSingletonComponent(FramesPerSecond{});
-	ecs.AddSingletonComponent(MouseMode{});
+  ecs.AddSingletonComponent(FramesPerSecond{});
+  ecs.AddSingletonComponent(MouseMode{});
+  init_default_data(&ctx, deletionQueue);
 
-	// Create object entities
-	auto allMeshes = std::make_shared<Scene>(&ctx, "Assets/meshes/basicmesh.glb");
+  // Create object entities
+  auto allMeshes = std::make_shared<Scene>(&ctx, "Assets/meshes/basicmesh.glb");
 
-	// Load scene
-	auto scene = std::make_shared<Scene>(&ctx, "Assets/scenes/Sponza.glb");
+  // Load scene
+  auto scene = std::make_shared<Scene>(&ctx, "Assets/scenes/Sponza.glb");
 
-	// Create camera entity
-	Hori::Entity camera = ecs.CreateEntity();
-	ecs.AddComponents(camera, Camera{}, Controller{});
-	ecs.AddComponents(camera, Translation{{0, -10.f, -10.f}}, Rotation{}, Scale{}, LocalToWorld{}, LocalToParent{}, ParentToLocal{}, Parent{}, Children{});
+  // Create camera entity
+  Hori::Entity camera = ecs.CreateEntity();
+  ecs.AddComponents(camera, Camera{}, Controller{});
+  ecs.AddComponents(camera, Translation{{0, -10.f, -10.f}}, Rotation{}, Scale{}, LocalToWorld{}, LocalToParent{}, ParentToLocal{}, Parent{}, Children{});
 
-	// Init lights data
-	auto& lightData = renderer.GetGpuLightData();
-	lightData.numDirectionalLights = numDirectionalLights;
-	lightData.numPointLights = numPointLights;
+  // Init lights data
+  auto &lightData = renderer.GetGpuLightData();
+  lightData.numDirectionalLights = numDirectionalLights;
+  lightData.numPointLights = numPointLights;
 
-	// Create point lights
-	std::array<Hori::Entity, numPointLights> pointLights;
-	for (auto& e : pointLights)
-	{
-		e = ecs.CreateEntity();
-		ecs.AddComponents(e, PointLight{{0.5f, 0.5f, 0.5f, 1.f}, {1.0f, 0.0f, 0.0f, 1.f}});
-		auto mesh = allMeshes->m_meshes.begin()->second;
-		register_object(e, mesh, Translation{{3.f, 3.f, 0.f}});
-	}
+  // Create point lights
+  std::array<Hori::Entity, numPointLights> pointLights;
+  for (auto &e : pointLights) {
+    e = ecs.CreateEntity();
+    ecs.AddComponents(e, PointLight{{0.5f, 0.5f, 0.5f, 1.f}, {1.0f, 0.0f, 0.0f, 1.f}});
+    auto mesh = allMeshes->m_meshes.begin()->second;
+    register_object(e, mesh, Translation{{3.f, 3.f, 0.f}});
+  }
 
-	// Create directional lights
-	std::array<Hori::Entity, numDirectionalLights> directionalLights;
-	for (auto& e : directionalLights)
-	{
-		e = ecs.CreateEntity();
-		ecs.AddComponents(e, DirectionalLight{{0.5f, 0.5f, 0.5f, 1.f}, {0.5f, 0.5f, 0.0f, 1.f}});
-		auto mesh = allMeshes->m_meshes.begin()->second;
-		register_object(e, mesh, Translation{{3.f, 10.f, 0.f}});
-	}
+  // Create directional lights
+  std::array<Hori::Entity, numDirectionalLights> directionalLights;
+  for (auto &e : directionalLights) {
+    e = ecs.CreateEntity();
+    ecs.AddComponents(e, DirectionalLight{{0.5f, 0.5f, 0.5f, 1.f}, {0.5f, 0.5f, 0.0f, 1.f}});
+    auto mesh = allMeshes->m_meshes.begin()->second;
+    register_object(e, mesh, Translation{{3.f, 10.f, 0.f}});
+  }
 
-	// Initialize scene
-    auto& sceneData = renderer.GetGpuSceneData();
-	sceneData.ambientColor = glm::vec4(.1f, .1f, .1f, 1.f);
+  // Initialize scene
+  auto &sceneData = renderer.GetGpuSceneData();
+  sceneData.ambientColor = glm::vec4(.1f, .1f, .1f, 1.f);
 
-	// Initialize input singleton components
-	ecs.AddSingletonComponent(InputQueue<SDL_KeyboardEvent>());
-	ecs.AddSingletonComponent(InputQueue<SDL_MouseButtonEvent>());
-	ecs.AddSingletonComponent(InputQueue<SDL_MouseMotionEvent>());
+  // Initialize input singleton components
+  ecs.AddSingletonComponent(InputQueue<SDL_KeyboardEvent>());
+  ecs.AddSingletonComponent(InputQueue<SDL_MouseButtonEvent>());
+  ecs.AddSingletonComponent(InputQueue<SDL_MouseMotionEvent>());
 
-	auto prevTime = std::chrono::high_resolution_clock::now();
-	bool running = true;
-	SDL_Event event;
-	while (running)
-	{
-		auto currentTime = std::chrono::high_resolution_clock::now();
-		float dt = std::chrono::duration<float>(currentTime - prevTime).count();
+  auto prevTime = std::chrono::high_resolution_clock::now();
+  bool running = true;
+  SDL_Event event;
+  while (running) {
+    auto currentTime = std::chrono::high_resolution_clock::now();
+    float dt = std::chrono::duration<float>(currentTime - prevTime).count();
 
-		auto keyboardQueue = ecs.GetSingletonComponent<InputQueue<SDL_KeyboardEvent>>();
-		auto mouseButtonQueue = ecs.GetSingletonComponent<InputQueue<SDL_MouseButtonEvent>>();
-		auto mouseMotionQueue = ecs.GetSingletonComponent<InputQueue<SDL_MouseMotionEvent>>();
-		while (SDL_PollEvent(&event)) {
-			switch (event.type) {
-				case SDL_EVENT_QUIT:
-					running = false;
-					break;
-				case SDL_EVENT_KEY_DOWN:
-					keyboardQueue->queue.push_back(event.key);
-					break;
-				case SDL_EVENT_MOUSE_BUTTON_DOWN:
-					mouseButtonQueue->queue.push_back(event.button);
-					break;
-				case SDL_EVENT_MOUSE_BUTTON_UP:
-					mouseButtonQueue->queue.push_back(event.button);
-					break;
-				case SDL_EVENT_MOUSE_MOTION:
-					mouseMotionQueue->queue.push_back(event.motion);
-					break;
-				default:
-					break;
-			}
+    auto keyboardQueue = ecs.GetSingletonComponent<InputQueue<SDL_KeyboardEvent>>();
+    auto mouseButtonQueue = ecs.GetSingletonComponent<InputQueue<SDL_MouseButtonEvent>>();
+    auto mouseMotionQueue = ecs.GetSingletonComponent<InputQueue<SDL_MouseMotionEvent>>();
+    while (SDL_PollEvent(&event)) {
+      switch (event.type) {
+      case SDL_EVENT_QUIT:
+        running = false;
+        break;
+      case SDL_EVENT_KEY_DOWN:
+        keyboardQueue->queue.push_back(event.key);
+        break;
+      case SDL_EVENT_MOUSE_BUTTON_DOWN:
+        mouseButtonQueue->queue.push_back(event.button);
+        break;
+      case SDL_EVENT_MOUSE_BUTTON_UP:
+        mouseButtonQueue->queue.push_back(event.button);
+        break;
+      case SDL_EVENT_MOUSE_MOTION:
+        mouseMotionQueue->queue.push_back(event.motion);
+        break;
+      default:
+        break;
+      }
 
-			ImGui_ImplSDL3_ProcessEvent(&event);
-		}
+      ImGui_ImplSDL3_ProcessEvent(&event);
+    }
 
-		ecs.UpdateSystems(dt);
-		renderer.WaitIdle();
-		prevTime = currentTime;
-		std::cout.flush();
-		FrameMark;
-	}
+    ecs.UpdateSystems(dt);
+    renderer.WaitIdle();
+    prevTime = currentTime;
+    std::cout.flush();
+    FrameMark;
+  }
 
-	deletionQueue.Flush();
-	ecs.Destroy();
+  deletionQueue.Flush();
+  ecs.Destroy();
 }

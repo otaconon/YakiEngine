@@ -104,16 +104,16 @@ Scene::Scene(VulkanContext *ctx, const std::filesystem::path &path)
     materials.push_back(newMat);
     m_materials[mat.name.c_str()] = newMat;
 
-    *newMat->parameters = {
+    newMat->parameters = {
       .colorFactors{mat.pbrData.baseColorFactor[0], mat.pbrData.baseColorFactor[1], mat.pbrData.baseColorFactor[2], mat.pbrData.baseColorFactor[3]},
       .metalRoughFactors{mat.pbrData.metallicFactor, mat.pbrData.roughnessFactor, 0.f, 0.f}
     };
 
     if (mat.specular)
-      newMat->parameters->specularColorFactors = {mat.specular->specularColorFactor.x(), mat.specular->specularColorFactor.y(), mat.specular->specularColorFactor.z(), mat.specular->specularFactor};
+      newMat->parameters.specularColorFactors = {mat.specular->specularColorFactor.x(), mat.specular->specularColorFactor.y(), mat.specular->specularColorFactor.z(), mat.specular->specularFactor};
 
     // write material parameters to buffer
-    shaderParams[data_index] = *newMat->parameters;
+    shaderParams[data_index] = newMat->parameters;
 
     TransparencyMode passType = TransparencyMode::Opaque;
     if (mat.alphaMode == fastgltf::AlphaMode::Blend) {

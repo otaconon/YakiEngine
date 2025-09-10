@@ -7,5 +7,5 @@ struct DefaultData {
   std::shared_ptr<Texture> errorTexture;
   VkSampler samplerNearest;
   VkSampler samplerLinear;
-  EffectTemplate *opaquePass;
+  std::shared_ptr<EffectTemplate> opaqueEffectTemplate;
 };

@@ -43,7 +43,7 @@ inline void RunSponza() {
 
   ecs.AddSingletonComponent(FramesPerSecond{});
   ecs.AddSingletonComponent(MouseMode{});
-  init_default_data(&ctx, deletionQueue);
+  init_default_data(ctx, renderer.GetSwapchain(), deletionQueue);
 
   // Create object entities
   auto allMeshes = std::make_shared<Scene>(&ctx, "Assets/meshes/basicmesh.glb");

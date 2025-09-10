@@ -42,7 +42,7 @@ FetchContent_Declare(
 FetchContent_Declare(
         SpirvCross
         GIT_REPOSITORY https://github.com/KhronosGroup/SPIRV-Cross.git
-        GIT_TAG MoltenVK-1.1.5
+        GIT_TAG vulkan-sdk-1.3.290.0
         GIT_SHALLOW TRUE
 )
 

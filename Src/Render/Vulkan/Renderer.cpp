@@ -165,7 +165,7 @@ void Renderer::RenderObjectsIndirect(std::span<RenderObject> objects) {
   vkCmdSetScissor(cmd, 0, 1, &scissor);
 
   for (auto &[transform, mesh, material, first, count] : draws) {
-    ShaderPass *forwardPass = material->original->passShaders[MeshPassType::Forward];
+    ShaderPass *forwardPass = material->original->passShaders[MeshPassType::Forward].get();
     VkDescriptorSet forwardDescriptorSet = material->passSets[MeshPassType::Forward];
     vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, forwardPass->pipeline);
     vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, forwardPass->effect->pipelineLayout, 0, 1, &m_globalDescriptor, 0, nullptr);
@@ -211,7 +211,7 @@ void Renderer::RenderObjects(std::span<RenderObject> objects, std::span<size_t> 
 
   for (auto &idx : order) {
     auto& [objectId, indexCount, firstIndex, indexBuffer, mesh, material, bounds, transform, vertexBufferAddress] = objects[idx];
-    ShaderPass *forwardPass = material->original->passShaders[MeshPassType::Forward];
+    ShaderPass *forwardPass = material->original->passShaders[MeshPassType::Forward].get();
     VkDescriptorSet forwardDescriptorSet = material->passSets[MeshPassType::Forward];
 
     vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, forwardPass->pipeline);

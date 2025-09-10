@@ -17,13 +17,13 @@ enum class MeshPassType : uint8_t {
 };
 
 struct EffectTemplate {
-  EnumAccessArray<ShaderPass*, MeshPassType, static_cast<size_t>(MeshPassType::Count)> passShaders;
-  ShaderParameters *defaultParameters;
+  EnumAccessArray<std::shared_ptr<ShaderPass>, MeshPassType, static_cast<size_t>(MeshPassType::Count)> passShaders;
+  std::shared_ptr<ShaderParameters> defaultParameters;
   TransparencyMode transparency;
 };
 
 struct Material {
-  EffectTemplate *original;
+  std::shared_ptr<EffectTemplate> original;
   EnumAccessArray<VkDescriptorSet, MeshPassType, static_cast<size_t>(MeshPassType::Count)> passSets;
 
   std::vector<Texture> textures;

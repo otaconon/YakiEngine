@@ -1,5 +1,6 @@
 #pragma once
 
+#include "EnumAccessArray.h"
 #include "Shader.h"
 #include "Texture.h"
 
@@ -19,21 +20,28 @@ enum class TransparencyMode {
   Transparent
 };
 
+enum class ShaderStageType {
+  Vertex,
+  Fragment,
+  Count
+};
+
 struct ShaderStage {
-  Shader* shader;
+  std::shared_ptr<Shader> shader;
   VkShaderStageFlagBits stage;
 };
 
 struct ShaderEffect {
   VkPipelineLayout pipelineLayout;
   std::array<VkDescriptorSetLayout, 4> descriptorSetLayouts;
-  std::vector<ShaderStage> stages;
+  EnumAccessArray<ShaderStage, ShaderStageType, static_cast<size_t>(ShaderStageType::Count)> stages;
 
-  ShaderEffect(VulkanContext *ctx, Shader *vertShader, Shader *fragShader)
+  ShaderEffect(VulkanContext *ctx, std::shared_ptr<Shader> vertShader, std::shared_ptr<Shader> fragShader)
     : m_ctx{ctx} {
     std::array<DescriptorLayoutBuilder, 4> builders;
 
-    stages = {{vertShader, VK_SHADER_STAGE_VERTEX_BIT}, {fragShader, VK_SHADER_STAGE_FRAGMENT_BIT}};
+    stages[ShaderStageType::Vertex] = {vertShader, VK_SHADER_STAGE_VERTEX_BIT};
+    stages[ShaderStageType::Fragment] = {fragShader, VK_SHADER_STAGE_FRAGMENT_BIT};
 
     // TODO: Dont assume whats below
     // Assume that descriptor sets are shared for vertex and fragment shader

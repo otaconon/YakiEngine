@@ -5,13 +5,14 @@
 #include "Vulkan/Swapchain.h"
 
 struct ShaderPass {
-  ShaderEffect *effect{nullptr};
+  std::shared_ptr<ShaderEffect> effect{nullptr};
   VkPipeline pipeline{VK_NULL_HANDLE};
 
-  ShaderPass(VulkanContext *ctx, Swapchain& swapchain, ShaderEffect *effect)
-    : m_ctx{ctx} {
+  ShaderPass(VulkanContext *ctx, Swapchain &swapchain, std::shared_ptr<ShaderEffect> effect)
+    : effect{effect},
+      m_ctx{ctx} {
     PipelineBuilder pipelineBuilder(m_ctx);
-    pipelineBuilder.SetShaders(effect->stages[0].shader->module, effect->stages[1].shader->module);
+    pipelineBuilder.SetShaders(effect->stages[ShaderStageType::Vertex].shader->module, effect->stages[ShaderStageType::Fragment].shader->module);
     pipelineBuilder.SetInputTopology(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
     pipelineBuilder.SetPolygonMode(VK_POLYGON_MODE_FILL);
     pipelineBuilder.SetCullMode(VK_CULL_MODE_NONE, VK_FRONT_FACE_CLOCKWISE);
@@ -43,4 +44,3 @@ struct ShaderPass {
 private:
   VulkanContext *m_ctx;
 };
-

@@ -148,7 +148,7 @@ Scene::Scene(VulkanContext *ctx, const std::filesystem::path &path)
       materialResources.colorSampler = m_samplers[sampler];
     }
 
-    newMat->original = defaultData->opaquePass;
+    newMat->original = defaultData->opaqueEffectTemplate;
     DescriptorAllocator descriptorAllocator{};
     newMat->passSets[MeshPassType::Forward] = descriptorAllocator.Allocate(m_ctx->GetDevice(), newMat->original->passShaders[MeshPassType::Forward]->effect->descriptorSetLayouts[1]); // Possibly needs a fix here
 

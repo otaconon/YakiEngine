@@ -83,8 +83,8 @@ void Renderer::BeginRendering() {
   VK_CHECK(vkBeginCommandBuffer(cmd, &cmdBeginInfo));
 
   // Setup image layout
-  VkUtil::transition_image(cmd, m_swapchain.GetDrawImage().GetImage(), VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_GENERAL);
-  VkUtil::transition_image(cmd, m_swapchain.GetDepthImage().GetImage(), VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL);
+  VkUtil::transition_image(cmd, m_swapchain.GetDrawTexture()->GetImage(), VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_GENERAL);
+  VkUtil::transition_image(cmd, m_swapchain.GetDepthTexture()->GetImage(), VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL);
   VkUtil::transition_image(cmd, m_pickingResources.texture->GetImage(), VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_GENERAL);
 
   // Clear image
@@ -92,7 +92,7 @@ void Renderer::BeginRendering() {
   clearValues[0].color = {{0.0f, 0.0f, 0.0f, 1.0f}};
   clearValues[1].depthStencil = {1.0f, 0};
   VkImageSubresourceRange clearRange = VkInit::image_subresource_range(VK_IMAGE_ASPECT_COLOR_BIT);
-  vkCmdClearColorImage(cmd, m_swapchain.GetDrawImage().GetImage(), VK_IMAGE_LAYOUT_GENERAL, &clearValues[0].color, 1, &clearRange);
+  vkCmdClearColorImage(cmd, m_swapchain.GetDrawTexture()->GetImage(), VK_IMAGE_LAYOUT_GENERAL, &clearValues[0].color, 1, &clearRange);
   vkCmdClearColorImage(cmd, m_pickingResources.texture->GetImage(), VK_IMAGE_LAYOUT_GENERAL, &clearValues[0].color, 1, &clearRange);
 
   // Reset rendering stats
@@ -102,12 +102,12 @@ void Renderer::BeginRendering() {
 void Renderer::Begin3DRendering() {
   VkCommandBuffer cmd = getCurrentFrame().commandBuffer;
   std::array<VkRenderingAttachmentInfo, 2> colorAttachments{
-      VkInit::color_attachment_info(m_swapchain.GetDrawImage().GetView(), nullptr, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL),
+      VkInit::color_attachment_info(m_swapchain.GetDrawTexture()->GetView(), nullptr, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL),
       VkInit::color_attachment_info(m_pickingResources.texture->GetView(), nullptr, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL)
   };
-  VkRenderingAttachmentInfo depthAttachment = VkInit::depth_attachment_info(m_swapchain.GetDepthImage().GetView(), VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL);
+  VkRenderingAttachmentInfo depthAttachment = VkInit::depth_attachment_info(m_swapchain.GetDepthTexture()->GetView(), VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL);
 
-  VkExtent2D drawExtent = {m_swapchain.GetDrawImage().GetExtent().width, m_swapchain.GetDrawImage().GetExtent().height};
+  VkExtent2D drawExtent = {m_swapchain.GetDrawTexture()->GetExtent().width, m_swapchain.GetDrawTexture()->GetExtent().height};
   VkRenderingInfo renderInfo = VkInit::rendering_info(drawExtent, colorAttachments, &depthAttachment);
   vkCmdBeginRendering(cmd, &renderInfo);
 
@@ -268,7 +268,7 @@ void Renderer::End3DRendering() {
   vkCmdEndRendering(cmd);
 
   // Handle draw image
-  VkUtil::transition_image(cmd, m_swapchain.GetDrawImage().GetImage(), VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
+  VkUtil::transition_image(cmd, m_swapchain.GetDrawTexture()->GetImage(), VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
   VkUtil::transition_image(cmd, m_swapchain.GetImage(m_currentImageIndex), VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
 
   // Handle object picking
@@ -286,11 +286,11 @@ void Renderer::End3DRendering() {
 void Renderer::RenderImGui() {
   VkCommandBuffer cmd = getCurrentFrame().commandBuffer;
   VkExtent2D drawExtent = {
-      .width = static_cast<uint32_t>(std::min(m_swapchain.GetExtent().width, m_swapchain.GetDrawImage().GetExtent().width) * m_swapchain.GetRenderScale()),
-      .height = static_cast<uint32_t>(std::min(m_swapchain.GetExtent().height, m_swapchain.GetDrawImage().GetExtent().height) * m_swapchain.GetRenderScale())
+      .width = static_cast<uint32_t>(std::min(m_swapchain.GetExtent().width, m_swapchain.GetDrawTexture()->GetExtent().width) * m_swapchain.GetRenderScale()),
+      .height = static_cast<uint32_t>(std::min(m_swapchain.GetExtent().height, m_swapchain.GetDrawTexture()->GetExtent().height) * m_swapchain.GetRenderScale())
   };
 
-  VkUtil::copy_image_to_image(cmd, m_swapchain.GetDrawImage().GetImage(), m_swapchain.GetImage(m_currentImageIndex), drawExtent, m_swapchain.GetExtent());
+  VkUtil::copy_image_to_image(cmd, m_swapchain.GetDrawTexture()->GetImage(), m_swapchain.GetImage(m_currentImageIndex), drawExtent, m_swapchain.GetExtent());
   VkUtil::transition_image(cmd, m_swapchain.GetImage(m_currentImageIndex), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 
   std::array colorAttachments{VkInit::color_attachment_info(m_swapchain.GetImageView(m_currentImageIndex), nullptr, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL)};
@@ -434,7 +434,7 @@ void Renderer::initDescriptorAllocator() {
   m_drawImageDescriptors = m_descriptorAllocator.Allocate(m_ctx->GetDevice(), m_drawImageDescriptorLayout);
 
   DescriptorWriter writer;
-  writer.WriteImage(0, m_swapchain.GetDrawImage().GetView(), VK_NULL_HANDLE, VK_IMAGE_LAYOUT_GENERAL, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE);
+  writer.WriteImage(0, m_swapchain.GetDrawTexture()->GetView(), VK_NULL_HANDLE, VK_IMAGE_LAYOUT_GENERAL, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE);
   writer.UpdateSet(m_ctx->GetDevice(), m_drawImageDescriptors);
 
   m_deletionQueue.PushFunction([&] {
@@ -480,7 +480,7 @@ void Renderer::initDescriptors() {
 }
 
 void Renderer::initPicking() {
-  m_pickingResources.texture = std::make_shared<Texture>(m_ctx, m_ctx->GetAllocator(), VkExtent3D{m_swapchain.GetExtent().width, m_swapchain.GetExtent().height, 1}, VK_FORMAT_R32_UINT, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT, false);
+  m_pickingResources.texture = std::make_shared<Texture>(m_ctx, VkExtent3D{m_swapchain.GetExtent().width, m_swapchain.GetExtent().height, 1}, VK_FORMAT_R32_UINT, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT, false);
   m_pickingResources.stagingBuffer = std::make_shared<Buffer>(m_ctx->GetAllocator(), sizeof(uint32_t), VK_BUFFER_USAGE_TRANSFER_DST_BIT, VMA_MEMORY_USAGE_GPU_TO_CPU);
 }
 

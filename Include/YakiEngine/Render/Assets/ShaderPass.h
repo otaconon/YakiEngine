@@ -19,8 +19,8 @@ struct ShaderPass {
     pipelineBuilder.SetMultisamplingNone();
     pipelineBuilder.DisableBlending();
     pipelineBuilder.EnableDepthTest(true);
-    pipelineBuilder.SetColorAttachmentFormat(swapchain.GetDrawImage().GetFormat());
-    pipelineBuilder.SetDepthFormat(swapchain.GetDepthImage().GetFormat());
+    pipelineBuilder.SetColorAttachmentFormat(swapchain.GetDrawTexture()->GetFormat());
+    pipelineBuilder.SetDepthFormat(swapchain.GetDepthTexture()->GetFormat());
     pipelineBuilder.SetLayout(effect->pipelineLayout);
 
     std::array<VkPipelineColorBlendAttachmentState, 2> blendAttachments;

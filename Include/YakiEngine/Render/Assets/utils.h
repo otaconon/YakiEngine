@@ -27,7 +27,7 @@ inline void init_default_data(VulkanContext& ctx, Swapchain& swapchain, Deletion
   for (int x = 0; x < 16; x++)
     for (int y = 0; y < 16; y++)
       pixels[y * 16 + x] = ((x % 2) ^ (y % 2)) ? magenta : black;
-  data.errorTexture = std::make_shared<Texture>(&ctx, ctx.GetAllocator(), pixels.data(), VkExtent3D{16, 16, 1}, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_USAGE_SAMPLED_BIT, false);
+  data.errorTexture = std::make_shared<Texture>(&ctx, pixels.data(), VkExtent3D{16, 16, 1}, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_USAGE_SAMPLED_BIT, false);
   deletionQueue.PushFunction([&data] {
     data.errorTexture->Cleanup();
   });

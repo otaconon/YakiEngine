@@ -85,7 +85,7 @@ Scene::Scene(VulkanContext *ctx, const std::filesystem::path &path)
 
   DefaultData* defaultData = Ecs::GetInstance().GetSingletonComponent<DefaultData>();
   for (fastgltf::Image &image : gltf.images) {
-    std::shared_ptr<Texture> texture = std::make_shared<Texture>(gltf, image);
+    std::shared_ptr<Texture> texture = std::make_shared<Texture>(m_ctx, gltf, image);
     if (texture->GetImage()) {
       AssetMngr::RegisterAsset<Texture>(texture);
       images.push_back(texture);

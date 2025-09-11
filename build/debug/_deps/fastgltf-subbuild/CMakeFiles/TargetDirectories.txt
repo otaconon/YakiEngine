@@ -1,3 +1,0 @@
-C:/dev/GameEngines/YakiEngine/build/debug/_deps/fastgltf-subbuild/CMakeFiles/fastgltf-populate.dir
-C:/dev/GameEngines/YakiEngine/build/debug/_deps/fastgltf-subbuild/CMakeFiles/ALL_BUILD.dir
-C:/dev/GameEngines/YakiEngine/build/debug/_deps/fastgltf-subbuild/CMakeFiles/ZERO_CHECK.dir

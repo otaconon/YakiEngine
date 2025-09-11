@@ -1,0 +1,10 @@
+^C:\DEV\GAMEENGINES\YAKIENGINE\BUILD\DEBUG\_DEPS\STB-SUBBUILD\CMAKEFILES\96EAC2BF52393BF1458BDC02BE1B44A9\GENERATE.STAMP.RULE
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SC:/dev/GameEngines/YakiEngine/build/debug/_deps/stb-subbuild -BC:/dev/GameEngines/YakiEngine/build/debug/_deps/stb-subbuild --check-stamp-list CMakeFiles/generate.stamp.list --vs-solution-file C:/dev/GameEngines/YakiEngine/build/debug/_deps/stb-subbuild/stb-populate.sln
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd

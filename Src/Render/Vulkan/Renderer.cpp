@@ -24,7 +24,7 @@
 
 constexpr size_t MAX_COMMANDS = 100000;
 
-Renderer::Renderer(SDL_Window *window, VulkanContext *ctx)
+Renderer::Renderer(SDL_Window *window, std::shared_ptr<VulkanContext> ctx)
   : m_window{window},
     m_ctx{ctx},
     m_swapchain{m_ctx, window},

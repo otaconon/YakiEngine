@@ -29,8 +29,8 @@ inline void RunSponza() {
   auto &ecs = Ecs::GetInstance();
 
   Window mainWindow;
-  VulkanContext ctx{mainWindow.window()};
-  Renderer renderer(mainWindow.window(), &ctx);
+  std::shared_ptr<VulkanContext> ctx = std::make_shared<VulkanContext>(mainWindow.window());
+  Renderer renderer(mainWindow.window(), ctx);
   DeletionQueue deletionQueue;
 
   ecs.AddSystem<InputSystem>(InputSystem(mainWindow.window()));
@@ -46,10 +46,10 @@ inline void RunSponza() {
   init_default_data(ctx, renderer.GetSwapchain(), deletionQueue);
 
   // Create object entities
-  auto allMeshes = std::make_shared<Scene>(&ctx, "Assets/meshes/basicmesh.glb");
+  auto allMeshes = std::make_shared<Scene>(ctx, deletionQueue, "Assets/meshes/basicmesh.glb");
 
   // Load scene
-  auto scene = std::make_shared<Scene>(&ctx, "Assets/scenes/Sponza.glb");
+  auto scene = std::make_shared<Scene>(ctx, deletionQueue, "Assets/scenes/Sponza.glb");
 
   // Create camera entity
   Hori::Entity camera = ecs.CreateEntity();

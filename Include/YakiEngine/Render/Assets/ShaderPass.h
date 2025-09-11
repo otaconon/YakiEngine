@@ -8,7 +8,7 @@ struct ShaderPass {
   std::shared_ptr<ShaderEffect> effect{nullptr};
   VkPipeline pipeline{VK_NULL_HANDLE};
 
-  ShaderPass(VulkanContext *ctx, Swapchain &swapchain, std::shared_ptr<ShaderEffect> effect)
+  ShaderPass(std::shared_ptr<VulkanContext> ctx, Swapchain &swapchain, std::shared_ptr<ShaderEffect> effect)
     : effect{effect},
       m_ctx{ctx} {
     PipelineBuilder pipelineBuilder(m_ctx);
@@ -41,6 +41,10 @@ struct ShaderPass {
     pipeline = pipelineBuilder.CreateMRTPipeline(blendAttachments, colorFormats);
   }
 
+  ~ShaderPass() {
+    vkDestroyPipeline(m_ctx->GetDevice(), pipeline, nullptr);
+  }
+
 private:
-  VulkanContext *m_ctx;
+  std::shared_ptr<VulkanContext> m_ctx;
 };

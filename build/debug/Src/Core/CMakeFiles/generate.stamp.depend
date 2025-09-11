@@ -1,0 +1,28 @@
+# CMake generation dependency list for this directory.
+C:/Program Files/CMake/share/cmake-3.30/Modules/CMakeFindDependencyMacro.cmake
+C:/Program Files/CMake/share/cmake-3.30/Modules/CheckCSourceCompiles.cmake
+C:/Program Files/CMake/share/cmake-3.30/Modules/CheckIncludeFile.cmake
+C:/Program Files/CMake/share/cmake-3.30/Modules/CheckLibraryExists.cmake
+C:/Program Files/CMake/share/cmake-3.30/Modules/FeatureSummary.cmake
+C:/Program Files/CMake/share/cmake-3.30/Modules/FetchContent/CMakeLists.cmake.in
+C:/Program Files/CMake/share/cmake-3.30/Modules/FindGit.cmake
+C:/Program Files/CMake/share/cmake-3.30/Modules/FindPackageHandleStandardArgs.cmake
+C:/Program Files/CMake/share/cmake-3.30/Modules/FindPackageMessage.cmake
+C:/Program Files/CMake/share/cmake-3.30/Modules/FindThreads.cmake
+C:/Program Files/CMake/share/cmake-3.30/Modules/FindVulkan.cmake
+C:/dev/GameEngines/YakiEngine/Src/Core/CMakeLists.txt
+C:/vcpkg/installed/x64-windows/lib/cmake/glfw3/glfw3Config.cmake
+C:/vcpkg/installed/x64-windows/lib/cmake/glfw3/glfw3ConfigVersion.cmake
+C:/vcpkg/installed/x64-windows/lib/cmake/glfw3/glfw3Targets-debug.cmake
+C:/vcpkg/installed/x64-windows/lib/cmake/glfw3/glfw3Targets.cmake
+C:/vcpkg/installed/x64-windows/share/glm/glmConfig-debug.cmake
+C:/vcpkg/installed/x64-windows/share/glm/glmConfig-release.cmake
+C:/vcpkg/installed/x64-windows/share/glm/glmConfig.cmake
+C:/vcpkg/installed/x64-windows/share/glm/glmConfigVersion.cmake
+C:/vcpkg/installed/x64-windows/share/imgui/imgui-config.cmake
+C:/vcpkg/installed/x64-windows/share/imgui/imgui-targets-debug.cmake
+C:/vcpkg/installed/x64-windows/share/imgui/imgui-targets-release.cmake
+C:/vcpkg/installed/x64-windows/share/imgui/imgui-targets.cmake
+C:/vcpkg/installed/x64-windows/share/sdl3/SDL3Config.cmake
+C:/vcpkg/installed/x64-windows/share/sdl3/SDL3ConfigVersion.cmake
+C:/vcpkg/installed/x64-windows/share/sdl3/SDL3sharedTargets.cmake

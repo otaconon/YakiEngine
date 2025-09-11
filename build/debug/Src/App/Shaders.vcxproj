@@ -1,0 +1,413 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <PreferredToolArchitecture>x64</PreferredToolArchitecture>
+  </PropertyGroup>
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{36D019BB-73BB-3113-B3FA-5339872A2995}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <WindowsTargetPlatformVersion>10.0.26100.0</WindowsTargetPlatformVersion>
+    <Platform>x64</Platform>
+    <ProjectName>Shaders</ProjectName>
+    <VCProjectUpgraderObjectName>NoUpgrade</VCProjectUpgraderObjectName>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Utility</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v143</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Utility</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v143</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>10.0.20506.1</_ProjectFileVersion>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Midl>
+      <AdditionalIncludeDirectories>C:\dev\GameEngines\YakiEngine\include\YakiEngine\App;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Midl>
+      <AdditionalIncludeDirectories>C:\dev\GameEngines\YakiEngine\include\YakiEngine\App;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <CustomBuild Include="C:\dev\GameEngines\YakiEngine\build\debug\CMakeFiles\6da7f5ca682e55f654429514d5588f14\basic_mesh.frag.spv.rule">
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compiling shader: Shaders/Fragment/basic_mesh.frag</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -E make_directory C:/dev/GameEngines/YakiEngine/build/debug/Src/App/Debug/Shaders
+if %errorlevel% neq 0 goto :cmEnd
+C:\vcpkg\installed\x64-windows\tools\shaderc\glslc.exe C:/dev/GameEngines/YakiEngine/Src/App/Shaders/Fragment/basic_mesh.frag -o C:/dev/GameEngines/YakiEngine/build/debug/Src/App/Shaders/Fragment/basic_mesh.frag.spv -O0
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\dev\GameEngines\YakiEngine\Src\App\Shaders\Fragment\basic_mesh.frag;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\dev\GameEngines\YakiEngine\build\debug\Src\App\Shaders\Fragment\basic_mesh.frag.spv</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Compiling shader: Shaders/Fragment/basic_mesh.frag</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -E make_directory C:/dev/GameEngines/YakiEngine/build/debug/Src/App/Release/Shaders
+if %errorlevel% neq 0 goto :cmEnd
+C:\vcpkg\installed\x64-windows\tools\shaderc\glslc.exe C:/dev/GameEngines/YakiEngine/Src/App/Shaders/Fragment/basic_mesh.frag -o C:/dev/GameEngines/YakiEngine/build/debug/Src/App/Shaders/Fragment/basic_mesh.frag.spv -O0
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\dev\GameEngines\YakiEngine\Src\App\Shaders\Fragment\basic_mesh.frag;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\dev\GameEngines\YakiEngine\build\debug\Src\App\Shaders\Fragment\basic_mesh.frag.spv</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkObjects>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="C:\dev\GameEngines\YakiEngine\build\debug\CMakeFiles\6da7f5ca682e55f654429514d5588f14\materials.frag.spv.rule">
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compiling shader: Shaders/Fragment/materials.frag</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -E make_directory C:/dev/GameEngines/YakiEngine/build/debug/Src/App/Debug/Shaders
+if %errorlevel% neq 0 goto :cmEnd
+C:\vcpkg\installed\x64-windows\tools\shaderc\glslc.exe C:/dev/GameEngines/YakiEngine/Src/App/Shaders/Fragment/materials.frag -o C:/dev/GameEngines/YakiEngine/build/debug/Src/App/Shaders/Fragment/materials.frag.spv -O0
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\dev\GameEngines\YakiEngine\Src\App\Shaders\Fragment\materials.frag;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\dev\GameEngines\YakiEngine\build\debug\Src\App\Shaders\Fragment\materials.frag.spv</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Compiling shader: Shaders/Fragment/materials.frag</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -E make_directory C:/dev/GameEngines/YakiEngine/build/debug/Src/App/Release/Shaders
+if %errorlevel% neq 0 goto :cmEnd
+C:\vcpkg\installed\x64-windows\tools\shaderc\glslc.exe C:/dev/GameEngines/YakiEngine/Src/App/Shaders/Fragment/materials.frag -o C:/dev/GameEngines/YakiEngine/build/debug/Src/App/Shaders/Fragment/materials.frag.spv -O0
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\dev\GameEngines\YakiEngine\Src\App\Shaders\Fragment\materials.frag;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\dev\GameEngines\YakiEngine\build\debug\Src\App\Shaders\Fragment\materials.frag.spv</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkObjects>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="C:\dev\GameEngines\YakiEngine\build\debug\CMakeFiles\6da7f5ca682e55f654429514d5588f14\picking.frag.spv.rule">
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compiling shader: Shaders/Fragment/picking.frag</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -E make_directory C:/dev/GameEngines/YakiEngine/build/debug/Src/App/Debug/Shaders
+if %errorlevel% neq 0 goto :cmEnd
+C:\vcpkg\installed\x64-windows\tools\shaderc\glslc.exe C:/dev/GameEngines/YakiEngine/Src/App/Shaders/Fragment/picking.frag -o C:/dev/GameEngines/YakiEngine/build/debug/Src/App/Shaders/Fragment/picking.frag.spv -O0
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\dev\GameEngines\YakiEngine\Src\App\Shaders\Fragment\picking.frag;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\dev\GameEngines\YakiEngine\build\debug\Src\App\Shaders\Fragment\picking.frag.spv</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Compiling shader: Shaders/Fragment/picking.frag</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -E make_directory C:/dev/GameEngines/YakiEngine/build/debug/Src/App/Release/Shaders
+if %errorlevel% neq 0 goto :cmEnd
+C:\vcpkg\installed\x64-windows\tools\shaderc\glslc.exe C:/dev/GameEngines/YakiEngine/Src/App/Shaders/Fragment/picking.frag -o C:/dev/GameEngines/YakiEngine/build/debug/Src/App/Shaders/Fragment/picking.frag.spv -O0
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\dev\GameEngines\YakiEngine\Src\App\Shaders\Fragment\picking.frag;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\dev\GameEngines\YakiEngine\build\debug\Src\App\Shaders\Fragment\picking.frag.spv</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkObjects>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="C:\dev\GameEngines\YakiEngine\build\debug\CMakeFiles\6da7f5ca682e55f654429514d5588f14\wireframe.frag.spv.rule">
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compiling shader: Shaders/Fragment/wireframe.frag</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -E make_directory C:/dev/GameEngines/YakiEngine/build/debug/Src/App/Debug/Shaders
+if %errorlevel% neq 0 goto :cmEnd
+C:\vcpkg\installed\x64-windows\tools\shaderc\glslc.exe C:/dev/GameEngines/YakiEngine/Src/App/Shaders/Fragment/wireframe.frag -o C:/dev/GameEngines/YakiEngine/build/debug/Src/App/Shaders/Fragment/wireframe.frag.spv -O0
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\dev\GameEngines\YakiEngine\Src\App\Shaders\Fragment\wireframe.frag;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\dev\GameEngines\YakiEngine\build\debug\Src\App\Shaders\Fragment\wireframe.frag.spv</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Compiling shader: Shaders/Fragment/wireframe.frag</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -E make_directory C:/dev/GameEngines/YakiEngine/build/debug/Src/App/Release/Shaders
+if %errorlevel% neq 0 goto :cmEnd
+C:\vcpkg\installed\x64-windows\tools\shaderc\glslc.exe C:/dev/GameEngines/YakiEngine/Src/App/Shaders/Fragment/wireframe.frag -o C:/dev/GameEngines/YakiEngine/build/debug/Src/App/Shaders/Fragment/wireframe.frag.spv -O0
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\dev\GameEngines\YakiEngine\Src\App\Shaders\Fragment\wireframe.frag;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\dev\GameEngines\YakiEngine\build\debug\Src\App\Shaders\Fragment\wireframe.frag.spv</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkObjects>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="C:\dev\GameEngines\YakiEngine\build\debug\CMakeFiles\3b42bdede63c2b3ea57b34c0e08990d3\basic_mesh.vert.spv.rule">
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compiling shader: Shaders/Vertex/basic_mesh.vert</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -E make_directory C:/dev/GameEngines/YakiEngine/build/debug/Src/App/Debug/Shaders
+if %errorlevel% neq 0 goto :cmEnd
+C:\vcpkg\installed\x64-windows\tools\shaderc\glslc.exe C:/dev/GameEngines/YakiEngine/Src/App/Shaders/Vertex/basic_mesh.vert -o C:/dev/GameEngines/YakiEngine/build/debug/Src/App/Shaders/Vertex/basic_mesh.vert.spv -O0
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\dev\GameEngines\YakiEngine\Src\App\Shaders\Vertex\basic_mesh.vert;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\dev\GameEngines\YakiEngine\build\debug\Src\App\Shaders\Vertex\basic_mesh.vert.spv</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Compiling shader: Shaders/Vertex/basic_mesh.vert</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -E make_directory C:/dev/GameEngines/YakiEngine/build/debug/Src/App/Release/Shaders
+if %errorlevel% neq 0 goto :cmEnd
+C:\vcpkg\installed\x64-windows\tools\shaderc\glslc.exe C:/dev/GameEngines/YakiEngine/Src/App/Shaders/Vertex/basic_mesh.vert -o C:/dev/GameEngines/YakiEngine/build/debug/Src/App/Shaders/Vertex/basic_mesh.vert.spv -O0
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\dev\GameEngines\YakiEngine\Src\App\Shaders\Vertex\basic_mesh.vert;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\dev\GameEngines\YakiEngine\build\debug\Src\App\Shaders\Vertex\basic_mesh.vert.spv</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkObjects>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="C:\dev\GameEngines\YakiEngine\build\debug\CMakeFiles\3b42bdede63c2b3ea57b34c0e08990d3\materials.vert.spv.rule">
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compiling shader: Shaders/Vertex/materials.vert</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -E make_directory C:/dev/GameEngines/YakiEngine/build/debug/Src/App/Debug/Shaders
+if %errorlevel% neq 0 goto :cmEnd
+C:\vcpkg\installed\x64-windows\tools\shaderc\glslc.exe C:/dev/GameEngines/YakiEngine/Src/App/Shaders/Vertex/materials.vert -o C:/dev/GameEngines/YakiEngine/build/debug/Src/App/Shaders/Vertex/materials.vert.spv -O0
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\dev\GameEngines\YakiEngine\Src\App\Shaders\Vertex\materials.vert;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\dev\GameEngines\YakiEngine\build\debug\Src\App\Shaders\Vertex\materials.vert.spv</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Compiling shader: Shaders/Vertex/materials.vert</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -E make_directory C:/dev/GameEngines/YakiEngine/build/debug/Src/App/Release/Shaders
+if %errorlevel% neq 0 goto :cmEnd
+C:\vcpkg\installed\x64-windows\tools\shaderc\glslc.exe C:/dev/GameEngines/YakiEngine/Src/App/Shaders/Vertex/materials.vert -o C:/dev/GameEngines/YakiEngine/build/debug/Src/App/Shaders/Vertex/materials.vert.spv -O0
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\dev\GameEngines\YakiEngine\Src\App\Shaders\Vertex\materials.vert;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\dev\GameEngines\YakiEngine\build\debug\Src\App\Shaders\Vertex\materials.vert.spv</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkObjects>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="C:\dev\GameEngines\YakiEngine\build\debug\CMakeFiles\3b42bdede63c2b3ea57b34c0e08990d3\picking.vert.spv.rule">
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compiling shader: Shaders/Vertex/picking.vert</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -E make_directory C:/dev/GameEngines/YakiEngine/build/debug/Src/App/Debug/Shaders
+if %errorlevel% neq 0 goto :cmEnd
+C:\vcpkg\installed\x64-windows\tools\shaderc\glslc.exe C:/dev/GameEngines/YakiEngine/Src/App/Shaders/Vertex/picking.vert -o C:/dev/GameEngines/YakiEngine/build/debug/Src/App/Shaders/Vertex/picking.vert.spv -O0
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\dev\GameEngines\YakiEngine\Src\App\Shaders\Vertex\picking.vert;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\dev\GameEngines\YakiEngine\build\debug\Src\App\Shaders\Vertex\picking.vert.spv</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Compiling shader: Shaders/Vertex/picking.vert</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -E make_directory C:/dev/GameEngines/YakiEngine/build/debug/Src/App/Release/Shaders
+if %errorlevel% neq 0 goto :cmEnd
+C:\vcpkg\installed\x64-windows\tools\shaderc\glslc.exe C:/dev/GameEngines/YakiEngine/Src/App/Shaders/Vertex/picking.vert -o C:/dev/GameEngines/YakiEngine/build/debug/Src/App/Shaders/Vertex/picking.vert.spv -O0
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\dev\GameEngines\YakiEngine\Src\App\Shaders\Vertex\picking.vert;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\dev\GameEngines\YakiEngine\build\debug\Src\App\Shaders\Vertex\picking.vert.spv</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkObjects>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="C:\dev\GameEngines\YakiEngine\build\debug\CMakeFiles\3b42bdede63c2b3ea57b34c0e08990d3\wireframe.vert.spv.rule">
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compiling shader: Shaders/Vertex/wireframe.vert</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -E make_directory C:/dev/GameEngines/YakiEngine/build/debug/Src/App/Debug/Shaders
+if %errorlevel% neq 0 goto :cmEnd
+C:\vcpkg\installed\x64-windows\tools\shaderc\glslc.exe C:/dev/GameEngines/YakiEngine/Src/App/Shaders/Vertex/wireframe.vert -o C:/dev/GameEngines/YakiEngine/build/debug/Src/App/Shaders/Vertex/wireframe.vert.spv -O0
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\dev\GameEngines\YakiEngine\Src\App\Shaders\Vertex\wireframe.vert;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\dev\GameEngines\YakiEngine\build\debug\Src\App\Shaders\Vertex\wireframe.vert.spv</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Compiling shader: Shaders/Vertex/wireframe.vert</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -E make_directory C:/dev/GameEngines/YakiEngine/build/debug/Src/App/Release/Shaders
+if %errorlevel% neq 0 goto :cmEnd
+C:\vcpkg\installed\x64-windows\tools\shaderc\glslc.exe C:/dev/GameEngines/YakiEngine/Src/App/Shaders/Vertex/wireframe.vert -o C:/dev/GameEngines/YakiEngine/build/debug/Src/App/Shaders/Vertex/wireframe.vert.spv -O0
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\dev\GameEngines\YakiEngine\Src\App\Shaders\Vertex\wireframe.vert;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\dev\GameEngines\YakiEngine\build\debug\Src\App\Shaders\Vertex\wireframe.vert.spv</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkObjects>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="C:\dev\GameEngines\YakiEngine\build\debug\CMakeFiles\1264a01686a5f3f05276e75a48153cb6\Shaders.rule">
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'"></Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\dev\GameEngines\YakiEngine\build\debug\Src\App\Shaders\Fragment\basic_mesh.frag.spv;C:\dev\GameEngines\YakiEngine\build\debug\Src\App\Shaders\Fragment\materials.frag.spv;C:\dev\GameEngines\YakiEngine\build\debug\Src\App\Shaders\Fragment\picking.frag.spv;C:\dev\GameEngines\YakiEngine\build\debug\Src\App\Shaders\Fragment\wireframe.frag.spv;C:\dev\GameEngines\YakiEngine\build\debug\Src\App\Shaders\Vertex\basic_mesh.vert.spv;C:\dev\GameEngines\YakiEngine\build\debug\Src\App\Shaders\Vertex\materials.vert.spv;C:\dev\GameEngines\YakiEngine\build\debug\Src\App\Shaders\Vertex\picking.vert.spv;C:\dev\GameEngines\YakiEngine\build\debug\Src\App\Shaders\Vertex\wireframe.vert.spv;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\dev\GameEngines\YakiEngine\build\debug\Src\App\CMakeFiles\Shaders</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</LinkObjects>
+      <VerifyInputsAndOutputsExist Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</VerifyInputsAndOutputsExist>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'"></Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\dev\GameEngines\YakiEngine\build\debug\Src\App\Shaders\Fragment\basic_mesh.frag.spv;C:\dev\GameEngines\YakiEngine\build\debug\Src\App\Shaders\Fragment\materials.frag.spv;C:\dev\GameEngines\YakiEngine\build\debug\Src\App\Shaders\Fragment\picking.frag.spv;C:\dev\GameEngines\YakiEngine\build\debug\Src\App\Shaders\Fragment\wireframe.frag.spv;C:\dev\GameEngines\YakiEngine\build\debug\Src\App\Shaders\Vertex\basic_mesh.vert.spv;C:\dev\GameEngines\YakiEngine\build\debug\Src\App\Shaders\Vertex\materials.vert.spv;C:\dev\GameEngines\YakiEngine\build\debug\Src\App\Shaders\Vertex\picking.vert.spv;C:\dev\GameEngines\YakiEngine\build\debug\Src\App\Shaders\Vertex\wireframe.vert.spv;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\dev\GameEngines\YakiEngine\build\debug\Src\App\CMakeFiles\Shaders</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkObjects>
+      <VerifyInputsAndOutputsExist Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</VerifyInputsAndOutputsExist>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="C:\dev\GameEngines\YakiEngine\Src\App\CMakeLists.txt">
+      <UseUtf8Encoding>Always</UseUtf8Encoding>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Building Custom Rule C:/dev/GameEngines/YakiEngine/Src/App/CMakeLists.txt</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SC:/dev/GameEngines/YakiEngine -BC:/dev/GameEngines/YakiEngine/build/debug --check-stamp-file C:/dev/GameEngines/YakiEngine/build/debug/Src/App/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Program Files\CMake\share\cmake-3.30\Modules\CMakeFindDependencyMacro.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\CheckCSourceCompiles.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\CheckIncludeFile.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\CheckLibraryExists.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\FeatureSummary.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\FindPackageHandleStandardArgs.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\FindPackageMessage.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\FindThreads.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\FindVulkan.cmake;C:\vcpkg\installed\x64-windows\lib\cmake\glfw3\glfw3Config.cmake;C:\vcpkg\installed\x64-windows\lib\cmake\glfw3\glfw3ConfigVersion.cmake;C:\vcpkg\installed\x64-windows\lib\cmake\glfw3\glfw3Targets-debug.cmake;C:\vcpkg\installed\x64-windows\lib\cmake\glfw3\glfw3Targets.cmake;C:\vcpkg\installed\x64-windows\share\glm\glmConfig-debug.cmake;C:\vcpkg\installed\x64-windows\share\glm\glmConfig-release.cmake;C:\vcpkg\installed\x64-windows\share\glm\glmConfig.cmake;C:\vcpkg\installed\x64-windows\share\glm\glmConfigVersion.cmake;C:\vcpkg\installed\x64-windows\share\imgui\imgui-config.cmake;C:\vcpkg\installed\x64-windows\share\imgui\imgui-targets-debug.cmake;C:\vcpkg\installed\x64-windows\share\imgui\imgui-targets-release.cmake;C:\vcpkg\installed\x64-windows\share\imgui\imgui-targets.cmake;C:\vcpkg\installed\x64-windows\share\sdl3\SDL3Config.cmake;C:\vcpkg\installed\x64-windows\share\sdl3\SDL3ConfigVersion.cmake;C:\vcpkg\installed\x64-windows\share\sdl3\SDL3sharedTargets.cmake;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\dev\GameEngines\YakiEngine\build\debug\Src\App\CMakeFiles\generate.stamp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Building Custom Rule C:/dev/GameEngines/YakiEngine/Src/App/CMakeLists.txt</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SC:/dev/GameEngines/YakiEngine -BC:/dev/GameEngines/YakiEngine/build/debug --check-stamp-file C:/dev/GameEngines/YakiEngine/build/debug/Src/App/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\Program Files\CMake\share\cmake-3.30\Modules\CMakeFindDependencyMacro.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\CheckCSourceCompiles.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\CheckIncludeFile.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\CheckLibraryExists.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\FeatureSummary.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\FindPackageHandleStandardArgs.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\FindPackageMessage.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\FindThreads.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\FindVulkan.cmake;C:\vcpkg\installed\x64-windows\lib\cmake\glfw3\glfw3Config.cmake;C:\vcpkg\installed\x64-windows\lib\cmake\glfw3\glfw3ConfigVersion.cmake;C:\vcpkg\installed\x64-windows\lib\cmake\glfw3\glfw3Targets-debug.cmake;C:\vcpkg\installed\x64-windows\lib\cmake\glfw3\glfw3Targets.cmake;C:\vcpkg\installed\x64-windows\share\glm\glmConfig-debug.cmake;C:\vcpkg\installed\x64-windows\share\glm\glmConfig-release.cmake;C:\vcpkg\installed\x64-windows\share\glm\glmConfig.cmake;C:\vcpkg\installed\x64-windows\share\glm\glmConfigVersion.cmake;C:\vcpkg\installed\x64-windows\share\imgui\imgui-config.cmake;C:\vcpkg\installed\x64-windows\share\imgui\imgui-targets-debug.cmake;C:\vcpkg\installed\x64-windows\share\imgui\imgui-targets-release.cmake;C:\vcpkg\installed\x64-windows\share\imgui\imgui-targets.cmake;C:\vcpkg\installed\x64-windows\share\sdl3\SDL3Config.cmake;C:\vcpkg\installed\x64-windows\share\sdl3\SDL3ConfigVersion.cmake;C:\vcpkg\installed\x64-windows\share\sdl3\SDL3sharedTargets.cmake;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\dev\GameEngines\YakiEngine\build\debug\Src\App\CMakeFiles\generate.stamp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkObjects>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="C:\dev\GameEngines\YakiEngine\build\debug\Src\App\CMakeFiles\Shaders">
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="C:\dev\GameEngines\YakiEngine\build\debug\ZERO_CHECK.vcxproj">
+      <Project>{2848023E-02EA-3572-B5BE-DE2CC6B192E0}</Project>
+      <Name>ZERO_CHECK</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

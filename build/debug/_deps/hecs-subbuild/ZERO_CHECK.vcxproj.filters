@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <CustomBuild Include="C:\dev\GameEngines\YakiEngine\build\debug\_deps\hecs-subbuild\CMakeFiles\4aa4f10c12a75096465d1f3fe73c47ba\generate.stamp.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="CMake Rules">
+      <UniqueIdentifier>{3A27414E-4A19-3397-B75A-8238D27C6430}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

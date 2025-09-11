@@ -56,7 +56,9 @@ struct GPUDrawPushConstants {
   glm::mat4 worldMatrix;
   VkDeviceAddress vertexBuffer;
   uint32_t objectId;
+  uint32_t padding;
 };
+static_assert(sizeof(GPUDrawPushConstants) == 80);
 
 struct GPUSceneData {
   glm::mat4 view;

@@ -15,14 +15,14 @@ class HashCubes;
 
 class Scene {
 public:
-  Scene(VulkanContext* ctx, const std::filesystem::path& path);
+  Scene(std::shared_ptr<VulkanContext> ctx, DeletionQueue& deletionQueue, const std::filesystem::path& path);
   ~Scene();
 
   std::unordered_map<std::string, std::shared_ptr<Mesh>> m_meshes;
 private:
   friend HashCubes; // TODO: Remove this line
 
-  VulkanContext* m_ctx;
+  std::shared_ptr<VulkanContext> m_ctx;
 
   std::unordered_map<std::string, Hori::Entity> m_nodes;
   std::unordered_map<std::string, std::shared_ptr<Texture>> m_images;
@@ -30,6 +30,6 @@ private:
 
   std::vector<VkSampler> m_samplers;
 
-  DescriptorAllocator m_descriptorPool;
+  DescriptorAllocator m_descriptorAllocator;
   std::shared_ptr<Buffer> m_materialDataBuffer;
 };

@@ -8,7 +8,7 @@
 #include "Assets/Mesh.h"
 #include "Vulkan/VulkanContext.h"
 
-std::optional<std::vector<std::shared_ptr<Mesh>>> GltfUtils::load_gltf_meshes(VulkanContext *ctx, const std::filesystem::path &filePath) {
+std::optional<std::vector<std::shared_ptr<Mesh>>> GltfUtils::load_gltf_meshes(std::shared_ptr<VulkanContext> ctx, const std::filesystem::path &filePath) {
   if (!std::filesystem::exists(filePath)) {
     std::print("Failed to load mesh, path doesn't exist: {}", std::filesystem::absolute(filePath).string());
     return {};
@@ -146,7 +146,7 @@ VkSamplerMipmapMode GltfUtils::extract_mipmap_mode(fastgltf::Filter filter) {
   }
 }
 
-std::shared_ptr<GPUMeshBuffers> GltfUtils::upload_mesh(VulkanContext *ctx, std::vector<Vertex> vertices, std::vector<uint32_t> indices) {
+std::shared_ptr<GPUMeshBuffers> GltfUtils::upload_mesh(std::shared_ptr<VulkanContext> ctx, std::vector<Vertex> vertices, std::vector<uint32_t> indices) {
   const size_t vertexBufferSize = vertices.size() * sizeof(Vertex);
   const size_t indexBufferSize = indices.size() * sizeof(uint32_t);
 

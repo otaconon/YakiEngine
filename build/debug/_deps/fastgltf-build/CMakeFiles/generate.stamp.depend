@@ -1,0 +1,23 @@
+# CMake generation dependency list for this directory.
+C:/Program Files/CMake/share/cmake-3.30/Modules/BasicConfigVersion-SameMajorVersion.cmake.in
+C:/Program Files/CMake/share/cmake-3.30/Modules/CMakeFindDependencyMacro.cmake
+C:/Program Files/CMake/share/cmake-3.30/Modules/CMakePackageConfigHelpers.cmake
+C:/Program Files/CMake/share/cmake-3.30/Modules/CheckCSourceCompiles.cmake
+C:/Program Files/CMake/share/cmake-3.30/Modules/CheckIncludeFile.cmake
+C:/Program Files/CMake/share/cmake-3.30/Modules/CheckLibraryExists.cmake
+C:/Program Files/CMake/share/cmake-3.30/Modules/ExternalProject/shared_internal_commands.cmake
+C:/Program Files/CMake/share/cmake-3.30/Modules/FetchContent.cmake
+C:/Program Files/CMake/share/cmake-3.30/Modules/FindPackageHandleStandardArgs.cmake
+C:/Program Files/CMake/share/cmake-3.30/Modules/FindPackageMessage.cmake
+C:/Program Files/CMake/share/cmake-3.30/Modules/FindThreads.cmake
+C:/Program Files/CMake/share/cmake-3.30/Modules/GNUInstallDirs.cmake
+C:/Program Files/CMake/share/cmake-3.30/Modules/WriteBasicConfigVersionFile.cmake
+C:/dev/GameEngines/YakiEngine/build/debug/_deps/fastgltf-src/CMakeLists.txt
+C:/dev/GameEngines/YakiEngine/build/debug/_deps/fastgltf-src/cmake/add_source_directory.cmake
+C:/dev/GameEngines/YakiEngine/build/debug/_deps/fastgltf-src/cmake/compilers.cmake
+C:/dev/GameEngines/YakiEngine/build/debug/_deps/fastgltf-src/cmake/dependencies.cmake
+C:/vcpkg/installed/x64-windows/share/simdjson/simdjson-config-version.cmake
+C:/vcpkg/installed/x64-windows/share/simdjson/simdjson-config.cmake
+C:/vcpkg/installed/x64-windows/share/simdjson/simdjsonTargets-debug.cmake
+C:/vcpkg/installed/x64-windows/share/simdjson/simdjsonTargets-release.cmake
+C:/vcpkg/installed/x64-windows/share/simdjson/simdjsonTargets.cmake

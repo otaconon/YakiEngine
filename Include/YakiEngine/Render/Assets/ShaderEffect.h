@@ -36,7 +36,7 @@ struct ShaderEffect {
   std::array<VkDescriptorSetLayout, 4> descriptorSetLayouts;
   EnumAccessArray<ShaderStage, ShaderStageType, static_cast<size_t>(ShaderStageType::Count)> stages;
 
-  ShaderEffect(VulkanContext *ctx, std::shared_ptr<Shader> vertShader, std::shared_ptr<Shader> fragShader)
+  ShaderEffect(std::shared_ptr<VulkanContext> ctx, std::shared_ptr<Shader> vertShader, std::shared_ptr<Shader> fragShader)
     : m_ctx{ctx} {
     std::array<DescriptorLayoutBuilder, 4> builders;
 
@@ -76,5 +76,5 @@ struct ShaderEffect {
   }
 
 private:
-  VulkanContext *m_ctx;
+  std::shared_ptr<VulkanContext> m_ctx;
 };

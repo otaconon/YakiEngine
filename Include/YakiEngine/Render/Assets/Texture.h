@@ -11,9 +11,9 @@
 
 class Texture final : public Asset {
 public:
-  Texture(VulkanContext* ctx, fastgltf::Asset &gltfAsset, fastgltf::Image &gltfImage);
-  Texture(VulkanContext* ctx, void *data, VkExtent3D size, VkFormat format, VkImageUsageFlags usage, bool mipmapped);
-  Texture(VulkanContext* ctx, VkExtent3D size, VkFormat format, VkImageUsageFlags usage, bool mipmapped);
+  Texture(std::shared_ptr<VulkanContext> ctx, fastgltf::Asset &gltfAsset, fastgltf::Image &gltfImage);
+  Texture(std::shared_ptr<VulkanContext> ctx, void *data, VkExtent3D size, VkFormat format, VkImageUsageFlags usage, bool mipmapped);
+  Texture(std::shared_ptr<VulkanContext> ctx, VkExtent3D size, VkFormat format, VkImageUsageFlags usage, bool mipmapped);
 
   ~Texture() override;
   void Cleanup();
@@ -29,7 +29,7 @@ public:
   [[nodiscard]] VkFormat GetFormat() const;
 
 private:
-  VulkanContext *m_ctx;
+  std::shared_ptr<VulkanContext> m_ctx;
   VmaAllocator m_allocator;
   VmaAllocation m_allocation{};
 

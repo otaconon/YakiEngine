@@ -1,0 +1,10 @@
+^C:\DEV\GAMEENGINES\YAKIENGINE\BUILD\DEBUG\_DEPS\SPIRVCROSS-SUBBUILD\CMAKEFILES\DB5AEE9FF585D2B7A661EB9E90FCE6D3\GENERATE.STAMP.RULE
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SC:/dev/GameEngines/YakiEngine/build/debug/_deps/spirvcross-subbuild -BC:/dev/GameEngines/YakiEngine/build/debug/_deps/spirvcross-subbuild --check-stamp-list CMakeFiles/generate.stamp.list --vs-solution-file C:/dev/GameEngines/YakiEngine/build/debug/_deps/spirvcross-subbuild/spirvcross-populate.sln
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd

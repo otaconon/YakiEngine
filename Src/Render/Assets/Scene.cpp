@@ -19,7 +19,7 @@
 #include "Vulkan/VkTypes.h"
 #include "Vulkan/Descriptors/DescriptorWriter.h"
 
-Scene::Scene(VulkanContext *ctx, const std::filesystem::path &path)
+Scene::Scene(std::shared_ptr<VulkanContext> ctx, DeletionQueue& deletionQueue, const std::filesystem::path &path)
   : m_ctx{ctx} {
   std::println("Loading GLTF file: {}", path.string());
   if (!std::filesystem::exists(path)) {
@@ -60,7 +60,7 @@ Scene::Scene(VulkanContext *ctx, const std::filesystem::path &path)
       {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1}
   };
 
-  m_descriptorPool.Init(m_ctx->GetDevice(), gltf.materials.size(), sizes);
+  m_descriptorAllocator.Init(m_ctx->GetDevice(), gltf.materials.size(), sizes);
 
   for (fastgltf::Sampler &sampler : gltf.samplers) {
     VkSamplerCreateInfo samplerCreateInfo = {
@@ -76,6 +76,9 @@ Scene::Scene(VulkanContext *ctx, const std::filesystem::path &path)
     VkSampler newSampler;
     vkCreateSampler(m_ctx->GetDevice(), &samplerCreateInfo, nullptr, &newSampler);
     m_samplers.push_back(newSampler);
+    deletionQueue.PushFunction([this, newSampler]() {
+      vkDestroySampler(m_ctx->GetDevice(), newSampler, nullptr);
+    });
   }
 
   std::vector<std::shared_ptr<Mesh>> meshes;
@@ -149,8 +152,7 @@ Scene::Scene(VulkanContext *ctx, const std::filesystem::path &path)
     }
 
     newMat->original = defaultData->opaqueEffectTemplate;
-    DescriptorAllocator descriptorAllocator{};
-    newMat->passSets[MeshPassType::Forward] = descriptorAllocator.Allocate(m_ctx->GetDevice(), newMat->original->passShaders[MeshPassType::Forward]->effect->descriptorSetLayouts[1]); // Possibly needs a fix here
+    newMat->passSets[MeshPassType::Forward] = m_descriptorAllocator.Allocate(m_ctx->GetDevice(), newMat->original->passShaders[MeshPassType::Forward]->effect->descriptorSetLayouts[1]); // Possibly needs a fix here
 
     DescriptorWriter writer{};
     writer.Clear();
@@ -320,9 +322,5 @@ Scene::Scene(VulkanContext *ctx, const std::filesystem::path &path)
 }
 
 Scene::~Scene() {
-  for (auto &sampler : m_samplers) {
-    vkDestroySampler(m_ctx->GetDevice(), sampler, nullptr);
-  }
-
-  m_descriptorPool.DestroyPools(m_ctx->GetDevice());
+  m_descriptorAllocator.DestroyPools(m_ctx->GetDevice());
 }

@@ -1,0 +1,150 @@
+^C:\DEV\GAMEENGINES\YAKIENGINE\BUILD\DEBUG\_DEPS\BENCHMARK-SUBBUILD\CMAKEFILES\9C6ECE755792B9053FDF1711CBACDC3C\BENCHMARK-POPULATE-MKDIR.RULE
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -Dcfgdir=/Debug -P C:/dev/GameEngines/YakiEngine/build/debug/_deps/benchmark-subbuild/benchmark-populate-prefix/tmp/benchmark-populate-mkdirs.cmake
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E touch C:/dev/GameEngines/YakiEngine/build/debug/_deps/benchmark-subbuild/benchmark-populate-prefix/src/benchmark-populate-stamp/Debug/benchmark-populate-mkdir
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\DEV\GAMEENGINES\YAKIENGINE\BUILD\DEBUG\_DEPS\BENCHMARK-SUBBUILD\CMAKEFILES\9C6ECE755792B9053FDF1711CBACDC3C\BENCHMARK-POPULATE-DOWNLOAD.RULE
+setlocal
+cd C:\dev\GameEngines\YakiEngine\build\debug\_deps
+if %errorlevel% neq 0 goto :cmEnd
+C:
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -DCMAKE_MESSAGE_LOG_LEVEL=VERBOSE -P C:/dev/GameEngines/YakiEngine/build/debug/_deps/benchmark-subbuild/benchmark-populate-prefix/tmp/benchmark-populate-gitclone.cmake
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E touch C:/dev/GameEngines/YakiEngine/build/debug/_deps/benchmark-subbuild/benchmark-populate-prefix/src/benchmark-populate-stamp/Debug/benchmark-populate-download
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\DEV\GAMEENGINES\YAKIENGINE\BUILD\DEBUG\_DEPS\BENCHMARK-SUBBUILD\CMAKEFILES\9C6ECE755792B9053FDF1711CBACDC3C\BENCHMARK-POPULATE-UPDATE.RULE
+setlocal
+cd C:\dev\GameEngines\YakiEngine\build\debug\_deps\benchmark-src
+if %errorlevel% neq 0 goto :cmEnd
+C:
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -Dcan_fetch=YES -DCMAKE_MESSAGE_LOG_LEVEL=VERBOSE -P C:/dev/GameEngines/YakiEngine/build/debug/_deps/benchmark-subbuild/benchmark-populate-prefix/tmp/benchmark-populate-gitupdate.cmake
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\DEV\GAMEENGINES\YAKIENGINE\BUILD\DEBUG\_DEPS\BENCHMARK-SUBBUILD\CMAKEFILES\9C6ECE755792B9053FDF1711CBACDC3C\BENCHMARK-POPULATE-PATCH.RULE
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -E echo_append
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E touch C:/dev/GameEngines/YakiEngine/build/debug/_deps/benchmark-subbuild/benchmark-populate-prefix/src/benchmark-populate-stamp/Debug/benchmark-populate-patch
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\DEV\GAMEENGINES\YAKIENGINE\BUILD\DEBUG\_DEPS\BENCHMARK-SUBBUILD\CMAKEFILES\9C6ECE755792B9053FDF1711CBACDC3C\BENCHMARK-POPULATE-CONFIGURE.RULE
+setlocal
+cd C:\dev\GameEngines\YakiEngine\build\debug\_deps\benchmark-build
+if %errorlevel% neq 0 goto :cmEnd
+C:
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E echo_append
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E touch C:/dev/GameEngines/YakiEngine/build/debug/_deps/benchmark-subbuild/benchmark-populate-prefix/src/benchmark-populate-stamp/Debug/benchmark-populate-configure
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\DEV\GAMEENGINES\YAKIENGINE\BUILD\DEBUG\_DEPS\BENCHMARK-SUBBUILD\CMAKEFILES\9C6ECE755792B9053FDF1711CBACDC3C\BENCHMARK-POPULATE-BUILD.RULE
+setlocal
+cd C:\dev\GameEngines\YakiEngine\build\debug\_deps\benchmark-build
+if %errorlevel% neq 0 goto :cmEnd
+C:
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E echo_append
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E touch C:/dev/GameEngines/YakiEngine/build/debug/_deps/benchmark-subbuild/benchmark-populate-prefix/src/benchmark-populate-stamp/Debug/benchmark-populate-build
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\DEV\GAMEENGINES\YAKIENGINE\BUILD\DEBUG\_DEPS\BENCHMARK-SUBBUILD\CMAKEFILES\9C6ECE755792B9053FDF1711CBACDC3C\BENCHMARK-POPULATE-INSTALL.RULE
+setlocal
+cd C:\dev\GameEngines\YakiEngine\build\debug\_deps\benchmark-build
+if %errorlevel% neq 0 goto :cmEnd
+C:
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E echo_append
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E touch C:/dev/GameEngines/YakiEngine/build/debug/_deps/benchmark-subbuild/benchmark-populate-prefix/src/benchmark-populate-stamp/Debug/benchmark-populate-install
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\DEV\GAMEENGINES\YAKIENGINE\BUILD\DEBUG\_DEPS\BENCHMARK-SUBBUILD\CMAKEFILES\9C6ECE755792B9053FDF1711CBACDC3C\BENCHMARK-POPULATE-TEST.RULE
+setlocal
+cd C:\dev\GameEngines\YakiEngine\build\debug\_deps\benchmark-build
+if %errorlevel% neq 0 goto :cmEnd
+C:
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E echo_append
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E touch C:/dev/GameEngines/YakiEngine/build/debug/_deps/benchmark-subbuild/benchmark-populate-prefix/src/benchmark-populate-stamp/Debug/benchmark-populate-test
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\DEV\GAMEENGINES\YAKIENGINE\BUILD\DEBUG\_DEPS\BENCHMARK-SUBBUILD\CMAKEFILES\D29A6D1A6F3518694B120570C34793E9\BENCHMARK-POPULATE-COMPLETE.RULE
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -E make_directory C:/dev/GameEngines/YakiEngine/build/debug/_deps/benchmark-subbuild/CMakeFiles/Debug
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E touch C:/dev/GameEngines/YakiEngine/build/debug/_deps/benchmark-subbuild/CMakeFiles/Debug/benchmark-populate-complete
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E touch C:/dev/GameEngines/YakiEngine/build/debug/_deps/benchmark-subbuild/benchmark-populate-prefix/src/benchmark-populate-stamp/Debug/benchmark-populate-done
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\DEV\GAMEENGINES\YAKIENGINE\BUILD\DEBUG\_DEPS\BENCHMARK-SUBBUILD\CMAKEFILES\1E0063290633C539562B70840AB931B6\BENCHMARK-POPULATE.RULE
+setlocal
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\DEV\GAMEENGINES\YAKIENGINE\BUILD\DEBUG\_DEPS\BENCHMARK-SUBBUILD\CMAKELISTS.TXT
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SC:/dev/GameEngines/YakiEngine/build/debug/_deps/benchmark-subbuild -BC:/dev/GameEngines/YakiEngine/build/debug/_deps/benchmark-subbuild --check-stamp-file C:/dev/GameEngines/YakiEngine/build/debug/_deps/benchmark-subbuild/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd

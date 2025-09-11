@@ -1,0 +1,46 @@
+{
+	"sources" : 
+	[
+		{
+			"file" : "C:/dev/GameEngines/YakiEngine/build/debug/_deps/spirvcross-subbuild/CMakeFiles/spirvcross-populate"
+		},
+		{
+			"file" : "C:/dev/GameEngines/YakiEngine/build/debug/_deps/spirvcross-subbuild/CMakeFiles/db5aee9ff585d2b7a661eb9e90fce6d3/spirvcross-populate.rule"
+		},
+		{
+			"file" : "C:/dev/GameEngines/YakiEngine/build/debug/_deps/spirvcross-subbuild/CMakeFiles/4e7c7de48ebbd4b7d43434a2639fa17c/spirvcross-populate-complete.rule"
+		},
+		{
+			"file" : "C:/dev/GameEngines/YakiEngine/build/debug/_deps/spirvcross-subbuild/CMakeFiles/cd6ed02658ab67bd7a2d60a80950eaf1/spirvcross-populate-build.rule"
+		},
+		{
+			"file" : "C:/dev/GameEngines/YakiEngine/build/debug/_deps/spirvcross-subbuild/CMakeFiles/cd6ed02658ab67bd7a2d60a80950eaf1/spirvcross-populate-configure.rule"
+		},
+		{
+			"file" : "C:/dev/GameEngines/YakiEngine/build/debug/_deps/spirvcross-subbuild/CMakeFiles/cd6ed02658ab67bd7a2d60a80950eaf1/spirvcross-populate-download.rule"
+		},
+		{
+			"file" : "C:/dev/GameEngines/YakiEngine/build/debug/_deps/spirvcross-subbuild/CMakeFiles/cd6ed02658ab67bd7a2d60a80950eaf1/spirvcross-populate-install.rule"
+		},
+		{
+			"file" : "C:/dev/GameEngines/YakiEngine/build/debug/_deps/spirvcross-subbuild/CMakeFiles/cd6ed02658ab67bd7a2d60a80950eaf1/spirvcross-populate-mkdir.rule"
+		},
+		{
+			"file" : "C:/dev/GameEngines/YakiEngine/build/debug/_deps/spirvcross-subbuild/CMakeFiles/cd6ed02658ab67bd7a2d60a80950eaf1/spirvcross-populate-patch.rule"
+		},
+		{
+			"file" : "C:/dev/GameEngines/YakiEngine/build/debug/_deps/spirvcross-subbuild/CMakeFiles/cd6ed02658ab67bd7a2d60a80950eaf1/spirvcross-populate-test.rule"
+		},
+		{
+			"file" : "C:/dev/GameEngines/YakiEngine/build/debug/_deps/spirvcross-subbuild/CMakeFiles/cd6ed02658ab67bd7a2d60a80950eaf1/spirvcross-populate-update.rule"
+		}
+	],
+	"target" : 
+	{
+		"labels" : 
+		[
+			"spirvcross-populate"
+		],
+		"name" : "spirvcross-populate"
+	}
+}

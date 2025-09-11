@@ -1,0 +1,108 @@
+{
+	"backtraceGraph" : 
+	{
+		"commands" : 
+		[
+			"install"
+		],
+		"files" : 
+		[
+			"build/debug/_deps/fastgltf-src/CMakeLists.txt"
+		],
+		"nodes" : 
+		[
+			{
+				"file" : 0
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 133,
+				"parent" : 0
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 138,
+				"parent" : 0
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 143,
+				"parent" : 0
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 152,
+				"parent" : 0
+			}
+		]
+	},
+	"installers" : 
+	[
+		{
+			"backtrace" : 1,
+			"component" : "Unspecified",
+			"destination" : "include/fastgltf",
+			"paths" : 
+			[
+				"build/debug/_deps/fastgltf-src/include/fastgltf/base64.hpp",
+				"build/debug/_deps/fastgltf-src/include/fastgltf/core.hpp",
+				"build/debug/_deps/fastgltf-src/include/fastgltf/dxmath_element_traits.hpp",
+				"build/debug/_deps/fastgltf-src/include/fastgltf/glm_element_traits.hpp",
+				"build/debug/_deps/fastgltf-src/include/fastgltf/tools.hpp",
+				"build/debug/_deps/fastgltf-src/include/fastgltf/types.hpp",
+				"build/debug/_deps/fastgltf-src/include/fastgltf/util.hpp",
+				"build/debug/_deps/fastgltf-src/include/fastgltf/math.hpp"
+			],
+			"type" : "file"
+		},
+		{
+			"backtrace" : 2,
+			"component" : "Unspecified",
+			"destination" : "lib/cmake/fastgltf",
+			"paths" : 
+			[
+				"build/debug/_deps/fastgltf-build/fastgltfConfigVersion.cmake"
+			],
+			"type" : "file"
+		},
+		{
+			"backtrace" : 3,
+			"component" : "Unspecified",
+			"destination" : "lib",
+			"paths" : 
+			[
+				"_deps/fastgltf-build/Release/fastgltf.lib"
+			],
+			"targetId" : "fastgltf::@5a6bec4670e55059daa4",
+			"targetIndex" : 22,
+			"type" : "target"
+		},
+		{
+			"backtrace" : 4,
+			"component" : "Unspecified",
+			"destination" : "lib/cmake/fastgltf",
+			"exportName" : "fastgltf-targets",
+			"exportTargets" : 
+			[
+				{
+					"id" : "fastgltf::@5a6bec4670e55059daa4",
+					"index" : 22
+				}
+			],
+			"paths" : 
+			[
+				"_deps/fastgltf-build/CMakeFiles/Export/14b504216a8c2b5661a6a7c88f3023ae/fastgltfConfig.cmake"
+			],
+			"type" : "export"
+		}
+	],
+	"paths" : 
+	{
+		"build" : "_deps/fastgltf-build",
+		"source" : "build/debug/_deps/fastgltf-src"
+	}
+}

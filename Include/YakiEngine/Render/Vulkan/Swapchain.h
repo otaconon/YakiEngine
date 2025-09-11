@@ -9,7 +9,7 @@
 
 class Swapchain {
 public:
-  Swapchain(VulkanContext *ctx, SDL_Window *window);
+  Swapchain(std::shared_ptr<VulkanContext> ctx, SDL_Window *window);
   ~Swapchain();
 
   void RecreateSwapchain();
@@ -33,7 +33,7 @@ public:
   Swapchain &operator=(const Swapchain &) = delete;
 
 private:
-  VulkanContext *m_ctx;
+  std::shared_ptr<VulkanContext> m_ctx;
   SDL_Window *m_window;
 
   VkSwapchainKHR m_swapchain{};

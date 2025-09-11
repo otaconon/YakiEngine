@@ -1,0 +1,14 @@
+# Target labels
+ fastgltf-populate
+# Source files and their labels
+C:/dev/GameEngines/YakiEngine/build/debug/_deps/fastgltf-subbuild/CMakeFiles/fastgltf-populate
+C:/dev/GameEngines/YakiEngine/build/debug/_deps/fastgltf-subbuild/CMakeFiles/9418a580458ab7e8c396406953c97f91/fastgltf-populate.rule
+C:/dev/GameEngines/YakiEngine/build/debug/_deps/fastgltf-subbuild/CMakeFiles/e7da8ddbf4c478008a834a969919b8cb/fastgltf-populate-complete.rule
+C:/dev/GameEngines/YakiEngine/build/debug/_deps/fastgltf-subbuild/CMakeFiles/e7fb074d24111d365c4d9c291b3d01c7/fastgltf-populate-build.rule
+C:/dev/GameEngines/YakiEngine/build/debug/_deps/fastgltf-subbuild/CMakeFiles/e7fb074d24111d365c4d9c291b3d01c7/fastgltf-populate-configure.rule
+C:/dev/GameEngines/YakiEngine/build/debug/_deps/fastgltf-subbuild/CMakeFiles/e7fb074d24111d365c4d9c291b3d01c7/fastgltf-populate-download.rule
+C:/dev/GameEngines/YakiEngine/build/debug/_deps/fastgltf-subbuild/CMakeFiles/e7fb074d24111d365c4d9c291b3d01c7/fastgltf-populate-install.rule
+C:/dev/GameEngines/YakiEngine/build/debug/_deps/fastgltf-subbuild/CMakeFiles/e7fb074d24111d365c4d9c291b3d01c7/fastgltf-populate-mkdir.rule
+C:/dev/GameEngines/YakiEngine/build/debug/_deps/fastgltf-subbuild/CMakeFiles/e7fb074d24111d365c4d9c291b3d01c7/fastgltf-populate-patch.rule
+C:/dev/GameEngines/YakiEngine/build/debug/_deps/fastgltf-subbuild/CMakeFiles/e7fb074d24111d365c4d9c291b3d01c7/fastgltf-populate-test.rule
+C:/dev/GameEngines/YakiEngine/build/debug/_deps/fastgltf-subbuild/CMakeFiles/e7fb074d24111d365c4d9c291b3d01c7/fastgltf-populate-update.rule

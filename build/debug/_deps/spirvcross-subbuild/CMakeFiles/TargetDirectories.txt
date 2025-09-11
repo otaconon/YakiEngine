@@ -1,0 +1,3 @@
+C:/dev/GameEngines/YakiEngine/build/debug/_deps/spirvcross-subbuild/CMakeFiles/spirvcross-populate.dir
+C:/dev/GameEngines/YakiEngine/build/debug/_deps/spirvcross-subbuild/CMakeFiles/ALL_BUILD.dir
+C:/dev/GameEngines/YakiEngine/build/debug/_deps/spirvcross-subbuild/CMakeFiles/ZERO_CHECK.dir

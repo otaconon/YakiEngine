@@ -1,0 +1,271 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <PreferredToolArchitecture>x64</PreferredToolArchitecture>
+  </PropertyGroup>
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{5E2DE381-0511-3429-9BDA-0D983ABA2224}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <VcpkgEnabled>false</VcpkgEnabled>
+    <WindowsTargetPlatformVersion>10.0.26100.0</WindowsTargetPlatformVersion>
+    <Platform>x64</Platform>
+    <ProjectName>YakiEngine</ProjectName>
+    <VCProjectUpgraderObjectName>NoUpgrade</VCProjectUpgraderObjectName>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v143</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v143</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets">
+    <Import Project="do_not_import_user.props" Condition="exists('do_not_import_user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>10.0.20506.1</_ProjectFileVersion>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\dev\GameEngines\YakiEngine\build\debug\Src\App\Debug\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">YakiEngine.dir\Debug\</IntDir>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">YakiEngine</TargetName>
+    <TargetExt Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.exe</TargetExt>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
+    <GenerateManifest Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</GenerateManifest>
+    <LocalDebuggerWorkingDirectory Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:/dev/GameEngines/YakiEngine/build/debug/Src/App/Debug</LocalDebuggerWorkingDirectory>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\dev\GameEngines\YakiEngine\build\debug\Src\App\Release\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">YakiEngine.dir\Release\</IntDir>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">YakiEngine</TargetName>
+    <TargetExt Condition="'$(Configuration)|$(Platform)'=='Release|x64'">.exe</TargetExt>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
+    <GenerateManifest Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</GenerateManifest>
+    <LocalDebuggerWorkingDirectory Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:/dev/GameEngines/YakiEngine/build/debug/Src/App/Release</LocalDebuggerWorkingDirectory>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>C:\dev\GameEngines\YakiEngine\include\YakiEngine\App;C:\dev\GameEngines\YakiEngine\build\debug\_deps\sdl3-build\include-revision;C:\dev\GameEngines\YakiEngine\build\debug\_deps\sdl3-src\include;C:\dev\GameEngines\YakiEngine\build\debug\_deps\hecs-src\include;C:\dev\GameEngines\YakiEngine\include\YakiEngine\Render;C:\dev\GameEngines\YakiEngine\build\debug\_deps\vulkanmemoryallocator-src\include;C:\dev\GameEngines\YakiEngine\build\debug\_deps\spirvcross-src;C:\dev\GameEngines\YakiEngine\include\YakiEngine\Core;C:\dev\GameEngines\YakiEngine\include\YakiEngine\Ecs;C:\dev\GameEngines\YakiEngine\build\debug\_deps\fastgltf-src\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalOptions>%(AdditionalOptions) /external:I "C:/vcpkg/installed/x64-windows/include"</AdditionalOptions>
+      <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <ExternalWarningLevel>TurnOffAllWarnings</ExternalWarningLevel>
+      <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
+      <MinimalRebuild></MinimalRebuild>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <Optimization>Disabled</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <SupportJustMyCode></SupportJustMyCode>
+      <UseFullPaths>false</UseFullPaths>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;FASTGLTF_USE_CUSTOM_SMALLVECTOR=0;FASTGLTF_ENABLE_DEPRECATED_EXT=0;FASTGLTF_DISABLE_CUSTOM_MEMORY_POOL=0;FASTGLTF_USE_64BIT_FLOAT=0;FASTGLTF_ENABLE_KHR_IMPLICIT_SHAPES=0;FASTGLTF_ENABLE_KHR_PHYSICS_RIGID_BODIES=0;CMAKE_INTDIR="Debug"</PreprocessorDefinitions>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+      <ScanSourceForModuleDependencies>false</ScanSourceForModuleDependencies>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_DEBUG;_WINDOWS;FASTGLTF_USE_CUSTOM_SMALLVECTOR=0;FASTGLTF_ENABLE_DEPRECATED_EXT=0;FASTGLTF_DISABLE_CUSTOM_MEMORY_POOL=0;FASTGLTF_USE_64BIT_FLOAT=0;FASTGLTF_ENABLE_KHR_IMPLICIT_SHAPES=0;FASTGLTF_ENABLE_KHR_PHYSICS_RIGID_BODIES=0;CMAKE_INTDIR=\"Debug\"</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>C:\dev\GameEngines\YakiEngine\include\YakiEngine\App;C:\dev\GameEngines\YakiEngine\build\debug\_deps\sdl3-build\include-revision;C:\dev\GameEngines\YakiEngine\build\debug\_deps\sdl3-src\include;C:\dev\GameEngines\YakiEngine\build\debug\_deps\hecs-src\include;C:\dev\GameEngines\YakiEngine\include\YakiEngine\Render;C:\dev\GameEngines\YakiEngine\build\debug\_deps\vulkanmemoryallocator-src\include;C:\dev\GameEngines\YakiEngine\build\debug\_deps\spirvcross-src;C:\dev\GameEngines\YakiEngine\include\YakiEngine\Core;C:\dev\GameEngines\YakiEngine\include\YakiEngine\Ecs;C:\dev\GameEngines\YakiEngine\build\debug\_deps\fastgltf-src\include;C:\vcpkg\installed\x64-windows\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <Midl>
+      <AdditionalIncludeDirectories>C:\dev\GameEngines\YakiEngine\include\YakiEngine\App;C:\dev\GameEngines\YakiEngine\build\debug\_deps\sdl3-build\include-revision;C:\dev\GameEngines\YakiEngine\build\debug\_deps\sdl3-src\include;C:\dev\GameEngines\YakiEngine\build\debug\_deps\hecs-src\include;C:\dev\GameEngines\YakiEngine\include\YakiEngine\Render;C:\dev\GameEngines\YakiEngine\build\debug\_deps\vulkanmemoryallocator-src\include;C:\dev\GameEngines\YakiEngine\build\debug\_deps\spirvcross-src;C:\dev\GameEngines\YakiEngine\include\YakiEngine\Core;C:\dev\GameEngines\YakiEngine\include\YakiEngine\Ecs;C:\dev\GameEngines\YakiEngine\build\debug\_deps\fastgltf-src\include;C:\vcpkg\installed\x64-windows\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+    <PostBuildEvent>
+      <Message>	</Message>
+      <Command>setlocal
+C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -noprofile -executionpolicy Bypass -file C:/vcpkg/scripts/buildsystems/msbuild/applocal.ps1 -targetBinary C:/dev/GameEngines/YakiEngine/build/debug/Src/App/Debug/YakiEngine.exe -installedDir C:/vcpkg/installed/x64-windows/debug/bin -OutVariable out
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -E copy_directory C:/dev/GameEngines/YakiEngine/assets C:/dev/GameEngines/YakiEngine/build/debug/Src/App/Debug/assets
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+    </PostBuildEvent>
+    <Link>
+      <AdditionalDependencies>C:\vcpkg\installed\x64-windows\debug\lib\imguid.lib;C:\vcpkg\installed\x64-windows\debug\lib\glm.lib;..\Render\Debug\YakiRender.lib;..\Core\Debug\YakiCore.lib;C:\vcpkg\installed\x64-windows\lib\glfw3.lib;C:\vcpkg\installed\x64-windows\debug\lib\vulkan-1.lib;C:\vcpkg\installed\x64-windows\debug\lib\imguid.lib;C:\vcpkg\installed\x64-windows\lib\glfw3.lib;C:\vcpkg\installed\x64-windows\debug\lib\vulkan-1.lib;C:\vcpkg\installed\x64-windows\debug\lib\glm.lib;..\..\_deps\fastgltf-build\Debug\fastgltf.lib;C:\vcpkg\installed\x64-windows\debug\lib\simdjson.lib;..\..\_deps\spirvcross-build\Debug\spirv-cross-cored.lib;C:\vcpkg\installed\x64-windows\debug\lib\imguid.lib;..\..\_deps\sdl3-build\Debug\SDL3.lib;C:\vcpkg\installed\x64-windows\debug\lib\vulkan-1.lib;C:\vcpkg\installed\x64-windows\lib\glfw3.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalOptions>%(AdditionalOptions) /machine:x64</AdditionalOptions>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
+      <ImportLibrary>C:/dev/GameEngines/YakiEngine/build/debug/Src/App/Debug/YakiEngine.lib</ImportLibrary>
+      <ProgramDataBaseFile>C:/dev/GameEngines/YakiEngine/build/debug/Src/App/Debug/YakiEngine.pdb</ProgramDataBaseFile>
+      <SubSystem>Console</SubSystem>
+    </Link>
+    <ProjectReference>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
+    </ProjectReference>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>C:\dev\GameEngines\YakiEngine\include\YakiEngine\App;C:\dev\GameEngines\YakiEngine\build\debug\_deps\sdl3-build\include-revision;C:\dev\GameEngines\YakiEngine\build\debug\_deps\sdl3-src\include;C:\dev\GameEngines\YakiEngine\build\debug\_deps\hecs-src\include;C:\dev\GameEngines\YakiEngine\include\YakiEngine\Render;C:\dev\GameEngines\YakiEngine\build\debug\_deps\vulkanmemoryallocator-src\include;C:\dev\GameEngines\YakiEngine\build\debug\_deps\spirvcross-src;C:\dev\GameEngines\YakiEngine\include\YakiEngine\Core;C:\dev\GameEngines\YakiEngine\include\YakiEngine\Ecs;C:\dev\GameEngines\YakiEngine\build\debug\_deps\fastgltf-src\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalOptions>%(AdditionalOptions) /external:I "C:/vcpkg/installed/x64-windows/include"</AdditionalOptions>
+      <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
+      <BasicRuntimeChecks>Default</BasicRuntimeChecks>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <ExternalWarningLevel>TurnOffAllWarnings</ExternalWarningLevel>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
+      <MinimalRebuild></MinimalRebuild>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <Optimization>MaxSpeed</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <SupportJustMyCode></SupportJustMyCode>
+      <UseFullPaths>false</UseFullPaths>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;FASTGLTF_USE_CUSTOM_SMALLVECTOR=0;FASTGLTF_ENABLE_DEPRECATED_EXT=0;FASTGLTF_DISABLE_CUSTOM_MEMORY_POOL=0;FASTGLTF_USE_64BIT_FLOAT=0;FASTGLTF_ENABLE_KHR_IMPLICIT_SHAPES=0;FASTGLTF_ENABLE_KHR_PHYSICS_RIGID_BODIES=0;CMAKE_INTDIR="Release"</PreprocessorDefinitions>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+      <DebugInformationFormat>
+      </DebugInformationFormat>
+      <ScanSourceForModuleDependencies>false</ScanSourceForModuleDependencies>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;FASTGLTF_USE_CUSTOM_SMALLVECTOR=0;FASTGLTF_ENABLE_DEPRECATED_EXT=0;FASTGLTF_DISABLE_CUSTOM_MEMORY_POOL=0;FASTGLTF_USE_64BIT_FLOAT=0;FASTGLTF_ENABLE_KHR_IMPLICIT_SHAPES=0;FASTGLTF_ENABLE_KHR_PHYSICS_RIGID_BODIES=0;CMAKE_INTDIR=\"Release\"</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>C:\dev\GameEngines\YakiEngine\include\YakiEngine\App;C:\dev\GameEngines\YakiEngine\build\debug\_deps\sdl3-build\include-revision;C:\dev\GameEngines\YakiEngine\build\debug\_deps\sdl3-src\include;C:\dev\GameEngines\YakiEngine\build\debug\_deps\hecs-src\include;C:\dev\GameEngines\YakiEngine\include\YakiEngine\Render;C:\dev\GameEngines\YakiEngine\build\debug\_deps\vulkanmemoryallocator-src\include;C:\dev\GameEngines\YakiEngine\build\debug\_deps\spirvcross-src;C:\dev\GameEngines\YakiEngine\include\YakiEngine\Core;C:\dev\GameEngines\YakiEngine\include\YakiEngine\Ecs;C:\dev\GameEngines\YakiEngine\build\debug\_deps\fastgltf-src\include;C:\vcpkg\installed\x64-windows\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <Midl>
+      <AdditionalIncludeDirectories>C:\dev\GameEngines\YakiEngine\include\YakiEngine\App;C:\dev\GameEngines\YakiEngine\build\debug\_deps\sdl3-build\include-revision;C:\dev\GameEngines\YakiEngine\build\debug\_deps\sdl3-src\include;C:\dev\GameEngines\YakiEngine\build\debug\_deps\hecs-src\include;C:\dev\GameEngines\YakiEngine\include\YakiEngine\Render;C:\dev\GameEngines\YakiEngine\build\debug\_deps\vulkanmemoryallocator-src\include;C:\dev\GameEngines\YakiEngine\build\debug\_deps\spirvcross-src;C:\dev\GameEngines\YakiEngine\include\YakiEngine\Core;C:\dev\GameEngines\YakiEngine\include\YakiEngine\Ecs;C:\dev\GameEngines\YakiEngine\build\debug\_deps\fastgltf-src\include;C:\vcpkg\installed\x64-windows\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+    <PostBuildEvent>
+      <Message>	</Message>
+      <Command>setlocal
+C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -noprofile -executionpolicy Bypass -file C:/vcpkg/scripts/buildsystems/msbuild/applocal.ps1 -targetBinary C:/dev/GameEngines/YakiEngine/build/debug/Src/App/Release/YakiEngine.exe -installedDir C:/vcpkg/installed/x64-windows/bin -OutVariable out
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -E copy_directory C:/dev/GameEngines/YakiEngine/assets C:/dev/GameEngines/YakiEngine/build/debug/Src/App/Release/assets
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+    </PostBuildEvent>
+    <Link>
+      <AdditionalDependencies>C:\vcpkg\installed\x64-windows\lib\imgui.lib;C:\vcpkg\installed\x64-windows\lib\glm.lib;..\Render\Release\YakiRender.lib;..\Core\Release\YakiCore.lib;C:\vcpkg\installed\x64-windows\lib\glfw3.lib;C:\vcpkg\installed\x64-windows\debug\lib\vulkan-1.lib;C:\vcpkg\installed\x64-windows\lib\imgui.lib;C:\vcpkg\installed\x64-windows\lib\glfw3.lib;C:\vcpkg\installed\x64-windows\debug\lib\vulkan-1.lib;C:\vcpkg\installed\x64-windows\lib\glm.lib;..\..\_deps\fastgltf-build\Release\fastgltf.lib;C:\vcpkg\installed\x64-windows\lib\simdjson.lib;..\..\_deps\spirvcross-build\Release\spirv-cross-core.lib;C:\vcpkg\installed\x64-windows\lib\imgui.lib;..\..\_deps\sdl3-build\Release\SDL3.lib;C:\vcpkg\installed\x64-windows\debug\lib\vulkan-1.lib;C:\vcpkg\installed\x64-windows\lib\glfw3.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalOptions>%(AdditionalOptions) /machine:x64</AdditionalOptions>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
+      <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
+      <ImportLibrary>C:/dev/GameEngines/YakiEngine/build/debug/Src/App/Release/YakiEngine.lib</ImportLibrary>
+      <ProgramDataBaseFile>C:/dev/GameEngines/YakiEngine/build/debug/Src/App/Release/YakiEngine.pdb</ProgramDataBaseFile>
+      <SubSystem>Console</SubSystem>
+    </Link>
+    <ProjectReference>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
+    </ProjectReference>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <CustomBuild Include="C:\dev\GameEngines\YakiEngine\Src\App\CMakeLists.txt">
+      <UseUtf8Encoding>Always</UseUtf8Encoding>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Building Custom Rule C:/dev/GameEngines/YakiEngine/Src/App/CMakeLists.txt</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SC:/dev/GameEngines/YakiEngine -BC:/dev/GameEngines/YakiEngine/build/debug --check-stamp-file C:/dev/GameEngines/YakiEngine/build/debug/Src/App/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Program Files\CMake\share\cmake-3.30\Modules\CMakeFindDependencyMacro.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\CheckCSourceCompiles.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\CheckIncludeFile.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\CheckLibraryExists.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\FeatureSummary.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\FindPackageHandleStandardArgs.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\FindPackageMessage.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\FindThreads.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\FindVulkan.cmake;C:\vcpkg\installed\x64-windows\lib\cmake\glfw3\glfw3Config.cmake;C:\vcpkg\installed\x64-windows\lib\cmake\glfw3\glfw3ConfigVersion.cmake;C:\vcpkg\installed\x64-windows\lib\cmake\glfw3\glfw3Targets-debug.cmake;C:\vcpkg\installed\x64-windows\lib\cmake\glfw3\glfw3Targets.cmake;C:\vcpkg\installed\x64-windows\share\glm\glmConfig-debug.cmake;C:\vcpkg\installed\x64-windows\share\glm\glmConfig-release.cmake;C:\vcpkg\installed\x64-windows\share\glm\glmConfig.cmake;C:\vcpkg\installed\x64-windows\share\glm\glmConfigVersion.cmake;C:\vcpkg\installed\x64-windows\share\imgui\imgui-config.cmake;C:\vcpkg\installed\x64-windows\share\imgui\imgui-targets-debug.cmake;C:\vcpkg\installed\x64-windows\share\imgui\imgui-targets-release.cmake;C:\vcpkg\installed\x64-windows\share\imgui\imgui-targets.cmake;C:\vcpkg\installed\x64-windows\share\sdl3\SDL3Config.cmake;C:\vcpkg\installed\x64-windows\share\sdl3\SDL3ConfigVersion.cmake;C:\vcpkg\installed\x64-windows\share\sdl3\SDL3sharedTargets.cmake;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\dev\GameEngines\YakiEngine\build\debug\Src\App\CMakeFiles\generate.stamp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Building Custom Rule C:/dev/GameEngines/YakiEngine/Src/App/CMakeLists.txt</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SC:/dev/GameEngines/YakiEngine -BC:/dev/GameEngines/YakiEngine/build/debug --check-stamp-file C:/dev/GameEngines/YakiEngine/build/debug/Src/App/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\Program Files\CMake\share\cmake-3.30\Modules\CMakeFindDependencyMacro.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\CheckCSourceCompiles.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\CheckIncludeFile.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\CheckLibraryExists.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\FeatureSummary.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\FindPackageHandleStandardArgs.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\FindPackageMessage.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\FindThreads.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\FindVulkan.cmake;C:\vcpkg\installed\x64-windows\lib\cmake\glfw3\glfw3Config.cmake;C:\vcpkg\installed\x64-windows\lib\cmake\glfw3\glfw3ConfigVersion.cmake;C:\vcpkg\installed\x64-windows\lib\cmake\glfw3\glfw3Targets-debug.cmake;C:\vcpkg\installed\x64-windows\lib\cmake\glfw3\glfw3Targets.cmake;C:\vcpkg\installed\x64-windows\share\glm\glmConfig-debug.cmake;C:\vcpkg\installed\x64-windows\share\glm\glmConfig-release.cmake;C:\vcpkg\installed\x64-windows\share\glm\glmConfig.cmake;C:\vcpkg\installed\x64-windows\share\glm\glmConfigVersion.cmake;C:\vcpkg\installed\x64-windows\share\imgui\imgui-config.cmake;C:\vcpkg\installed\x64-windows\share\imgui\imgui-targets-debug.cmake;C:\vcpkg\installed\x64-windows\share\imgui\imgui-targets-release.cmake;C:\vcpkg\installed\x64-windows\share\imgui\imgui-targets.cmake;C:\vcpkg\installed\x64-windows\share\sdl3\SDL3Config.cmake;C:\vcpkg\installed\x64-windows\share\sdl3\SDL3ConfigVersion.cmake;C:\vcpkg\installed\x64-windows\share\sdl3\SDL3sharedTargets.cmake;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\dev\GameEngines\YakiEngine\build\debug\Src\App\CMakeFiles\generate.stamp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkObjects>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="C:\dev\GameEngines\YakiEngine\Src\App\HashCubes.cpp" />
+    <ClCompile Include="C:\dev\GameEngines\YakiEngine\Src\App\main.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="C:\dev\GameEngines\YakiEngine\build\debug\ZERO_CHECK.vcxproj">
+      <Project>{2848023E-02EA-3572-B5BE-DE2CC6B192E0}</Project>
+      <Name>ZERO_CHECK</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="C:\dev\GameEngines\YakiEngine\build\debug\_deps\sdl3-build\SDL3-shared.vcxproj">
+      <Project>{97099BF4-53F1-30F8-BC0A-C56D01185806}</Project>
+      <Name>SDL3-shared</Name>
+    </ProjectReference>
+    <ProjectReference Include="C:\dev\GameEngines\YakiEngine\build\debug\Src\App\Shaders.vcxproj">
+      <Project>{36D019BB-73BB-3113-B3FA-5339872A2995}</Project>
+      <Name>Shaders</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="C:\dev\GameEngines\YakiEngine\build\debug\Src\Core\YakiCore.vcxproj">
+      <Project>{DA853BF6-7025-36A7-8106-DC60F3C96FA5}</Project>
+      <Name>YakiCore</Name>
+    </ProjectReference>
+    <ProjectReference Include="C:\dev\GameEngines\YakiEngine\build\debug\Src\Render\YakiRender.vcxproj">
+      <Project>{9F3C09CE-708D-3E58-9EED-3C61D7CA4116}</Project>
+      <Name>YakiRender</Name>
+    </ProjectReference>
+    <ProjectReference Include="C:\dev\GameEngines\YakiEngine\build\debug\_deps\fastgltf-build\fastgltf.vcxproj">
+      <Project>{22725FF9-EEDA-3BE7-ABC1-B4B7AA4FCC03}</Project>
+      <Name>fastgltf</Name>
+    </ProjectReference>
+    <ProjectReference Include="C:\dev\GameEngines\YakiEngine\build\debug\_deps\spirvcross-build\spirv-cross-core.vcxproj">
+      <Project>{E0197D13-15B8-3BF4-B75D-7E214D5D004E}</Project>
+      <Name>spirv-cross-core</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

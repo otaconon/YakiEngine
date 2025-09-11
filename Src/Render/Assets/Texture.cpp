@@ -1,11 +1,10 @@
 #include "Assets/Texture.h"
-
 #include <stb_image.h>
 #include <bit>
 
 #include "Vulkan/VkUtils.h"
 
-Texture::Texture(VulkanContext* ctx, fastgltf::Asset &gltfAsset, fastgltf::Image &gltfImage)
+Texture::Texture(std::shared_ptr<VulkanContext> ctx, fastgltf::Asset &gltfAsset, fastgltf::Image &gltfImage)
   : m_ctx{ctx} {
   int width, height, nrChannels;
 
@@ -77,12 +76,12 @@ Texture::Texture(VulkanContext* ctx, fastgltf::Asset &gltfAsset, fastgltf::Image
       gltfImage.data);
 }
 
-Texture::Texture(VulkanContext *ctx, void *data, VkExtent3D size, VkFormat format, VkImageUsageFlags usage, bool mipmapped)
+Texture::Texture(std::shared_ptr<VulkanContext> ctx, void *data, VkExtent3D size, VkFormat format, VkImageUsageFlags usage, bool mipmapped)
   : m_ctx{ctx} {
   createTexture(data, size, format, usage, mipmapped);
 }
 
-Texture::Texture(VulkanContext *ctx, VkExtent3D size, VkFormat format, VkImageUsageFlags usage, bool mipmapped)
+Texture::Texture(std::shared_ptr<VulkanContext> ctx, VkExtent3D size, VkFormat format, VkImageUsageFlags usage, bool mipmapped)
   : m_ctx{ctx} {
   createTexture(size, format, usage, mipmapped);
 }

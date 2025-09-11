@@ -4,7 +4,7 @@
 
 class ComputePipelineBuilder {
 public:
-    explicit ComputePipelineBuilder(VulkanContext* ctx);
+    explicit ComputePipelineBuilder(std::shared_ptr<VulkanContext> ctx);
 
     VkPipeline CreatePipeline();
 
@@ -16,7 +16,7 @@ public:
     void SetShaders(VkShaderModule computeShader);
 
 private:
-    VulkanContext* m_ctx;
+    std::shared_ptr<VulkanContext> m_ctx;
     DescriptorAllocator m_descriptorAllocator{};
 
     VkPipeline m_pipeline{};

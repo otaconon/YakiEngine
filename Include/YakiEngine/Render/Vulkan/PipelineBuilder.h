@@ -8,7 +8,7 @@
 class PipelineBuilder
 {
 public:
-    explicit PipelineBuilder(VulkanContext* ctx);
+    explicit PipelineBuilder(std::shared_ptr<VulkanContext> ctx);
 
     VkPipeline CreatePipeline();
     VkPipeline CreateMRTPipeline(std::span<VkPipelineColorBlendAttachmentState> blendAttachments, std::span<VkFormat> colorFormats);
@@ -34,7 +34,7 @@ public:
     void DisableDepthTest();
 
 private:
-    VulkanContext* m_ctx;
+    std::shared_ptr<VulkanContext> m_ctx;
     DescriptorAllocator m_descriptorAllocator{};
 
     VkPipeline m_pipeline{};

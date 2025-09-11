@@ -17,13 +17,14 @@ constexpr uint32_t numDirectionalLights = 1;
 constexpr uint32_t numPointLights = 0;
 
 HashCubes::HashCubes()
-  : m_ctx{m_window.window()},
-    m_renderer{m_window.window(), &m_ctx} {
+  : m_ctx{std::make_shared<VulkanContext>(m_window.window())},
+    m_renderer{m_window.window(), m_ctx} {
   initEcs();
 
   auto &ecs = Ecs::GetInstance();
+  DeletionQueue deletionQueue;
 
-  m_allMeshes = std::make_shared<Scene>(&m_ctx, "Assets/meshes/basicmesh.glb");
+  m_allMeshes = std::make_shared<Scene>(m_ctx, deletionQueue, "Assets/meshes/basicmesh.glb");
   m_cubeMesh = std::next(m_allMeshes->m_meshes.begin(), 1)->second;
 
   constexpr uint32_t cubesRes = 100;

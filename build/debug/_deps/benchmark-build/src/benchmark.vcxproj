@@ -1,0 +1,219 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <PreferredToolArchitecture>x64</PreferredToolArchitecture>
+  </PropertyGroup>
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{5B9546D7-C597-306F-AD33-583EE8FF4BFA}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <VcpkgEnabled>false</VcpkgEnabled>
+    <WindowsTargetPlatformVersion>10.0.26100.0</WindowsTargetPlatformVersion>
+    <Platform>x64</Platform>
+    <ProjectName>benchmark</ProjectName>
+    <VCProjectUpgraderObjectName>NoUpgrade</VCProjectUpgraderObjectName>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v143</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v143</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets">
+    <Import Project="do_not_import_user.props" Condition="exists('do_not_import_user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>10.0.20506.1</_ProjectFileVersion>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\dev\GameEngines\YakiEngine\build\debug\_deps\benchmark-build\src\Debug\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">benchmark.dir\Debug\</IntDir>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">benchmark</TargetName>
+    <TargetExt Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.lib</TargetExt>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\dev\GameEngines\YakiEngine\build\debug\_deps\benchmark-build\src\Release\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">benchmark.dir\Release\</IntDir>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">benchmark</TargetName>
+    <TargetExt Condition="'$(Configuration)|$(Platform)'=='Release|x64'">.lib</TargetExt>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>C:\dev\GameEngines\YakiEngine\build\debug\_deps\benchmark-src\include;C:\dev\GameEngines\YakiEngine\build\debug\_deps\benchmark-src\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <MinimalRebuild></MinimalRebuild>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <Optimization>Disabled</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <SupportJustMyCode></SupportJustMyCode>
+      <TreatWarningAsError>true</TreatWarningAsError>
+      <UseFullPaths>false</UseFullPaths>
+      <WarningLevel>Level4</WarningLevel>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;BENCHMARK_STATIC_DEFINE;_CRT_SECURE_NO_WARNINGS;HAVE_STD_REGEX;HAVE_STEADY_CLOCK;CMAKE_INTDIR="Debug"</PreprocessorDefinitions>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+      <ScanSourceForModuleDependencies>false</ScanSourceForModuleDependencies>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_DEBUG;_WINDOWS;BENCHMARK_STATIC_DEFINE;_CRT_SECURE_NO_WARNINGS;HAVE_STD_REGEX;HAVE_STEADY_CLOCK;CMAKE_INTDIR=\"Debug\"</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>C:\dev\GameEngines\YakiEngine\build\debug\_deps\benchmark-src\include;C:\dev\GameEngines\YakiEngine\build\debug\_deps\benchmark-src\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <Midl>
+      <AdditionalIncludeDirectories>C:\dev\GameEngines\YakiEngine\build\debug\_deps\benchmark-src\include;C:\dev\GameEngines\YakiEngine\build\debug\_deps\benchmark-src\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+    <Lib>
+      <AdditionalOptions>%(AdditionalOptions) /machine:x64</AdditionalOptions>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>C:\dev\GameEngines\YakiEngine\build\debug\_deps\benchmark-src\include;C:\dev\GameEngines\YakiEngine\build\debug\_deps\benchmark-src\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
+      <BasicRuntimeChecks>Default</BasicRuntimeChecks>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <MinimalRebuild></MinimalRebuild>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <Optimization>MaxSpeed</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <SupportJustMyCode></SupportJustMyCode>
+      <TreatWarningAsError>true</TreatWarningAsError>
+      <UseFullPaths>false</UseFullPaths>
+      <WarningLevel>Level4</WarningLevel>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;BENCHMARK_STATIC_DEFINE;_CRT_SECURE_NO_WARNINGS;HAVE_STD_REGEX;HAVE_STEADY_CLOCK;CMAKE_INTDIR="Release"</PreprocessorDefinitions>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+      <DebugInformationFormat>
+      </DebugInformationFormat>
+      <ScanSourceForModuleDependencies>false</ScanSourceForModuleDependencies>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;BENCHMARK_STATIC_DEFINE;_CRT_SECURE_NO_WARNINGS;HAVE_STD_REGEX;HAVE_STEADY_CLOCK;CMAKE_INTDIR=\"Release\"</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>C:\dev\GameEngines\YakiEngine\build\debug\_deps\benchmark-src\include;C:\dev\GameEngines\YakiEngine\build\debug\_deps\benchmark-src\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <Midl>
+      <AdditionalIncludeDirectories>C:\dev\GameEngines\YakiEngine\build\debug\_deps\benchmark-src\include;C:\dev\GameEngines\YakiEngine\build\debug\_deps\benchmark-src\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+    <Lib>
+      <AdditionalOptions>%(AdditionalOptions) /machine:x64</AdditionalOptions>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <CustomBuild Include="C:\dev\GameEngines\YakiEngine\build\debug\_deps\benchmark-src\src\CMakeLists.txt">
+      <UseUtf8Encoding>Always</UseUtf8Encoding>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Building Custom Rule C:/dev/GameEngines/YakiEngine/build/debug/_deps/benchmark-src/src/CMakeLists.txt</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SC:/dev/GameEngines/YakiEngine -BC:/dev/GameEngines/YakiEngine/build/debug --check-stamp-file C:/dev/GameEngines/YakiEngine/build/debug/_deps/benchmark-build/src/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Program Files\CMake\share\cmake-3.30\Modules\BasicConfigVersion-SameMajorVersion.cmake.in;C:\Program Files\CMake\share\cmake-3.30\Modules\CMakePackageConfigHelpers.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\GNUInstallDirs.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\WriteBasicConfigVersionFile.cmake;C:\dev\GameEngines\YakiEngine\build\debug\_deps\benchmark-src\cmake\Config.cmake.in;C:\dev\GameEngines\YakiEngine\build\debug\_deps\benchmark-src\cmake\benchmark.pc.in;C:\dev\GameEngines\YakiEngine\build\debug\_deps\benchmark-src\cmake\benchmark_main.pc.in;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\dev\GameEngines\YakiEngine\build\debug\_deps\benchmark-build\src\CMakeFiles\generate.stamp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Building Custom Rule C:/dev/GameEngines/YakiEngine/build/debug/_deps/benchmark-src/src/CMakeLists.txt</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SC:/dev/GameEngines/YakiEngine -BC:/dev/GameEngines/YakiEngine/build/debug --check-stamp-file C:/dev/GameEngines/YakiEngine/build/debug/_deps/benchmark-build/src/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\Program Files\CMake\share\cmake-3.30\Modules\BasicConfigVersion-SameMajorVersion.cmake.in;C:\Program Files\CMake\share\cmake-3.30\Modules\CMakePackageConfigHelpers.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\GNUInstallDirs.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\WriteBasicConfigVersionFile.cmake;C:\dev\GameEngines\YakiEngine\build\debug\_deps\benchmark-src\cmake\Config.cmake.in;C:\dev\GameEngines\YakiEngine\build\debug\_deps\benchmark-src\cmake\benchmark.pc.in;C:\dev\GameEngines\YakiEngine\build\debug\_deps\benchmark-src\cmake\benchmark_main.pc.in;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\dev\GameEngines\YakiEngine\build\debug\_deps\benchmark-build\src\CMakeFiles\generate.stamp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkObjects>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="C:\dev\GameEngines\YakiEngine\build\debug\_deps\benchmark-src\include\benchmark\benchmark.h" />
+    <ClInclude Include="C:\dev\GameEngines\YakiEngine\build\debug\_deps\benchmark-src\include\benchmark\export.h" />
+    <ClInclude Include="C:\dev\GameEngines\YakiEngine\build\debug\_deps\benchmark-src\src\arraysize.h" />
+    <ClCompile Include="C:\dev\GameEngines\YakiEngine\build\debug\_deps\benchmark-src\src\benchmark.cc">
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(PreprocessorDefinitions);BENCHMARK_VERSION="v1.9.4"</PreprocessorDefinitions>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(PreprocessorDefinitions);BENCHMARK_VERSION="v1.9.4"</PreprocessorDefinitions>
+    </ClCompile>
+    <ClCompile Include="C:\dev\GameEngines\YakiEngine\build\debug\_deps\benchmark-src\src\benchmark_api_internal.cc" />
+    <ClInclude Include="C:\dev\GameEngines\YakiEngine\build\debug\_deps\benchmark-src\src\benchmark_api_internal.h" />
+    <ClCompile Include="C:\dev\GameEngines\YakiEngine\build\debug\_deps\benchmark-src\src\benchmark_name.cc" />
+    <ClCompile Include="C:\dev\GameEngines\YakiEngine\build\debug\_deps\benchmark-src\src\benchmark_register.cc" />
+    <ClInclude Include="C:\dev\GameEngines\YakiEngine\build\debug\_deps\benchmark-src\src\benchmark_register.h" />
+    <ClCompile Include="C:\dev\GameEngines\YakiEngine\build\debug\_deps\benchmark-src\src\benchmark_runner.cc" />
+    <ClInclude Include="C:\dev\GameEngines\YakiEngine\build\debug\_deps\benchmark-src\src\benchmark_runner.h" />
+    <ClCompile Include="C:\dev\GameEngines\YakiEngine\build\debug\_deps\benchmark-src\src\check.cc" />
+    <ClInclude Include="C:\dev\GameEngines\YakiEngine\build\debug\_deps\benchmark-src\src\check.h" />
+    <ClCompile Include="C:\dev\GameEngines\YakiEngine\build\debug\_deps\benchmark-src\src\colorprint.cc" />
+    <ClInclude Include="C:\dev\GameEngines\YakiEngine\build\debug\_deps\benchmark-src\src\colorprint.h" />
+    <ClCompile Include="C:\dev\GameEngines\YakiEngine\build\debug\_deps\benchmark-src\src\commandlineflags.cc" />
+    <ClInclude Include="C:\dev\GameEngines\YakiEngine\build\debug\_deps\benchmark-src\src\commandlineflags.h" />
+    <ClCompile Include="C:\dev\GameEngines\YakiEngine\build\debug\_deps\benchmark-src\src\complexity.cc" />
+    <ClInclude Include="C:\dev\GameEngines\YakiEngine\build\debug\_deps\benchmark-src\src\complexity.h" />
+    <ClCompile Include="C:\dev\GameEngines\YakiEngine\build\debug\_deps\benchmark-src\src\console_reporter.cc" />
+    <ClCompile Include="C:\dev\GameEngines\YakiEngine\build\debug\_deps\benchmark-src\src\counter.cc" />
+    <ClInclude Include="C:\dev\GameEngines\YakiEngine\build\debug\_deps\benchmark-src\src\counter.h" />
+    <ClCompile Include="C:\dev\GameEngines\YakiEngine\build\debug\_deps\benchmark-src\src\csv_reporter.cc" />
+    <ClInclude Include="C:\dev\GameEngines\YakiEngine\build\debug\_deps\benchmark-src\src\cycleclock.h" />
+    <ClInclude Include="C:\dev\GameEngines\YakiEngine\build\debug\_deps\benchmark-src\src\internal_macros.h" />
+    <ClCompile Include="C:\dev\GameEngines\YakiEngine\build\debug\_deps\benchmark-src\src\json_reporter.cc" />
+    <ClInclude Include="C:\dev\GameEngines\YakiEngine\build\debug\_deps\benchmark-src\src\log.h" />
+    <ClInclude Include="C:\dev\GameEngines\YakiEngine\build\debug\_deps\benchmark-src\src\mutex.h" />
+    <ClCompile Include="C:\dev\GameEngines\YakiEngine\build\debug\_deps\benchmark-src\src\perf_counters.cc" />
+    <ClInclude Include="C:\dev\GameEngines\YakiEngine\build\debug\_deps\benchmark-src\src\perf_counters.h" />
+    <ClInclude Include="C:\dev\GameEngines\YakiEngine\build\debug\_deps\benchmark-src\src\re.h" />
+    <ClCompile Include="C:\dev\GameEngines\YakiEngine\build\debug\_deps\benchmark-src\src\reporter.cc" />
+    <ClCompile Include="C:\dev\GameEngines\YakiEngine\build\debug\_deps\benchmark-src\src\statistics.cc" />
+    <ClInclude Include="C:\dev\GameEngines\YakiEngine\build\debug\_deps\benchmark-src\src\statistics.h" />
+    <ClCompile Include="C:\dev\GameEngines\YakiEngine\build\debug\_deps\benchmark-src\src\string_util.cc" />
+    <ClInclude Include="C:\dev\GameEngines\YakiEngine\build\debug\_deps\benchmark-src\src\string_util.h" />
+    <ClCompile Include="C:\dev\GameEngines\YakiEngine\build\debug\_deps\benchmark-src\src\sysinfo.cc" />
+    <ClInclude Include="C:\dev\GameEngines\YakiEngine\build\debug\_deps\benchmark-src\src\thread_manager.h" />
+    <ClInclude Include="C:\dev\GameEngines\YakiEngine\build\debug\_deps\benchmark-src\src\thread_timer.h" />
+    <ClCompile Include="C:\dev\GameEngines\YakiEngine\build\debug\_deps\benchmark-src\src\timers.cc" />
+    <ClInclude Include="C:\dev\GameEngines\YakiEngine\build\debug\_deps\benchmark-src\src\timers.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="C:\dev\GameEngines\YakiEngine\build\debug\ZERO_CHECK.vcxproj">
+      <Project>{2848023E-02EA-3572-B5BE-DE2CC6B192E0}</Project>
+      <Name>ZERO_CHECK</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

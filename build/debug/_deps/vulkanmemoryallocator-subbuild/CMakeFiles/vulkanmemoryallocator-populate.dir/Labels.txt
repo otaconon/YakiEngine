@@ -1,0 +1,14 @@
+# Target labels
+ vulkanmemoryallocator-populate
+# Source files and their labels
+C:/dev/GameEngines/YakiEngine/build/debug/_deps/vulkanmemoryallocator-subbuild/CMakeFiles/vulkanmemoryallocator-populate
+C:/dev/GameEngines/YakiEngine/build/debug/_deps/vulkanmemoryallocator-subbuild/CMakeFiles/2385e40682b9ffcfecc4fb3dab9195fa/vulkanmemoryallocator-populate.rule
+C:/dev/GameEngines/YakiEngine/build/debug/_deps/vulkanmemoryallocator-subbuild/CMakeFiles/3aa2a0597953f149c0caa6a5e5117090/vulkanmemoryallocator-populate-complete.rule
+C:/dev/GameEngines/YakiEngine/build/debug/_deps/vulkanmemoryallocator-subbuild/CMakeFiles/281919725e94c564cea85e7b69947548/vulkanmemoryallocator-populate-build.rule
+C:/dev/GameEngines/YakiEngine/build/debug/_deps/vulkanmemoryallocator-subbuild/CMakeFiles/281919725e94c564cea85e7b69947548/vulkanmemoryallocator-populate-configure.rule
+C:/dev/GameEngines/YakiEngine/build/debug/_deps/vulkanmemoryallocator-subbuild/CMakeFiles/281919725e94c564cea85e7b69947548/vulkanmemoryallocator-populate-download.rule
+C:/dev/GameEngines/YakiEngine/build/debug/_deps/vulkanmemoryallocator-subbuild/CMakeFiles/281919725e94c564cea85e7b69947548/vulkanmemoryallocator-populate-install.rule
+C:/dev/GameEngines/YakiEngine/build/debug/_deps/vulkanmemoryallocator-subbuild/CMakeFiles/281919725e94c564cea85e7b69947548/vulkanmemoryallocator-populate-mkdir.rule
+C:/dev/GameEngines/YakiEngine/build/debug/_deps/vulkanmemoryallocator-subbuild/CMakeFiles/281919725e94c564cea85e7b69947548/vulkanmemoryallocator-populate-patch.rule
+C:/dev/GameEngines/YakiEngine/build/debug/_deps/vulkanmemoryallocator-subbuild/CMakeFiles/281919725e94c564cea85e7b69947548/vulkanmemoryallocator-populate-test.rule
+C:/dev/GameEngines/YakiEngine/build/debug/_deps/vulkanmemoryallocator-subbuild/CMakeFiles/281919725e94c564cea85e7b69947548/vulkanmemoryallocator-populate-update.rule

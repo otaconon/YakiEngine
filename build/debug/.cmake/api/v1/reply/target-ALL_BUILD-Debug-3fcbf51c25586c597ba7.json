@@ -1,0 +1,108 @@
+{
+	"backtrace" : 0,
+	"backtraceGraph" : 
+	{
+		"commands" : [],
+		"files" : 
+		[
+			"CMakeLists.txt"
+		],
+		"nodes" : 
+		[
+			{
+				"file" : 0
+			}
+		]
+	},
+	"dependencies" : 
+	[
+		{
+			"id" : "SDL3-shared::@405c074760d2f6728126"
+		},
+		{
+			"id" : "SDL3_test::@405c074760d2f6728126"
+		},
+		{
+			"id" : "YakiCore::@22791e38258daf4daeb0"
+		},
+		{
+			"id" : "SDL_uclibc::@405c074760d2f6728126"
+		},
+		{
+			"id" : "gtest::@1ea2dfc0605fe3ab2a3f"
+		},
+		{
+			"id" : "gtest_main::@1ea2dfc0605fe3ab2a3f"
+		},
+		{
+			"id" : "gmock_main::@0f7bb11d64f3678238c7"
+		},
+		{
+			"id" : "gmock::@0f7bb11d64f3678238c7"
+		},
+		{
+			"id" : "EcsTest::@46a80b23e6ee9f0b2a66"
+		},
+		{
+			"id" : "Benchmark::@d212685c7b94905a2838"
+		},
+		{
+			"id" : "fastgltf::@5a6bec4670e55059daa4"
+		},
+		{
+			"id" : "spirv-cross-msl::@6e7e775e076d32ab0fc2"
+		},
+		{
+			"id" : "benchmark::@2fa91c1ea4e05cbc4511"
+		},
+		{
+			"id" : "benchmark_main::@2fa91c1ea4e05cbc4511"
+		},
+		{
+			"id" : "YakiRender::@35ea1e455734d0974940"
+		},
+		{
+			"id" : "spirv-cross-core::@6e7e775e076d32ab0fc2"
+		},
+		{
+			"id" : "spirv-cross-glsl::@6e7e775e076d32ab0fc2"
+		},
+		{
+			"id" : "spirv-cross-cpp::@6e7e775e076d32ab0fc2"
+		},
+		{
+			"id" : "spirv-cross-reflect::@6e7e775e076d32ab0fc2"
+		},
+		{
+			"id" : "spirv-cross-hlsl::@6e7e775e076d32ab0fc2"
+		},
+		{
+			"id" : "spirv-cross-util::@6e7e775e076d32ab0fc2"
+		},
+		{
+			"id" : "spirv-cross-c::@6e7e775e076d32ab0fc2"
+		},
+		{
+			"id" : "YakiEngine::@9fc1441435ecfffe9720"
+		},
+		{
+			"id" : "Shaders::@9fc1441435ecfffe9720"
+		},
+		{
+			"id" : "spirv-cross::@6e7e775e076d32ab0fc2"
+		},
+		{
+			"id" : "ZERO_CHECK::@6890427a1f51a3e7e1df"
+		}
+	],
+	"id" : "ALL_BUILD::@6890427a1f51a3e7e1df",
+	"isGeneratorProvided" : true,
+	"name" : "ALL_BUILD",
+	"paths" : 
+	{
+		"build" : ".",
+		"source" : "."
+	},
+	"sources" : [],
+	"type" : "UTILITY"
+}

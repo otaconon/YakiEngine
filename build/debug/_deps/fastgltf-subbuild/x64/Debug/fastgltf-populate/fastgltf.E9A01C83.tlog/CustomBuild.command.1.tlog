@@ -1,0 +1,150 @@
+^C:\DEV\GAMEENGINES\YAKIENGINE\BUILD\DEBUG\_DEPS\FASTGLTF-SUBBUILD\CMAKEFILES\E7FB074D24111D365C4D9C291B3D01C7\FASTGLTF-POPULATE-MKDIR.RULE
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -Dcfgdir=/Debug -P C:/dev/GameEngines/YakiEngine/build/debug/_deps/fastgltf-subbuild/fastgltf-populate-prefix/tmp/fastgltf-populate-mkdirs.cmake
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E touch C:/dev/GameEngines/YakiEngine/build/debug/_deps/fastgltf-subbuild/fastgltf-populate-prefix/src/fastgltf-populate-stamp/Debug/fastgltf-populate-mkdir
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\DEV\GAMEENGINES\YAKIENGINE\BUILD\DEBUG\_DEPS\FASTGLTF-SUBBUILD\CMAKEFILES\E7FB074D24111D365C4D9C291B3D01C7\FASTGLTF-POPULATE-DOWNLOAD.RULE
+setlocal
+cd C:\dev\GameEngines\YakiEngine\build\debug\_deps
+if %errorlevel% neq 0 goto :cmEnd
+C:
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -DCMAKE_MESSAGE_LOG_LEVEL=VERBOSE -P C:/dev/GameEngines/YakiEngine/build/debug/_deps/fastgltf-subbuild/fastgltf-populate-prefix/tmp/fastgltf-populate-gitclone.cmake
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E touch C:/dev/GameEngines/YakiEngine/build/debug/_deps/fastgltf-subbuild/fastgltf-populate-prefix/src/fastgltf-populate-stamp/Debug/fastgltf-populate-download
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\DEV\GAMEENGINES\YAKIENGINE\BUILD\DEBUG\_DEPS\FASTGLTF-SUBBUILD\CMAKEFILES\E7FB074D24111D365C4D9C291B3D01C7\FASTGLTF-POPULATE-UPDATE.RULE
+setlocal
+cd C:\dev\GameEngines\YakiEngine\build\debug\_deps\fastgltf-src
+if %errorlevel% neq 0 goto :cmEnd
+C:
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -Dcan_fetch=YES -DCMAKE_MESSAGE_LOG_LEVEL=VERBOSE -P C:/dev/GameEngines/YakiEngine/build/debug/_deps/fastgltf-subbuild/fastgltf-populate-prefix/tmp/fastgltf-populate-gitupdate.cmake
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\DEV\GAMEENGINES\YAKIENGINE\BUILD\DEBUG\_DEPS\FASTGLTF-SUBBUILD\CMAKEFILES\E7FB074D24111D365C4D9C291B3D01C7\FASTGLTF-POPULATE-PATCH.RULE
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -E echo_append
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E touch C:/dev/GameEngines/YakiEngine/build/debug/_deps/fastgltf-subbuild/fastgltf-populate-prefix/src/fastgltf-populate-stamp/Debug/fastgltf-populate-patch
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\DEV\GAMEENGINES\YAKIENGINE\BUILD\DEBUG\_DEPS\FASTGLTF-SUBBUILD\CMAKEFILES\E7FB074D24111D365C4D9C291B3D01C7\FASTGLTF-POPULATE-CONFIGURE.RULE
+setlocal
+cd C:\dev\GameEngines\YakiEngine\build\debug\_deps\fastgltf-build
+if %errorlevel% neq 0 goto :cmEnd
+C:
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E echo_append
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E touch C:/dev/GameEngines/YakiEngine/build/debug/_deps/fastgltf-subbuild/fastgltf-populate-prefix/src/fastgltf-populate-stamp/Debug/fastgltf-populate-configure
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\DEV\GAMEENGINES\YAKIENGINE\BUILD\DEBUG\_DEPS\FASTGLTF-SUBBUILD\CMAKEFILES\E7FB074D24111D365C4D9C291B3D01C7\FASTGLTF-POPULATE-BUILD.RULE
+setlocal
+cd C:\dev\GameEngines\YakiEngine\build\debug\_deps\fastgltf-build
+if %errorlevel% neq 0 goto :cmEnd
+C:
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E echo_append
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E touch C:/dev/GameEngines/YakiEngine/build/debug/_deps/fastgltf-subbuild/fastgltf-populate-prefix/src/fastgltf-populate-stamp/Debug/fastgltf-populate-build
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\DEV\GAMEENGINES\YAKIENGINE\BUILD\DEBUG\_DEPS\FASTGLTF-SUBBUILD\CMAKEFILES\E7FB074D24111D365C4D9C291B3D01C7\FASTGLTF-POPULATE-INSTALL.RULE
+setlocal
+cd C:\dev\GameEngines\YakiEngine\build\debug\_deps\fastgltf-build
+if %errorlevel% neq 0 goto :cmEnd
+C:
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E echo_append
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E touch C:/dev/GameEngines/YakiEngine/build/debug/_deps/fastgltf-subbuild/fastgltf-populate-prefix/src/fastgltf-populate-stamp/Debug/fastgltf-populate-install
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\DEV\GAMEENGINES\YAKIENGINE\BUILD\DEBUG\_DEPS\FASTGLTF-SUBBUILD\CMAKEFILES\E7FB074D24111D365C4D9C291B3D01C7\FASTGLTF-POPULATE-TEST.RULE
+setlocal
+cd C:\dev\GameEngines\YakiEngine\build\debug\_deps\fastgltf-build
+if %errorlevel% neq 0 goto :cmEnd
+C:
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E echo_append
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E touch C:/dev/GameEngines/YakiEngine/build/debug/_deps/fastgltf-subbuild/fastgltf-populate-prefix/src/fastgltf-populate-stamp/Debug/fastgltf-populate-test
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\DEV\GAMEENGINES\YAKIENGINE\BUILD\DEBUG\_DEPS\FASTGLTF-SUBBUILD\CMAKEFILES\E7DA8DDBF4C478008A834A969919B8CB\FASTGLTF-POPULATE-COMPLETE.RULE
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -E make_directory C:/dev/GameEngines/YakiEngine/build/debug/_deps/fastgltf-subbuild/CMakeFiles/Debug
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E touch C:/dev/GameEngines/YakiEngine/build/debug/_deps/fastgltf-subbuild/CMakeFiles/Debug/fastgltf-populate-complete
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E touch C:/dev/GameEngines/YakiEngine/build/debug/_deps/fastgltf-subbuild/fastgltf-populate-prefix/src/fastgltf-populate-stamp/Debug/fastgltf-populate-done
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\DEV\GAMEENGINES\YAKIENGINE\BUILD\DEBUG\_DEPS\FASTGLTF-SUBBUILD\CMAKEFILES\9418A580458AB7E8C396406953C97F91\FASTGLTF-POPULATE.RULE
+setlocal
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\DEV\GAMEENGINES\YAKIENGINE\BUILD\DEBUG\_DEPS\FASTGLTF-SUBBUILD\CMAKELISTS.TXT
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SC:/dev/GameEngines/YakiEngine/build/debug/_deps/fastgltf-subbuild -BC:/dev/GameEngines/YakiEngine/build/debug/_deps/fastgltf-subbuild --check-stamp-file C:/dev/GameEngines/YakiEngine/build/debug/_deps/fastgltf-subbuild/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd

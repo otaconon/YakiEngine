@@ -1,0 +1,10 @@
+^C:\DEV\GAMEENGINES\YAKIENGINE\BUILD\DEBUG\_DEPS\FASTGLTF-SUBBUILD\CMAKELISTS.TXT
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SC:/dev/GameEngines/YakiEngine/build/debug/_deps/fastgltf-subbuild -BC:/dev/GameEngines/YakiEngine/build/debug/_deps/fastgltf-subbuild --check-stamp-file C:/dev/GameEngines/YakiEngine/build/debug/_deps/fastgltf-subbuild/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd

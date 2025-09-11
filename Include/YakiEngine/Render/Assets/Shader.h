@@ -17,7 +17,7 @@ struct Shader {
   std::map<std::pair<uint32_t, uint32_t>, spirv_cross::Resource> sampledImages;
   std::vector<VkPushConstantRange> pushConstantRanges;
 
-  Shader(VulkanContext *ctx, const std::filesystem::path &path)
+  Shader(std::shared_ptr<VulkanContext> ctx, const std::filesystem::path &path)
     : m_ctx{ctx} {
     // Load shader
     if (!std::filesystem::exists(path)) {
@@ -77,22 +77,20 @@ struct Shader {
     }
 
     for (const auto &pc : resources.push_constant_buffers) {
-      std::println("Push Constant: {}", pc.name);
-      auto activeRanges = compiler.get_active_buffer_ranges(pc.id);
+      auto type = compiler.get_type(pc.base_type_id);
+      if (type.basetype == spirv_cross::SPIRType::Struct) {
+        size_t totalSize = 0;
+        for (uint32_t i = 0; i < type.member_types.size(); ++i) {
+          auto memberOffset = compiler.type_struct_member_offset(type, i);
+          auto memberSize = compiler.get_declared_struct_member_size(type, i);
 
-      uint32_t minOffset = UINT32_MAX;
-      uint32_t maxEnd = 0;
-
-      for (const auto &spirvRange : activeRanges) {
-        minOffset = std::min(minOffset, static_cast<uint32_t>(spirvRange.offset));
-        maxEnd = std::max(maxEnd, static_cast<uint32_t>(spirvRange.offset + spirvRange.range));
-      }
-
-      if (minOffset != UINT32_MAX) {
-        pushConstantRanges.push_back({
-            .stageFlags = VK_SHADER_STAGE_VERTEX_BIT,
-            .offset = minOffset,
-            .size = maxEnd - minOffset
+          std::println("Member {}: offset={}, size={}", i, memberOffset, memberSize);
+          totalSize = std::max(totalSize, memberOffset + memberSize);
+        }
+        pushConstantRanges.push_back(VkPushConstantRange{
+          .stageFlags = VK_SHADER_STAGE_VERTEX_BIT,
+          .offset = 0,
+          .size = static_cast<uint32_t>(totalSize)
         });
       }
     }
@@ -103,5 +101,5 @@ struct Shader {
   }
 
 private:
-  VulkanContext *m_ctx;
+  std::shared_ptr<VulkanContext> m_ctx;
 };

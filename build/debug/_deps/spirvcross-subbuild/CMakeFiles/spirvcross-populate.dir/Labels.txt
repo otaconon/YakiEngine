@@ -1,0 +1,14 @@
+# Target labels
+ spirvcross-populate
+# Source files and their labels
+C:/dev/GameEngines/YakiEngine/build/debug/_deps/spirvcross-subbuild/CMakeFiles/spirvcross-populate
+C:/dev/GameEngines/YakiEngine/build/debug/_deps/spirvcross-subbuild/CMakeFiles/db5aee9ff585d2b7a661eb9e90fce6d3/spirvcross-populate.rule
+C:/dev/GameEngines/YakiEngine/build/debug/_deps/spirvcross-subbuild/CMakeFiles/4e7c7de48ebbd4b7d43434a2639fa17c/spirvcross-populate-complete.rule
+C:/dev/GameEngines/YakiEngine/build/debug/_deps/spirvcross-subbuild/CMakeFiles/cd6ed02658ab67bd7a2d60a80950eaf1/spirvcross-populate-build.rule
+C:/dev/GameEngines/YakiEngine/build/debug/_deps/spirvcross-subbuild/CMakeFiles/cd6ed02658ab67bd7a2d60a80950eaf1/spirvcross-populate-configure.rule
+C:/dev/GameEngines/YakiEngine/build/debug/_deps/spirvcross-subbuild/CMakeFiles/cd6ed02658ab67bd7a2d60a80950eaf1/spirvcross-populate-download.rule
+C:/dev/GameEngines/YakiEngine/build/debug/_deps/spirvcross-subbuild/CMakeFiles/cd6ed02658ab67bd7a2d60a80950eaf1/spirvcross-populate-install.rule
+C:/dev/GameEngines/YakiEngine/build/debug/_deps/spirvcross-subbuild/CMakeFiles/cd6ed02658ab67bd7a2d60a80950eaf1/spirvcross-populate-mkdir.rule
+C:/dev/GameEngines/YakiEngine/build/debug/_deps/spirvcross-subbuild/CMakeFiles/cd6ed02658ab67bd7a2d60a80950eaf1/spirvcross-populate-patch.rule
+C:/dev/GameEngines/YakiEngine/build/debug/_deps/spirvcross-subbuild/CMakeFiles/cd6ed02658ab67bd7a2d60a80950eaf1/spirvcross-populate-test.rule
+C:/dev/GameEngines/YakiEngine/build/debug/_deps/spirvcross-subbuild/CMakeFiles/cd6ed02658ab67bd7a2d60a80950eaf1/spirvcross-populate-update.rule

@@ -1,0 +1,14 @@
+# Target labels
+ stb-populate
+# Source files and their labels
+C:/dev/GameEngines/YakiEngine/build/debug/_deps/stb-subbuild/CMakeFiles/stb-populate
+C:/dev/GameEngines/YakiEngine/build/debug/_deps/stb-subbuild/CMakeFiles/96eac2bf52393bf1458bdc02be1b44a9/stb-populate.rule
+C:/dev/GameEngines/YakiEngine/build/debug/_deps/stb-subbuild/CMakeFiles/adfd4a74bb3b853342b8579b96f2b2dd/stb-populate-complete.rule
+C:/dev/GameEngines/YakiEngine/build/debug/_deps/stb-subbuild/CMakeFiles/18121c6e252b67c7e6cbe148b0e9086a/stb-populate-build.rule
+C:/dev/GameEngines/YakiEngine/build/debug/_deps/stb-subbuild/CMakeFiles/18121c6e252b67c7e6cbe148b0e9086a/stb-populate-configure.rule
+C:/dev/GameEngines/YakiEngine/build/debug/_deps/stb-subbuild/CMakeFiles/18121c6e252b67c7e6cbe148b0e9086a/stb-populate-download.rule
+C:/dev/GameEngines/YakiEngine/build/debug/_deps/stb-subbuild/CMakeFiles/18121c6e252b67c7e6cbe148b0e9086a/stb-populate-install.rule
+C:/dev/GameEngines/YakiEngine/build/debug/_deps/stb-subbuild/CMakeFiles/18121c6e252b67c7e6cbe148b0e9086a/stb-populate-mkdir.rule
+C:/dev/GameEngines/YakiEngine/build/debug/_deps/stb-subbuild/CMakeFiles/18121c6e252b67c7e6cbe148b0e9086a/stb-populate-patch.rule
+C:/dev/GameEngines/YakiEngine/build/debug/_deps/stb-subbuild/CMakeFiles/18121c6e252b67c7e6cbe148b0e9086a/stb-populate-test.rule
+C:/dev/GameEngines/YakiEngine/build/debug/_deps/stb-subbuild/CMakeFiles/18121c6e252b67c7e6cbe148b0e9086a/stb-populate-update.rule

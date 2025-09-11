@@ -1,0 +1,150 @@
+^C:\DEV\GAMEENGINES\YAKIENGINE\BUILD\DEBUG\_DEPS\STB-SUBBUILD\CMAKEFILES\18121C6E252B67C7E6CBE148B0E9086A\STB-POPULATE-MKDIR.RULE
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -Dcfgdir=/Debug -P C:/dev/GameEngines/YakiEngine/build/debug/_deps/stb-subbuild/stb-populate-prefix/tmp/stb-populate-mkdirs.cmake
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E touch C:/dev/GameEngines/YakiEngine/build/debug/_deps/stb-subbuild/stb-populate-prefix/src/stb-populate-stamp/Debug/stb-populate-mkdir
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\DEV\GAMEENGINES\YAKIENGINE\BUILD\DEBUG\_DEPS\STB-SUBBUILD\CMAKEFILES\18121C6E252B67C7E6CBE148B0E9086A\STB-POPULATE-DOWNLOAD.RULE
+setlocal
+cd C:\dev\GameEngines\YakiEngine\build\debug\_deps
+if %errorlevel% neq 0 goto :cmEnd
+C:
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -DCMAKE_MESSAGE_LOG_LEVEL=VERBOSE -P C:/dev/GameEngines/YakiEngine/build/debug/_deps/stb-subbuild/stb-populate-prefix/tmp/stb-populate-gitclone.cmake
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E touch C:/dev/GameEngines/YakiEngine/build/debug/_deps/stb-subbuild/stb-populate-prefix/src/stb-populate-stamp/Debug/stb-populate-download
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\DEV\GAMEENGINES\YAKIENGINE\BUILD\DEBUG\_DEPS\STB-SUBBUILD\CMAKEFILES\18121C6E252B67C7E6CBE148B0E9086A\STB-POPULATE-UPDATE.RULE
+setlocal
+cd C:\dev\GameEngines\YakiEngine\build\debug\_deps\stb-src
+if %errorlevel% neq 0 goto :cmEnd
+C:
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -Dcan_fetch=YES -DCMAKE_MESSAGE_LOG_LEVEL=VERBOSE -P C:/dev/GameEngines/YakiEngine/build/debug/_deps/stb-subbuild/stb-populate-prefix/tmp/stb-populate-gitupdate.cmake
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\DEV\GAMEENGINES\YAKIENGINE\BUILD\DEBUG\_DEPS\STB-SUBBUILD\CMAKEFILES\18121C6E252B67C7E6CBE148B0E9086A\STB-POPULATE-PATCH.RULE
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -E echo_append
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E touch C:/dev/GameEngines/YakiEngine/build/debug/_deps/stb-subbuild/stb-populate-prefix/src/stb-populate-stamp/Debug/stb-populate-patch
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\DEV\GAMEENGINES\YAKIENGINE\BUILD\DEBUG\_DEPS\STB-SUBBUILD\CMAKEFILES\18121C6E252B67C7E6CBE148B0E9086A\STB-POPULATE-CONFIGURE.RULE
+setlocal
+cd C:\dev\GameEngines\YakiEngine\build\debug\_deps\stb-build
+if %errorlevel% neq 0 goto :cmEnd
+C:
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E echo_append
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E touch C:/dev/GameEngines/YakiEngine/build/debug/_deps/stb-subbuild/stb-populate-prefix/src/stb-populate-stamp/Debug/stb-populate-configure
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\DEV\GAMEENGINES\YAKIENGINE\BUILD\DEBUG\_DEPS\STB-SUBBUILD\CMAKEFILES\18121C6E252B67C7E6CBE148B0E9086A\STB-POPULATE-BUILD.RULE
+setlocal
+cd C:\dev\GameEngines\YakiEngine\build\debug\_deps\stb-build
+if %errorlevel% neq 0 goto :cmEnd
+C:
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E echo_append
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E touch C:/dev/GameEngines/YakiEngine/build/debug/_deps/stb-subbuild/stb-populate-prefix/src/stb-populate-stamp/Debug/stb-populate-build
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\DEV\GAMEENGINES\YAKIENGINE\BUILD\DEBUG\_DEPS\STB-SUBBUILD\CMAKEFILES\18121C6E252B67C7E6CBE148B0E9086A\STB-POPULATE-INSTALL.RULE
+setlocal
+cd C:\dev\GameEngines\YakiEngine\build\debug\_deps\stb-build
+if %errorlevel% neq 0 goto :cmEnd
+C:
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E echo_append
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E touch C:/dev/GameEngines/YakiEngine/build/debug/_deps/stb-subbuild/stb-populate-prefix/src/stb-populate-stamp/Debug/stb-populate-install
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\DEV\GAMEENGINES\YAKIENGINE\BUILD\DEBUG\_DEPS\STB-SUBBUILD\CMAKEFILES\18121C6E252B67C7E6CBE148B0E9086A\STB-POPULATE-TEST.RULE
+setlocal
+cd C:\dev\GameEngines\YakiEngine\build\debug\_deps\stb-build
+if %errorlevel% neq 0 goto :cmEnd
+C:
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E echo_append
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E touch C:/dev/GameEngines/YakiEngine/build/debug/_deps/stb-subbuild/stb-populate-prefix/src/stb-populate-stamp/Debug/stb-populate-test
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\DEV\GAMEENGINES\YAKIENGINE\BUILD\DEBUG\_DEPS\STB-SUBBUILD\CMAKEFILES\ADFD4A74BB3B853342B8579B96F2B2DD\STB-POPULATE-COMPLETE.RULE
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -E make_directory C:/dev/GameEngines/YakiEngine/build/debug/_deps/stb-subbuild/CMakeFiles/Debug
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E touch C:/dev/GameEngines/YakiEngine/build/debug/_deps/stb-subbuild/CMakeFiles/Debug/stb-populate-complete
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E touch C:/dev/GameEngines/YakiEngine/build/debug/_deps/stb-subbuild/stb-populate-prefix/src/stb-populate-stamp/Debug/stb-populate-done
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\DEV\GAMEENGINES\YAKIENGINE\BUILD\DEBUG\_DEPS\STB-SUBBUILD\CMAKEFILES\96EAC2BF52393BF1458BDC02BE1B44A9\STB-POPULATE.RULE
+setlocal
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\DEV\GAMEENGINES\YAKIENGINE\BUILD\DEBUG\_DEPS\STB-SUBBUILD\CMAKELISTS.TXT
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SC:/dev/GameEngines/YakiEngine/build/debug/_deps/stb-subbuild -BC:/dev/GameEngines/YakiEngine/build/debug/_deps/stb-subbuild --check-stamp-file C:/dev/GameEngines/YakiEngine/build/debug/_deps/stb-subbuild/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd

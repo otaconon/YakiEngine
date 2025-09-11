@@ -1,0 +1,114 @@
+^C:\DEV\GAMEENGINES\YAKIENGINE\BUILD\DEBUG\CMAKEFILES\6DA7F5CA682E55F654429514D5588F14\BASIC_MESH.FRAG.SPV.RULE
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -E make_directory C:/dev/GameEngines/YakiEngine/build/debug/Src/App/Debug/Shaders
+if %errorlevel% neq 0 goto :cmEnd
+C:\vcpkg\installed\x64-windows\tools\shaderc\glslc.exe C:/dev/GameEngines/YakiEngine/Src/App/Shaders/Fragment/basic_mesh.frag -o C:/dev/GameEngines/YakiEngine/build/debug/Src/App/Shaders/Fragment/basic_mesh.frag.spv -O0
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\DEV\GAMEENGINES\YAKIENGINE\BUILD\DEBUG\CMAKEFILES\6DA7F5CA682E55F654429514D5588F14\MATERIALS.FRAG.SPV.RULE
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -E make_directory C:/dev/GameEngines/YakiEngine/build/debug/Src/App/Debug/Shaders
+if %errorlevel% neq 0 goto :cmEnd
+C:\vcpkg\installed\x64-windows\tools\shaderc\glslc.exe C:/dev/GameEngines/YakiEngine/Src/App/Shaders/Fragment/materials.frag -o C:/dev/GameEngines/YakiEngine/build/debug/Src/App/Shaders/Fragment/materials.frag.spv -O0
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\DEV\GAMEENGINES\YAKIENGINE\BUILD\DEBUG\CMAKEFILES\6DA7F5CA682E55F654429514D5588F14\PICKING.FRAG.SPV.RULE
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -E make_directory C:/dev/GameEngines/YakiEngine/build/debug/Src/App/Debug/Shaders
+if %errorlevel% neq 0 goto :cmEnd
+C:\vcpkg\installed\x64-windows\tools\shaderc\glslc.exe C:/dev/GameEngines/YakiEngine/Src/App/Shaders/Fragment/picking.frag -o C:/dev/GameEngines/YakiEngine/build/debug/Src/App/Shaders/Fragment/picking.frag.spv -O0
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\DEV\GAMEENGINES\YAKIENGINE\BUILD\DEBUG\CMAKEFILES\6DA7F5CA682E55F654429514D5588F14\WIREFRAME.FRAG.SPV.RULE
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -E make_directory C:/dev/GameEngines/YakiEngine/build/debug/Src/App/Debug/Shaders
+if %errorlevel% neq 0 goto :cmEnd
+C:\vcpkg\installed\x64-windows\tools\shaderc\glslc.exe C:/dev/GameEngines/YakiEngine/Src/App/Shaders/Fragment/wireframe.frag -o C:/dev/GameEngines/YakiEngine/build/debug/Src/App/Shaders/Fragment/wireframe.frag.spv -O0
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\DEV\GAMEENGINES\YAKIENGINE\BUILD\DEBUG\CMAKEFILES\3B42BDEDE63C2B3EA57B34C0E08990D3\BASIC_MESH.VERT.SPV.RULE
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -E make_directory C:/dev/GameEngines/YakiEngine/build/debug/Src/App/Debug/Shaders
+if %errorlevel% neq 0 goto :cmEnd
+C:\vcpkg\installed\x64-windows\tools\shaderc\glslc.exe C:/dev/GameEngines/YakiEngine/Src/App/Shaders/Vertex/basic_mesh.vert -o C:/dev/GameEngines/YakiEngine/build/debug/Src/App/Shaders/Vertex/basic_mesh.vert.spv -O0
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\DEV\GAMEENGINES\YAKIENGINE\BUILD\DEBUG\CMAKEFILES\3B42BDEDE63C2B3EA57B34C0E08990D3\MATERIALS.VERT.SPV.RULE
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -E make_directory C:/dev/GameEngines/YakiEngine/build/debug/Src/App/Debug/Shaders
+if %errorlevel% neq 0 goto :cmEnd
+C:\vcpkg\installed\x64-windows\tools\shaderc\glslc.exe C:/dev/GameEngines/YakiEngine/Src/App/Shaders/Vertex/materials.vert -o C:/dev/GameEngines/YakiEngine/build/debug/Src/App/Shaders/Vertex/materials.vert.spv -O0
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\DEV\GAMEENGINES\YAKIENGINE\BUILD\DEBUG\CMAKEFILES\3B42BDEDE63C2B3EA57B34C0E08990D3\PICKING.VERT.SPV.RULE
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -E make_directory C:/dev/GameEngines/YakiEngine/build/debug/Src/App/Debug/Shaders
+if %errorlevel% neq 0 goto :cmEnd
+C:\vcpkg\installed\x64-windows\tools\shaderc\glslc.exe C:/dev/GameEngines/YakiEngine/Src/App/Shaders/Vertex/picking.vert -o C:/dev/GameEngines/YakiEngine/build/debug/Src/App/Shaders/Vertex/picking.vert.spv -O0
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\DEV\GAMEENGINES\YAKIENGINE\BUILD\DEBUG\CMAKEFILES\3B42BDEDE63C2B3EA57B34C0E08990D3\WIREFRAME.VERT.SPV.RULE
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -E make_directory C:/dev/GameEngines/YakiEngine/build/debug/Src/App/Debug/Shaders
+if %errorlevel% neq 0 goto :cmEnd
+C:\vcpkg\installed\x64-windows\tools\shaderc\glslc.exe C:/dev/GameEngines/YakiEngine/Src/App/Shaders/Vertex/wireframe.vert -o C:/dev/GameEngines/YakiEngine/build/debug/Src/App/Shaders/Vertex/wireframe.vert.spv -O0
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\DEV\GAMEENGINES\YAKIENGINE\BUILD\DEBUG\CMAKEFILES\1264A01686A5F3F05276E75A48153CB6\SHADERS.RULE
+setlocal
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\DEV\GAMEENGINES\YAKIENGINE\SRC\APP\CMAKELISTS.TXT
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SC:/dev/GameEngines/YakiEngine -BC:/dev/GameEngines/YakiEngine/build/debug --check-stamp-file C:/dev/GameEngines/YakiEngine/build/debug/Src/App/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd

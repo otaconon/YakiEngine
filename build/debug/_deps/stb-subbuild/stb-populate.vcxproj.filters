@@ -1,0 +1,44 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <CustomBuild Include="C:\dev\GameEngines\YakiEngine\build\debug\_deps\stb-subbuild\CMakeFiles\18121c6e252b67c7e6cbe148b0e9086a\stb-populate-mkdir.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\dev\GameEngines\YakiEngine\build\debug\_deps\stb-subbuild\CMakeFiles\18121c6e252b67c7e6cbe148b0e9086a\stb-populate-download.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\dev\GameEngines\YakiEngine\build\debug\_deps\stb-subbuild\CMakeFiles\18121c6e252b67c7e6cbe148b0e9086a\stb-populate-update.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\dev\GameEngines\YakiEngine\build\debug\_deps\stb-subbuild\CMakeFiles\18121c6e252b67c7e6cbe148b0e9086a\stb-populate-patch.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\dev\GameEngines\YakiEngine\build\debug\_deps\stb-subbuild\CMakeFiles\18121c6e252b67c7e6cbe148b0e9086a\stb-populate-configure.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\dev\GameEngines\YakiEngine\build\debug\_deps\stb-subbuild\CMakeFiles\18121c6e252b67c7e6cbe148b0e9086a\stb-populate-build.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\dev\GameEngines\YakiEngine\build\debug\_deps\stb-subbuild\CMakeFiles\18121c6e252b67c7e6cbe148b0e9086a\stb-populate-install.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\dev\GameEngines\YakiEngine\build\debug\_deps\stb-subbuild\CMakeFiles\18121c6e252b67c7e6cbe148b0e9086a\stb-populate-test.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\dev\GameEngines\YakiEngine\build\debug\_deps\stb-subbuild\CMakeFiles\adfd4a74bb3b853342b8579b96f2b2dd\stb-populate-complete.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\dev\GameEngines\YakiEngine\build\debug\_deps\stb-subbuild\CMakeFiles\96eac2bf52393bf1458bdc02be1b44a9\stb-populate.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\dev\GameEngines\YakiEngine\build\debug\_deps\stb-subbuild\CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="C:\dev\GameEngines\YakiEngine\build\debug\_deps\stb-subbuild\CMakeFiles\stb-populate" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="CMake Rules">
+      <UniqueIdentifier>{D4107764-B0F3-3298-BAA9-801F905BE29A}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

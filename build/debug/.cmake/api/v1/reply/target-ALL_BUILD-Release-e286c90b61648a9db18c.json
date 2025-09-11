@@ -1,0 +1,60 @@
+{
+	"backtrace" : 0,
+	"backtraceGraph" : 
+	{
+		"commands" : [],
+		"files" : 
+		[
+			"build/debug/_deps/spirvcross-src/CMakeLists.txt"
+		],
+		"nodes" : 
+		[
+			{
+				"file" : 0
+			}
+		]
+	},
+	"dependencies" : 
+	[
+		{
+			"id" : "spirv-cross-msl::@6e7e775e076d32ab0fc2"
+		},
+		{
+			"id" : "spirv-cross-core::@6e7e775e076d32ab0fc2"
+		},
+		{
+			"id" : "spirv-cross-glsl::@6e7e775e076d32ab0fc2"
+		},
+		{
+			"id" : "spirv-cross-cpp::@6e7e775e076d32ab0fc2"
+		},
+		{
+			"id" : "spirv-cross-reflect::@6e7e775e076d32ab0fc2"
+		},
+		{
+			"id" : "spirv-cross-hlsl::@6e7e775e076d32ab0fc2"
+		},
+		{
+			"id" : "spirv-cross-util::@6e7e775e076d32ab0fc2"
+		},
+		{
+			"id" : "spirv-cross-c::@6e7e775e076d32ab0fc2"
+		},
+		{
+			"id" : "spirv-cross::@6e7e775e076d32ab0fc2"
+		},
+		{
+			"id" : "ZERO_CHECK::@6890427a1f51a3e7e1df"
+		}
+	],
+	"id" : "ALL_BUILD::@6e7e775e076d32ab0fc2",
+	"isGeneratorProvided" : true,
+	"name" : "ALL_BUILD",
+	"paths" : 
+	{
+		"build" : "_deps/spirvcross-build",
+		"source" : "build/debug/_deps/spirvcross-src"
+	},
+	"sources" : [],
+	"type" : "UTILITY"
+}

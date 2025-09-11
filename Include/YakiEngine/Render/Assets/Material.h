@@ -8,6 +8,7 @@ struct ShaderParameters {
   glm::vec4 colorFactors;
   glm::vec4 metalRoughFactors;
   glm::vec4 specularColorFactors;
+  glm::vec4 pad[1];
 };
 
 enum class MeshPassType : uint8_t {

@@ -1,0 +1,150 @@
+^C:\DEV\GAMEENGINES\YAKIENGINE\BUILD\DEBUG\_DEPS\SPIRVCROSS-SUBBUILD\CMAKEFILES\CD6ED02658AB67BD7A2D60A80950EAF1\SPIRVCROSS-POPULATE-MKDIR.RULE
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -Dcfgdir=/Debug -P C:/dev/GameEngines/YakiEngine/build/debug/_deps/spirvcross-subbuild/spirvcross-populate-prefix/tmp/spirvcross-populate-mkdirs.cmake
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E touch C:/dev/GameEngines/YakiEngine/build/debug/_deps/spirvcross-subbuild/spirvcross-populate-prefix/src/spirvcross-populate-stamp/Debug/spirvcross-populate-mkdir
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\DEV\GAMEENGINES\YAKIENGINE\BUILD\DEBUG\_DEPS\SPIRVCROSS-SUBBUILD\CMAKEFILES\CD6ED02658AB67BD7A2D60A80950EAF1\SPIRVCROSS-POPULATE-DOWNLOAD.RULE
+setlocal
+cd C:\dev\GameEngines\YakiEngine\build\debug\_deps
+if %errorlevel% neq 0 goto :cmEnd
+C:
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -DCMAKE_MESSAGE_LOG_LEVEL=VERBOSE -P C:/dev/GameEngines/YakiEngine/build/debug/_deps/spirvcross-subbuild/spirvcross-populate-prefix/tmp/spirvcross-populate-gitclone.cmake
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E touch C:/dev/GameEngines/YakiEngine/build/debug/_deps/spirvcross-subbuild/spirvcross-populate-prefix/src/spirvcross-populate-stamp/Debug/spirvcross-populate-download
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\DEV\GAMEENGINES\YAKIENGINE\BUILD\DEBUG\_DEPS\SPIRVCROSS-SUBBUILD\CMAKEFILES\CD6ED02658AB67BD7A2D60A80950EAF1\SPIRVCROSS-POPULATE-UPDATE.RULE
+setlocal
+cd C:\dev\GameEngines\YakiEngine\build\debug\_deps\spirvcross-src
+if %errorlevel% neq 0 goto :cmEnd
+C:
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -Dcan_fetch=YES -DCMAKE_MESSAGE_LOG_LEVEL=VERBOSE -P C:/dev/GameEngines/YakiEngine/build/debug/_deps/spirvcross-subbuild/spirvcross-populate-prefix/tmp/spirvcross-populate-gitupdate.cmake
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\DEV\GAMEENGINES\YAKIENGINE\BUILD\DEBUG\_DEPS\SPIRVCROSS-SUBBUILD\CMAKEFILES\CD6ED02658AB67BD7A2D60A80950EAF1\SPIRVCROSS-POPULATE-PATCH.RULE
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -E echo_append
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E touch C:/dev/GameEngines/YakiEngine/build/debug/_deps/spirvcross-subbuild/spirvcross-populate-prefix/src/spirvcross-populate-stamp/Debug/spirvcross-populate-patch
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\DEV\GAMEENGINES\YAKIENGINE\BUILD\DEBUG\_DEPS\SPIRVCROSS-SUBBUILD\CMAKEFILES\CD6ED02658AB67BD7A2D60A80950EAF1\SPIRVCROSS-POPULATE-CONFIGURE.RULE
+setlocal
+cd C:\dev\GameEngines\YakiEngine\build\debug\_deps\spirvcross-build
+if %errorlevel% neq 0 goto :cmEnd
+C:
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E echo_append
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E touch C:/dev/GameEngines/YakiEngine/build/debug/_deps/spirvcross-subbuild/spirvcross-populate-prefix/src/spirvcross-populate-stamp/Debug/spirvcross-populate-configure
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\DEV\GAMEENGINES\YAKIENGINE\BUILD\DEBUG\_DEPS\SPIRVCROSS-SUBBUILD\CMAKEFILES\CD6ED02658AB67BD7A2D60A80950EAF1\SPIRVCROSS-POPULATE-BUILD.RULE
+setlocal
+cd C:\dev\GameEngines\YakiEngine\build\debug\_deps\spirvcross-build
+if %errorlevel% neq 0 goto :cmEnd
+C:
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E echo_append
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E touch C:/dev/GameEngines/YakiEngine/build/debug/_deps/spirvcross-subbuild/spirvcross-populate-prefix/src/spirvcross-populate-stamp/Debug/spirvcross-populate-build
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\DEV\GAMEENGINES\YAKIENGINE\BUILD\DEBUG\_DEPS\SPIRVCROSS-SUBBUILD\CMAKEFILES\CD6ED02658AB67BD7A2D60A80950EAF1\SPIRVCROSS-POPULATE-INSTALL.RULE
+setlocal
+cd C:\dev\GameEngines\YakiEngine\build\debug\_deps\spirvcross-build
+if %errorlevel% neq 0 goto :cmEnd
+C:
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E echo_append
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E touch C:/dev/GameEngines/YakiEngine/build/debug/_deps/spirvcross-subbuild/spirvcross-populate-prefix/src/spirvcross-populate-stamp/Debug/spirvcross-populate-install
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\DEV\GAMEENGINES\YAKIENGINE\BUILD\DEBUG\_DEPS\SPIRVCROSS-SUBBUILD\CMAKEFILES\CD6ED02658AB67BD7A2D60A80950EAF1\SPIRVCROSS-POPULATE-TEST.RULE
+setlocal
+cd C:\dev\GameEngines\YakiEngine\build\debug\_deps\spirvcross-build
+if %errorlevel% neq 0 goto :cmEnd
+C:
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E echo_append
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E touch C:/dev/GameEngines/YakiEngine/build/debug/_deps/spirvcross-subbuild/spirvcross-populate-prefix/src/spirvcross-populate-stamp/Debug/spirvcross-populate-test
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\DEV\GAMEENGINES\YAKIENGINE\BUILD\DEBUG\_DEPS\SPIRVCROSS-SUBBUILD\CMAKEFILES\4E7C7DE48EBBD4B7D43434A2639FA17C\SPIRVCROSS-POPULATE-COMPLETE.RULE
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -E make_directory C:/dev/GameEngines/YakiEngine/build/debug/_deps/spirvcross-subbuild/CMakeFiles/Debug
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E touch C:/dev/GameEngines/YakiEngine/build/debug/_deps/spirvcross-subbuild/CMakeFiles/Debug/spirvcross-populate-complete
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E touch C:/dev/GameEngines/YakiEngine/build/debug/_deps/spirvcross-subbuild/spirvcross-populate-prefix/src/spirvcross-populate-stamp/Debug/spirvcross-populate-done
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\DEV\GAMEENGINES\YAKIENGINE\BUILD\DEBUG\_DEPS\SPIRVCROSS-SUBBUILD\CMAKEFILES\DB5AEE9FF585D2B7A661EB9E90FCE6D3\SPIRVCROSS-POPULATE.RULE
+setlocal
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\DEV\GAMEENGINES\YAKIENGINE\BUILD\DEBUG\_DEPS\SPIRVCROSS-SUBBUILD\CMAKELISTS.TXT
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SC:/dev/GameEngines/YakiEngine/build/debug/_deps/spirvcross-subbuild -BC:/dev/GameEngines/YakiEngine/build/debug/_deps/spirvcross-subbuild --check-stamp-file C:/dev/GameEngines/YakiEngine/build/debug/_deps/spirvcross-subbuild/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd

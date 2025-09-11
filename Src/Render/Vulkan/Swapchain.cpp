@@ -10,7 +10,7 @@
 #include "Vulkan/VkUtils.h"
 #include "Vulkan/VulkanContext.h"
 
-Swapchain::Swapchain(VulkanContext *ctx, SDL_Window *window)
+Swapchain::Swapchain(std::shared_ptr<VulkanContext> ctx, SDL_Window *window)
   : m_ctx{ctx},
     m_window{window},
     m_renderScale{1.f},
@@ -24,7 +24,6 @@ Swapchain::Swapchain(VulkanContext *ctx, SDL_Window *window)
 
 Swapchain::~Swapchain() {
   cleanupSwapchain();
-  vmaDestroyAllocator(m_allocator);
 }
 
 void Swapchain::RecreateSwapchain() {
@@ -126,17 +125,11 @@ void Swapchain::createDrawImage() {
   };
 
   m_drawImage = std::make_shared<Texture>(m_ctx, drawImageExtent, VK_FORMAT_R16G16B16A16_SFLOAT, drawImageUsage, false);
-  m_deletionQueue.PushFunction([this] {
-    m_drawImage->Cleanup();
-  });
 }
 
 void Swapchain::createDepthImage() {
   VkImageUsageFlags depthImageUsage{VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT};
   m_depthImage = std::make_shared<Texture>(m_ctx, m_drawImage->GetExtent(), VK_FORMAT_D32_SFLOAT, depthImageUsage, false);
-  m_deletionQueue.PushFunction([this] {
-    m_depthImage->Cleanup();
-  });
 }
 
 VkImageView Swapchain::createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags) const {

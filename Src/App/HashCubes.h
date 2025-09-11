@@ -19,7 +19,7 @@ public:
 
 private:
   Window m_window{};
-  VulkanContext m_ctx;
+  std::shared_ptr<VulkanContext> m_ctx;
   Renderer m_renderer;
 
   DeletionQueue m_deletionQueue;

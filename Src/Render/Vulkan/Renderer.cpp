@@ -163,7 +163,7 @@ void Renderer::RenderObjectsIndirect(RenderIndirectObjects& objects) {
     VkDeviceSize indirectOffset = firstIndex * sizeof(VkDrawIndexedIndirectCommand);
     uint32_t drawStride = sizeof(VkDrawIndexedIndirectCommand);
 
-    vkCmdDrawIndexedIndirect(cmd, getCurrentFrame().indirectDrawBuffer->buffer, indirectOffset, indexCount, drawStride);
+    vkCmdDrawIndexedIndirect(cmd, getCurrentFrame().indirectDrawBuffer->buffer, indirectOffset, instanceCount, drawStride);
 
     m_stats.drawcallCount++;
     m_stats.triangleCount += mesh->indices.size() / 3;
@@ -442,6 +442,8 @@ void Renderer::initDescriptors() {
     DescriptorLayoutBuilder builder;
     builder.AddBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER);
     builder.AddBinding(1, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER);
+    builder.AddBinding(2, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER);
+    builder.AddBinding(3, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER);
     m_gpuSceneDataDescriptorLayout = builder.Build(m_ctx->GetDevice(), VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT);
     m_deletionQueue.PushFunction([&] {
       vkDestroyDescriptorSetLayout(m_ctx->GetDevice(), m_gpuSceneDataDescriptorLayout, nullptr);

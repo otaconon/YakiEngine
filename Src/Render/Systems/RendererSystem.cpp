@@ -101,6 +101,7 @@ void RenderSystem::renderDrawablesIndirect(const glm::mat4 &viewProj) {
     }
   });
 
+  m_renderer->UpdateGlobalDescriptor(objects.objectIds, objects.transforms);
   m_renderer->RenderObjectsIndirect(objects);
 }
 

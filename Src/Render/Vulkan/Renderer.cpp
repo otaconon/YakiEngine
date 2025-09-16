@@ -227,7 +227,7 @@ std::vector<IndirectBatch> Renderer::packObjects(RenderIndirectObjects& objects)
 
   for (uint32_t i = 0; i < objects.objectIds.size(); i++) {
     draws.back().instanceCount++;
-    draws.back().indexCount += objects.indexCounts[i];
+    draws.back().indexCount += objects.mesh->indices.size();
   }
 
   return draws;

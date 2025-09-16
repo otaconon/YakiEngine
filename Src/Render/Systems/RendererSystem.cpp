@@ -36,7 +36,7 @@ void RenderSystem::Update(float dt) {
 
   m_renderer->BeginRendering();
   m_renderer->Begin3DRendering();
-  renderDrawables(camera.viewProjection);
+  renderDrawablesIndirect(camera.viewProjection);
   m_renderer->End3DRendering();
   renderGui(dt);
   m_renderer->EndRendering();

@@ -20,3 +20,11 @@ struct RenderObject
     glm::mat4 transform;
     VkDeviceAddress vertexBufferAddress;
 };
+
+struct RenderIndirectObjects {
+  std::vector<uint32_t> objectIds;
+  std::vector<glm::mat4> transforms;
+  std::vector<uint32_t> indexCounts;
+  Mesh *mesh;
+  Material *material;
+};

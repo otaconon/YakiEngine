@@ -24,11 +24,11 @@ struct PickingResources {
 };
 
 struct IndirectBatch {
-  glm::mat4 transform;
+  uint32_t indexCount, firstIndex;
+  uint32_t firstInstance;
+  uint32_t instanceCount;
   Mesh *mesh;
   Material *material;
-  uint32_t first;
-  uint32_t count;
 };
 
 class Renderer {
@@ -38,12 +38,14 @@ public:
 
   void BeginRendering();
   void Begin3DRendering();
-  void RenderObjectsIndirect(std::span<RenderObject> objects);
+  void RenderObjectsIndirect(RenderIndirectObjects& objects);
   void RenderObjects(std::span<RenderObject> objects, std::span<size_t> order);
   void End3DRendering();
   void RenderImGui();
   void EndRendering();
   void WaitIdle();
+
+  void UpdateGlobalDescriptor(std::span<uint32_t> objectIds, std::span<glm::mat4> models);
 
   [[nodiscard]] Swapchain &GetSwapchain();
   [[nodiscard]] VkBuffer GetMaterialConstantsBuffer();
@@ -91,7 +93,7 @@ private:
   VkCommandBuffer beginSingleTimeCommands(VkCommandPool &commandPool) const;
   void endSingleTimeCommands(VkCommandPool &commandPool, VkCommandBuffer &commandBuffer) const;
 
-  std::vector<IndirectBatch> packObjects(std::span<RenderObject> objects);
+  std::vector<IndirectBatch> packObjects(RenderIndirectObjects& objects);
 
   FrameData &getCurrentFrame();
 };

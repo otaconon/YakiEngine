@@ -9,27 +9,24 @@
 #include "Vulkan/Renderer.h"
 #include "Vulkan/VkTypes.h"
 
-enum class ShowImGui : std::uint8_t
-{
-	PointLights,
-    DirectionalLights
+enum class ShowImGui : std::uint8_t {
+  PointLights,
+  DirectionalLights
 };
 
 class RenderSystem : public Hori::System {
 public:
-    explicit RenderSystem(Renderer* renderer);
+  explicit RenderSystem(Renderer *renderer);
 
-    void Update(float dt) override;
+  void Update(float dt) override;
 
 private:
-    Renderer* m_renderer;
+  Renderer *m_renderer;
 
-    //std::bitset<sizeof(ShowImGui) * CHAR_BIT> m_showElements;
-    std::bitset<8> m_showElements;
-private:
-    void renderDrawables(const glm::mat4& viewproj);
-    void renderGui(float dt);
-    void renderColliders();
+  std::bitset<8> m_showElements;
+  void renderDrawables(const glm::mat4 &viewproj);
+  void renderDrawablesIndirect(const glm::mat4 &viewProj);
+  void renderGui(float dt);
 
-    bool isVisible(const RenderObject& obj, const glm::mat4& viewproj);
+  bool isVisible(const RenderObject &obj, const glm::mat4 &viewproj);
 };

@@ -16,7 +16,7 @@ inline void register_object(Hori::Entity e, std::shared_ptr<Mesh> mesh = nullptr
   ecs.AddComponents(e, std::move(pos), Rotation{}, Scale{{1.f, 1.f, 1.f}}, LocalToWorld{}, LocalToParent{}, ParentToLocal{}, Children{}, Parent{}, DirtyTransform{});
 }
 
-inline void init_default_data(std::shared_ptr<VulkanContext>& ctx, Swapchain& swapchain, DeletionQueue& deletionQueue) {
+inline void init_default_data(std::shared_ptr<VulkanContext> ctx, Swapchain& swapchain, DeletionQueue& deletionQueue) {
   auto& ecs = Ecs::GetInstance();
 
   DefaultData data {};
@@ -50,8 +50,8 @@ inline void init_default_data(std::shared_ptr<VulkanContext>& ctx, Swapchain& sw
   });
 
   // Initialize default shader passes
-  auto vertShader = std::make_shared<Shader>(ctx, "../Shaders/Vertex/materials.vert.spv");
-  auto fragShader = std::make_shared<Shader>(ctx, "../Shaders/Fragment/materials.frag.spv");
+  auto vertShader = std::make_shared<Shader>(ctx, "../Shaders/Vertex/instanced.vert.spv");
+  auto fragShader = std::make_shared<Shader>(ctx, "../Shaders/Fragment/instanced.frag.spv");
   auto effect = std::make_shared<ShaderEffect>(ctx, vertShader, fragShader);
   auto forwardPass = std::make_shared<ShaderPass>(ctx, swapchain, effect);
   auto shaderParams = std::make_shared<ShaderParameters>(glm::vec4{0.1f}, glm::vec4{0.1f}, glm::vec4{0.1f});

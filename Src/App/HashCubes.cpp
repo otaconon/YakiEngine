@@ -22,9 +22,9 @@ HashCubes::HashCubes()
   initEcs();
 
   auto &ecs = Ecs::GetInstance();
-  DeletionQueue deletionQueue;
 
-  m_allMeshes = std::make_shared<Scene>(m_ctx, deletionQueue, "Assets/meshes/basicmesh.glb");
+  init_default_data(m_ctx, m_renderer.GetSwapchain(), m_deletionQueue);
+  m_allMeshes = std::make_shared<Scene>(m_ctx, m_deletionQueue, "Assets/meshes/basicmesh.glb");
   m_cubeMesh = std::next(m_allMeshes->m_meshes.begin(), 1)->second;
 
   constexpr uint32_t cubesRes = 100;

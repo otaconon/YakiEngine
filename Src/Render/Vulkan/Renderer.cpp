@@ -111,27 +111,9 @@ void Renderer::Begin3DRendering() {
   VkRenderingInfo renderInfo = VkInit::rendering_info(drawExtent, colorAttachments, &depthAttachment);
   vkCmdBeginRendering(cmd, &renderInfo);
 
-  // Scene data
-  Buffer gpuSceneDataBuffer(m_ctx->GetAllocator(), sizeof(GPUSceneData), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU);
-  gpuSceneDataBuffer.MapMemoryFromValue(m_gpuSceneData);
-
-  // Light data
-  Buffer lightBuffer(m_ctx->GetAllocator(), sizeof(GPULightData), VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU);
-  lightBuffer.MapMemoryFromValue(m_gpuLightData);
-
-  m_globalDescriptor = getCurrentFrame().frameDescriptors.Allocate(m_ctx->GetDevice(), m_gpuSceneDataDescriptorLayout);
-  {
-    DescriptorWriter writer;
-    writer.WriteBuffer(0, gpuSceneDataBuffer.buffer, sizeof(GPUSceneData), 0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER);
-    writer.WriteBuffer(1, lightBuffer.buffer, sizeof(GPULightData), 0, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER);
-    writer.UpdateSet(m_ctx->GetDevice(), m_globalDescriptor);
-  }
-
-  getCurrentFrame().deletionQueue.PushBuffer(std::move(gpuSceneDataBuffer));
-  getCurrentFrame().deletionQueue.PushBuffer(std::move(lightBuffer));
 }
 
-void Renderer::RenderObjectsIndirect(std::span<RenderObject> objects) {
+void Renderer::RenderObjectsIndirect(RenderIndirectObjects& objects) {
   VkCommandBuffer cmd = getCurrentFrame().commandBuffer;
 
   std::vector<IndirectBatch> draws = packObjects(objects);
@@ -139,12 +121,12 @@ void Renderer::RenderObjectsIndirect(std::span<RenderObject> objects) {
   Buffer *indirectBuffer = getCurrentFrame().indirectDrawBuffer.get();
   VkDrawIndexedIndirectCommand *drawCommands;
   vmaMapMemory(indirectBuffer->allocator, indirectBuffer->allocation, reinterpret_cast<void **>(&drawCommands));
-  for (const auto &[idx, object] : std::views::enumerate(objects)) {
-    drawCommands[idx].indexCount = object.mesh->indices.size();
-    drawCommands[idx].instanceCount = 1;
+  for (const auto &[idx, draw] : std::views::enumerate(draws)) {
+    drawCommands[idx].indexCount = draw.indexCount;
+    drawCommands[idx].instanceCount = draw.instanceCount;
     drawCommands[idx].firstIndex = 0;
     drawCommands[idx].vertexOffset = 0;
-    drawCommands[idx].firstInstance = idx;
+    drawCommands[idx].firstInstance = 0;
   }
   vmaUnmapMemory(indirectBuffer->allocator, indirectBuffer->allocation);
 
@@ -164,7 +146,7 @@ void Renderer::RenderObjectsIndirect(std::span<RenderObject> objects) {
   };
   vkCmdSetScissor(cmd, 0, 1, &scissor);
 
-  for (auto &[transform, mesh, material, first, count] : draws) {
+  for (auto &[indexCount, firstIndex, firstInstance, instanceCount, mesh, material] : draws) {
     ShaderPass *forwardPass = material->original->passShaders[MeshPassType::Forward].get();
     VkDescriptorSet forwardDescriptorSet = material->passSets[MeshPassType::Forward];
     vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, forwardPass->pipeline);
@@ -173,17 +155,15 @@ void Renderer::RenderObjectsIndirect(std::span<RenderObject> objects) {
 
     vkCmdBindIndexBuffer(cmd, mesh->meshBuffers->indexBuffer.buffer, 0, VK_INDEX_TYPE_UINT32);
 
-    GPUDrawPushConstants pushConstants{
-        .worldMatrix = glm::mat4{1.f},
-        .vertexBuffer = mesh->meshBuffers->vertexBufferAddress,
-        .objectId = 1
+    GPUIndirectPushConstants pushConstants{
+        .vertexBuffer = mesh->meshBuffers->vertexBufferAddress
     };
-    vkCmdPushConstants(cmd, forwardPass->effect->pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(GPUDrawPushConstants), &pushConstants);
+    vkCmdPushConstants(cmd, forwardPass->effect->pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(GPUIndirectPushConstants), &pushConstants);
 
-    VkDeviceSize indirectOffset = first * sizeof(VkDrawIndexedIndirectCommand);
+    VkDeviceSize indirectOffset = firstIndex * sizeof(VkDrawIndexedIndirectCommand);
     uint32_t drawStride = sizeof(VkDrawIndexedIndirectCommand);
 
-    vkCmdDrawIndexedIndirect(cmd, getCurrentFrame().indirectDrawBuffer->buffer, indirectOffset, count, drawStride);
+    vkCmdDrawIndexedIndirect(cmd, getCurrentFrame().indirectDrawBuffer->buffer, indirectOffset, indexCount, drawStride);
 
     m_stats.drawcallCount++;
     m_stats.triangleCount += mesh->indices.size() / 3;
@@ -210,7 +190,7 @@ void Renderer::RenderObjects(std::span<RenderObject> objects, std::span<size_t> 
   vkCmdSetScissor(cmd, 0, 1, &scissor);
 
   for (auto &idx : order) {
-    auto& [objectId, indexCount, firstIndex, indexBuffer, mesh, material, bounds, transform, vertexBufferAddress] = objects[idx];
+    auto &[objectId, indexCount, firstIndex, indexBuffer, mesh, material, bounds, transform, vertexBufferAddress] = objects[idx];
     ShaderPass *forwardPass = material->original->passShaders[MeshPassType::Forward].get();
     VkDescriptorSet forwardDescriptorSet = material->passSets[MeshPassType::Forward];
 
@@ -234,30 +214,20 @@ void Renderer::RenderObjects(std::span<RenderObject> objects, std::span<size_t> 
   }
 }
 
-std::vector<IndirectBatch> Renderer::packObjects(std::span<RenderObject> objects) {
+std::vector<IndirectBatch> Renderer::packObjects(RenderIndirectObjects& objects) {
   std::vector<IndirectBatch> draws;
   draws.push_back({
-      .transform = objects[0].transform,
-      .mesh = objects[0].mesh,
-      .material = objects[0].material,
-      .first = 0,
-      .count = 0
+    .indexCount = 0,
+    .firstIndex = 0,
+    .firstInstance = 0,
+    .instanceCount = 0,
+    .mesh = objects.mesh,
+    .material = objects.material
   });
 
-  for (uint32_t i = 1; i < objects.size(); i++) {
-    bool sameMesh = objects[i].mesh == draws.back().mesh;
-    bool sameMaterial = objects[i].material == draws.back().material;
-
-    if (sameMesh && sameMaterial) {
-      draws.back().count++;
-    } else {
-      draws.push_back({
-          .mesh = objects[i].mesh,
-          .material = objects[i].material,
-          .first = i,
-          .count = 1
-      });
-    }
+  for (uint32_t i = 0; i < objects.objectIds.size(); i++) {
+    draws.back().instanceCount++;
+    draws.back().indexCount += objects.indexCounts[i];
   }
 
   return draws;
@@ -524,6 +494,36 @@ FrameData &Renderer::getCurrentFrame() { return m_frames[m_currentFrame % FRAME_
 
 void Renderer::WaitIdle() {
   vkDeviceWaitIdle(m_ctx->GetDevice());
+}
+
+void Renderer::UpdateGlobalDescriptor(std::span<uint32_t> objectIds, std::span<glm::mat4> models) {
+  // TODO: Dont do it every frame
+
+  Buffer gpuSceneDataBuffer(m_ctx->GetAllocator(), sizeof(GPUSceneData), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU);
+  gpuSceneDataBuffer.MapMemoryFromValue(m_gpuSceneData);
+
+  Buffer lightBuffer(m_ctx->GetAllocator(), sizeof(GPULightData), VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU);
+  lightBuffer.MapMemoryFromValue(m_gpuLightData);
+
+  Buffer objectIdsBuffer(m_ctx->GetAllocator(), objectIds.size() * sizeof(uint32_t), VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU);
+  objectIdsBuffer.MapMemoryFromValue(objectIds.data());
+
+  Buffer modelsBuffer(m_ctx->GetAllocator(), models.size() * sizeof(glm::mat4), VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU);
+  modelsBuffer.MapMemoryFromValue(models.data());
+
+  DescriptorWriter writer;
+  writer.WriteBuffer(0, gpuSceneDataBuffer.buffer, sizeof(GPUSceneData), 0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER);
+  writer.WriteBuffer(1, lightBuffer.buffer, sizeof(GPULightData), 0, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER);
+  writer.WriteBuffer(2, objectIdsBuffer.buffer, objectIds.size() * sizeof(uint32_t), 0, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER);
+  writer.WriteBuffer(3, modelsBuffer.buffer, models.size() * sizeof(glm::mat4), 0, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER);
+
+  m_globalDescriptor = getCurrentFrame().frameDescriptors.Allocate(m_ctx->GetDevice(), m_gpuSceneDataDescriptorLayout);
+  writer.UpdateSet(m_ctx->GetDevice(), m_globalDescriptor);
+
+  getCurrentFrame().deletionQueue.PushBuffer(std::move(gpuSceneDataBuffer));
+  getCurrentFrame().deletionQueue.PushBuffer(std::move(lightBuffer));
+  getCurrentFrame().deletionQueue.PushBuffer(std::move(objectIdsBuffer));
+  getCurrentFrame().deletionQueue.PushBuffer(std::move(modelsBuffer));
 }
 
 VkBuffer Renderer::GetMaterialConstantsBuffer() {

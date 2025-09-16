@@ -60,6 +60,10 @@ struct GPUDrawPushConstants {
 };
 static_assert(sizeof(GPUDrawPushConstants) == 80);
 
+struct GPUIndirectPushConstants {
+  VkDeviceAddress vertexBuffer;
+};
+
 struct GPUSceneData {
   glm::mat4 view;
   glm::mat4 proj;

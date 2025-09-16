@@ -45,7 +45,7 @@ public:
   void EndRendering();
   void WaitIdle();
 
-  void UpdateGlobalDescriptor(std::span<uint32_t> objectIds, std::span<glm::mat4> models);
+  void UpdateGlobalDescriptor(RenderIndirectObjects& objects);
 
   [[nodiscard]] Swapchain &GetSwapchain();
   [[nodiscard]] VkBuffer GetMaterialConstantsBuffer();

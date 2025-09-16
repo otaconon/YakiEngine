@@ -35,9 +35,7 @@ void RenderSystem::Update(float dt) {
   sceneData.viewproj = camera.viewProjection;
 
   m_renderer->BeginRendering();
-  m_renderer->Begin3DRendering();
   renderDrawablesIndirect(camera.viewProjection);
-  m_renderer->End3DRendering();
   renderGui(dt);
   m_renderer->EndRendering();
 
@@ -101,8 +99,10 @@ void RenderSystem::renderDrawablesIndirect(const glm::mat4 &viewProj) {
     }
   });
 
-  m_renderer->UpdateGlobalDescriptor(objects.objectIds, objects.transforms);
+  m_renderer->UpdateGlobalDescriptor(objects);
+  m_renderer->Begin3DRendering();
   m_renderer->RenderObjectsIndirect(objects);
+  m_renderer->End3DRendering();
 }
 
 void RenderSystem::renderGui(float dt) {

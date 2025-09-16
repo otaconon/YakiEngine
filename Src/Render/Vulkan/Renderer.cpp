@@ -109,11 +109,30 @@ void Renderer::Begin3DRendering() {
 
   VkExtent2D drawExtent = {m_swapchain.GetDrawTexture()->GetExtent().width, m_swapchain.GetDrawTexture()->GetExtent().height};
   VkRenderingInfo renderInfo = VkInit::rendering_info(drawExtent, colorAttachments, &depthAttachment);
+
+    VkMemoryBarrier2 mb{
+      .sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER_2,
+      .srcStageMask = VK_PIPELINE_STAGE_2_HOST_BIT, 
+      .srcAccessMask = VK_ACCESS_2_HOST_WRITE_BIT,
+      .dstStageMask =
+      VK_PIPELINE_STAGE_2_DRAW_INDIRECT_BIT | // for indirect cmd buffer
+      VK_PIPELINE_STAGE_2_VERTEX_SHADER_BIT, // for VS SSBO/UBO
+      .dstAccessMask =
+      VK_ACCESS_2_INDIRECT_COMMAND_READ_BIT | // indirect commands
+      VK_ACCESS_2_SHADER_STORAGE_READ_BIT | // SSBO
+      VK_ACCESS_2_UNIFORM_READ_BIT // UBO
+  };
+
+  VkDependencyInfo dep{VK_STRUCTURE_TYPE_DEPENDENCY_INFO};
+  dep.memoryBarrierCount = 1;
+  dep.pMemoryBarriers = &mb;
+  vkCmdPipelineBarrier2(cmd, &dep);
+
   vkCmdBeginRendering(cmd, &renderInfo);
 
 }
 
-void Renderer::RenderObjectsIndirect(RenderIndirectObjects& objects) {
+void Renderer::RenderObjectsIndirect(RenderIndirectObjects &objects) {
   VkCommandBuffer cmd = getCurrentFrame().commandBuffer;
 
   std::vector<IndirectBatch> draws = packObjects(objects);
@@ -146,7 +165,10 @@ void Renderer::RenderObjectsIndirect(RenderIndirectObjects& objects) {
   };
   vkCmdSetScissor(cmd, 0, 1, &scissor);
 
-  for (auto &[indexCount, firstIndex, firstInstance, instanceCount, mesh, material] : draws) {
+
+  for (int cmdIndex = 0; cmdIndex < draws.size(); cmdIndex++) {
+    auto &[indexCount, firstIndex, firstInstance, instanceCount, mesh, material] = draws[cmdIndex];
+
     ShaderPass *forwardPass = material->original->passShaders[MeshPassType::Forward].get();
     VkDescriptorSet forwardDescriptorSet = material->passSets[MeshPassType::Forward];
     vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, forwardPass->pipeline);
@@ -160,10 +182,11 @@ void Renderer::RenderObjectsIndirect(RenderIndirectObjects& objects) {
     };
     vkCmdPushConstants(cmd, forwardPass->effect->pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(GPUIndirectPushConstants), &pushConstants);
 
-    VkDeviceSize indirectOffset = firstIndex * sizeof(VkDrawIndexedIndirectCommand);
-    uint32_t drawStride = sizeof(VkDrawIndexedIndirectCommand);
+    VkDeviceSize indirectOffset = cmdIndex * sizeof(VkDrawIndexedIndirectCommand);
+    constexpr uint32_t drawCount = 1;
+    constexpr uint32_t drawStride = sizeof(VkDrawIndexedIndirectCommand);
 
-    vkCmdDrawIndexedIndirect(cmd, getCurrentFrame().indirectDrawBuffer->buffer, indirectOffset, instanceCount, drawStride);
+    vkCmdDrawIndexedIndirect(cmd, getCurrentFrame().indirectDrawBuffer->buffer, indirectOffset, drawCount, drawStride);
 
     m_stats.drawcallCount++;
     m_stats.triangleCount += mesh->indices.size() / 3;
@@ -214,15 +237,15 @@ void Renderer::RenderObjects(std::span<RenderObject> objects, std::span<size_t> 
   }
 }
 
-std::vector<IndirectBatch> Renderer::packObjects(RenderIndirectObjects& objects) {
+std::vector<IndirectBatch> Renderer::packObjects(RenderIndirectObjects &objects) {
   std::vector<IndirectBatch> draws;
   draws.push_back({
-    .indexCount = 0,
-    .firstIndex = 0,
-    .firstInstance = 0,
-    .instanceCount = 0,
-    .mesh = objects.mesh,
-    .material = objects.material
+      .indexCount = 0,
+      .firstIndex = 0,
+      .firstInstance = 0,
+      .instanceCount = 0,
+      .mesh = objects.mesh,
+      .material = objects.material
   });
 
   for (uint32_t i = 0; i < objects.objectIds.size(); i++) {
@@ -300,7 +323,7 @@ void Renderer::EndRendering() {
   else if (result != VK_SUCCESS)
     throw std::runtime_error("failed to present swap chain image!");
 
-  m_pickingResources.stagingBuffer->MapMemoryToValue(m_pickingResources.entityId);
+  m_pickingResources.stagingBuffer->MapMemoryToScalar(m_pickingResources.entityId);
   m_currentFrame = (m_currentFrame + 1) % FRAME_OVERLAP;
 }
 
@@ -498,26 +521,26 @@ void Renderer::WaitIdle() {
   vkDeviceWaitIdle(m_ctx->GetDevice());
 }
 
-void Renderer::UpdateGlobalDescriptor(std::span<uint32_t> objectIds, std::span<glm::mat4> models) {
+void Renderer::UpdateGlobalDescriptor(RenderIndirectObjects &objects) {
   // TODO: Dont do it every frame
 
   Buffer gpuSceneDataBuffer(m_ctx->GetAllocator(), sizeof(GPUSceneData), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU);
-  gpuSceneDataBuffer.MapMemoryFromValue(m_gpuSceneData);
+  gpuSceneDataBuffer.MapMemoryFromScalar(m_gpuSceneData);
 
   Buffer lightBuffer(m_ctx->GetAllocator(), sizeof(GPULightData), VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU);
-  lightBuffer.MapMemoryFromValue(m_gpuLightData);
+  lightBuffer.MapMemoryFromScalar(m_gpuLightData);
 
-  Buffer objectIdsBuffer(m_ctx->GetAllocator(), objectIds.size() * sizeof(uint32_t), VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU);
-  objectIdsBuffer.MapMemoryFromValue(objectIds.data());
+  Buffer objectIdsBuffer(m_ctx->GetAllocator(), objects.objectIds.size() * sizeof(uint32_t), VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU);
+  objectIdsBuffer.MapMemoryFromVector(objects.objectIds);
 
-  Buffer modelsBuffer(m_ctx->GetAllocator(), models.size() * sizeof(glm::mat4), VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU);
-  modelsBuffer.MapMemoryFromValue(models.data());
+  Buffer modelsBuffer(m_ctx->GetAllocator(), objects.transforms.size() * sizeof(glm::mat4), VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU);
+  modelsBuffer.MapMemoryFromVector(objects.transforms);
 
   DescriptorWriter writer;
   writer.WriteBuffer(0, gpuSceneDataBuffer.buffer, sizeof(GPUSceneData), 0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER);
   writer.WriteBuffer(1, lightBuffer.buffer, sizeof(GPULightData), 0, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER);
-  writer.WriteBuffer(2, objectIdsBuffer.buffer, objectIds.size() * sizeof(uint32_t), 0, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER);
-  writer.WriteBuffer(3, modelsBuffer.buffer, models.size() * sizeof(glm::mat4), 0, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER);
+  writer.WriteBuffer(2, objectIdsBuffer.buffer, objects.objectIds.size() * sizeof(uint32_t), 0, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER);
+  writer.WriteBuffer(3, modelsBuffer.buffer, objects.transforms.size() * sizeof(glm::mat4), 0, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER);
 
   m_globalDescriptor = getCurrentFrame().frameDescriptors.Allocate(m_ctx->GetDevice(), m_gpuSceneDataDescriptorLayout);
   writer.UpdateSet(m_ctx->GetDevice(), m_globalDescriptor);

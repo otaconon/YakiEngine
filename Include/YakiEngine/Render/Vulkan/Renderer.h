@@ -5,7 +5,6 @@
 #include "Swapchain.h"
 #include "VkTypes.h"
 #include "VulkanContext.h"
-#include "Components/Drawable.h"
 #include "Components/DefaultData.h"
 #include "RenderObject.h"
 
@@ -38,7 +37,7 @@ public:
 
   void BeginRendering();
   void Begin3DRendering();
-  void RenderObjectsIndirect(RenderIndirectObjects& objects);
+  void RenderObjectsIndirect(std::vector<IndirectBatch>& batches);
   void RenderObjects(std::span<RenderObject> objects, std::span<size_t> order);
   void End3DRendering();
   void RenderImGui();
@@ -62,12 +61,14 @@ private:
   Swapchain m_swapchain;
 
   DeletionQueue m_deletionQueue;
+  DeletionQueue m_indirectDeletionQueue;
 
   std::array<FrameData, 2> m_frames;
   uint32_t m_currentFrame;
   uint32_t m_currentImageIndex;
 
   DescriptorAllocator m_descriptorAllocator;
+  DescriptorAllocator m_indirectDescriptors; // TODO: Move scene data from this allocator
 
   VkDescriptorSetLayout m_drawImageDescriptorLayout{};
   VkDescriptorSetLayout m_singleImageDescriptorLayout{};
@@ -92,8 +93,6 @@ private:
 
   VkCommandBuffer beginSingleTimeCommands(VkCommandPool &commandPool) const;
   void endSingleTimeCommands(VkCommandPool &commandPool, VkCommandBuffer &commandBuffer) const;
-
-  std::vector<IndirectBatch> packObjects(RenderIndirectObjects& objects);
 
   FrameData &getCurrentFrame();
 };

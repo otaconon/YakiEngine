@@ -1,4 +1,4 @@
-#include "../../../Include/YakiEngine/Render/Systems/RendererSystem.h"
+#include "Systems/RendererSystem.h"
 #include "Components/Camera.h"
 
 #define GLM_ENABLE_EXPERIMENTAL
@@ -15,6 +15,7 @@
 #include "Components/DirectionalLight.h"
 #include "Gui/ItemList.h"
 #include "Components/CoreComponents.h"
+#include "Components/DynamicObject.h"
 #include "Components/RenderComponents.h"
 
 
@@ -35,7 +36,7 @@ void RenderSystem::Update(float dt) {
   sceneData.viewproj = camera.viewProjection;
 
   m_renderer->BeginRendering();
-  renderDrawablesIndirect(camera.viewProjection);
+  renderObjectsIndirect(camera.viewProjection);
   renderGui(dt);
   m_renderer->EndRendering();
 
@@ -44,25 +45,25 @@ void RenderSystem::Update(float dt) {
     ecs.AddComponents(selectedEntity, Hovered{});
 }
 
-void RenderSystem::renderDrawables(const glm::mat4 &viewproj) {
+void RenderSystem::renderDynamicObjects(const glm::mat4 &viewproj) {
   auto &ecs = Ecs::GetInstance();
 
-  size_t drawableCount = ecs.GetComponentArray<Drawable>().Size();
+  size_t drawableCount = ecs.GetComponentArray<DynamicObject>().Size();
   std::vector<RenderObject> objects;
   objects.reserve(drawableCount);
 
-  ecs.Each<Drawable, LocalToWorld>([&](Hori::Entity e, Drawable &drawable, LocalToWorld &localToWorld) {
-    for (auto &[startIndex, count, bounds, material] : drawable.mesh->surfaces) {
+  ecs.Each<DynamicObject, LocalToWorld>([&](Hori::Entity e, DynamicObject &object, LocalToWorld &localToWorld) {
+    for (auto &[startIndex, count, bounds, material] : object.mesh->surfaces) {
       RenderObject obj{
           .objectId = e.id,
           .indexCount = count,
           .firstIndex = startIndex,
-          .indexBuffer = drawable.mesh->meshBuffers->indexBuffer.buffer,
-          .mesh = drawable.mesh.get(),
+          .indexBuffer = object.mesh->meshBuffers->indexBuffer.buffer,
+          .mesh = object.mesh.get(),
           .material = material.get(),
           .bounds = bounds,
           .transform = localToWorld.value,
-          .vertexBufferAddress = drawable.mesh->meshBuffers->vertexBufferAddress
+          .vertexBufferAddress = object.mesh->meshBuffers->vertexBufferAddress
       };
 
       //if (isVisible(obj, viewproj))
@@ -84,24 +85,28 @@ void RenderSystem::renderDrawables(const glm::mat4 &viewproj) {
   m_renderer->RenderObjects(objects, order);
 }
 
-void RenderSystem::renderDrawablesIndirect(const glm::mat4 &viewProj) {
+void RenderSystem::renderObjectsIndirect(const glm::mat4 &viewProj) {
   auto &ecs = Ecs::GetInstance();
 
-  size_t drawableCount = ecs.GetComponentArray<Drawable>().Size();
-  RenderIndirectObjects objects;
+  if (ecs.GetComponentArray<DirtyStaticObject>().Size() != 0) {
+    RenderIndirectObjects objects;
+    ecs.Each<DirtyStaticObject, StaticObject, LocalToWorld>([&](Hori::Entity e, DirtyStaticObject, StaticObject &drawable, LocalToWorld &localToWorld) {
+      for (auto &[startIndex, count, bounds, material] : drawable.mesh->surfaces) {
+        objects.objectIds.push_back(e.id);
+        objects.transforms.push_back(localToWorld.value);
+        objects.mesh = drawable.mesh.get();
+        objects.material = material.get();
+      }
+    });
+    ecs.Each<DirtyStaticObject>([&](Hori::Entity e, DirtyStaticObject) {
+      //ecs.RemoveComponents<DirtyStaticObject>(e);
+    });
+    m_renderer->UpdateGlobalDescriptor(objects);
+    m_indirectBatches = packObjects(objects);
+  }
 
-  ecs.Each<Drawable, LocalToWorld>([&](Hori::Entity e, Drawable &drawable, LocalToWorld &localToWorld) {
-    for (auto &[startIndex, count, bounds, material] : drawable.mesh->surfaces) {
-      objects.objectIds.push_back(e.id);
-      objects.transforms.push_back(localToWorld.value);
-      objects.mesh = drawable.mesh.get();
-      objects.material = material.get();
-    }
-  });
-
-  m_renderer->UpdateGlobalDescriptor(objects);
   m_renderer->Begin3DRendering();
-  m_renderer->RenderObjectsIndirect(objects);
+  m_renderer->RenderObjectsIndirect(m_indirectBatches);
   m_renderer->End3DRendering();
 }
 
@@ -198,6 +203,26 @@ void RenderSystem::renderGui(float dt) {
   ImGui::Render();
   m_renderer->RenderImGui();
 }
+
+std::vector<IndirectBatch> RenderSystem::packObjects(RenderIndirectObjects &objects) {
+  std::vector<IndirectBatch> draws;
+  draws.push_back({
+      .indexCount = 0,
+      .firstIndex = 0,
+      .firstInstance = 0,
+      .instanceCount = 0,
+      .mesh = objects.mesh,
+      .material = objects.material
+  });
+
+  for (uint32_t i = 0; i < objects.objectIds.size(); i++) {
+    draws.back().instanceCount++;
+    draws.back().indexCount += objects.mesh->indices.size();
+  }
+
+  return draws;
+}
+
 
 bool RenderSystem::isVisible(const RenderObject &obj, const glm::mat4 &viewproj) {
   std::array<glm::vec3, 8> corners{

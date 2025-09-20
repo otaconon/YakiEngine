@@ -2,18 +2,19 @@
 
 #include "Assets/Mesh.h"
 #include "Components/CoreComponents.h"
+#include "Components/DynamicObject.h"
+#include "Components/StaticObject.h"
 
-[[nodiscard]] inline Drawable create_drawable(std::shared_ptr<Mesh> mesh) {
-  Drawable drawable{mesh, {glm::mat4{1.f}, glm::mat4{}, glm::mat4{}}};
-  return drawable;
+inline void register_dynamic_object(Hori::Entity e, DynamicObject object, Translation pos = {}) {
+  auto &ecs = Ecs::GetInstance();
+  ecs.AddComponents(e, std::move(object), std::move(pos));
+  ecs.AddComponents(e, Rotation{}, Scale{{1.f, 1.f, 1.f}}, LocalToWorld{}, LocalToParent{}, ParentToLocal{}, Children{}, Parent{}, DirtyTransform{});
 }
 
-inline void register_object(Hori::Entity e, std::shared_ptr<Mesh> mesh = nullptr, Translation pos = {}) {
-  auto &ecs = Ecs::GetInstance();
-  if (mesh)
-    ecs.AddComponents(e, create_drawable(mesh));
-
-  ecs.AddComponents(e, std::move(pos), Rotation{}, Scale{{1.f, 1.f, 1.f}}, LocalToWorld{}, LocalToParent{}, ParentToLocal{}, Children{}, Parent{}, DirtyTransform{});
+inline void register_static_object(Hori::Entity e, StaticObject object, Translation pos = {}) {
+   auto &ecs = Ecs::GetInstance();
+  ecs.AddComponents(e, std::move(object), std::move(pos), DirtyStaticObject{});
+  ecs.AddComponents(e, Rotation{}, Scale{{1.f, 1.f, 1.f}}, LocalToWorld{}, LocalToParent{}, ParentToLocal{}, Children{}, Parent{}, DirtyTransform{});
 }
 
 inline void init_default_data(std::shared_ptr<VulkanContext> ctx, Swapchain& swapchain, DeletionQueue& deletionQueue) {

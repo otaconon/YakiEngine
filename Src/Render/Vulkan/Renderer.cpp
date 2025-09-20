@@ -129,18 +129,15 @@ void Renderer::Begin3DRendering() {
   vkCmdPipelineBarrier2(cmd, &dep);
 
   vkCmdBeginRendering(cmd, &renderInfo);
-
 }
 
-void Renderer::RenderObjectsIndirect(RenderIndirectObjects &objects) {
+void Renderer::RenderObjectsIndirect(std::vector<IndirectBatch>& batches) {
   VkCommandBuffer cmd = getCurrentFrame().commandBuffer;
-
-  std::vector<IndirectBatch> draws = packObjects(objects);
 
   Buffer *indirectBuffer = getCurrentFrame().indirectDrawBuffer.get();
   VkDrawIndexedIndirectCommand *drawCommands;
   vmaMapMemory(indirectBuffer->allocator, indirectBuffer->allocation, reinterpret_cast<void **>(&drawCommands));
-  for (const auto &[idx, draw] : std::views::enumerate(draws)) {
+  for (const auto &[idx, draw] : std::views::enumerate(batches)) {
     drawCommands[idx].indexCount = draw.indexCount;
     drawCommands[idx].instanceCount = draw.instanceCount;
     drawCommands[idx].firstIndex = 0;
@@ -166,8 +163,8 @@ void Renderer::RenderObjectsIndirect(RenderIndirectObjects &objects) {
   vkCmdSetScissor(cmd, 0, 1, &scissor);
 
 
-  for (int cmdIndex = 0; cmdIndex < draws.size(); cmdIndex++) {
-    auto &[indexCount, firstIndex, firstInstance, instanceCount, mesh, material] = draws[cmdIndex];
+  for (int cmdIndex = 0; cmdIndex < batches.size(); cmdIndex++) {
+    auto &[indexCount, firstIndex, firstInstance, instanceCount, mesh, material] = batches[cmdIndex];
 
     ShaderPass *forwardPass = material->original->passShaders[MeshPassType::Forward].get();
     VkDescriptorSet forwardDescriptorSet = material->passSets[MeshPassType::Forward];
@@ -235,25 +232,6 @@ void Renderer::RenderObjects(std::span<RenderObject> objects, std::span<size_t> 
     m_stats.drawcallCount++;
     m_stats.triangleCount += indexCount / 3;
   }
-}
-
-std::vector<IndirectBatch> Renderer::packObjects(RenderIndirectObjects &objects) {
-  std::vector<IndirectBatch> draws;
-  draws.push_back({
-      .indexCount = 0,
-      .firstIndex = 0,
-      .firstInstance = 0,
-      .instanceCount = 0,
-      .mesh = objects.mesh,
-      .material = objects.material
-  });
-
-  for (uint32_t i = 0; i < objects.objectIds.size(); i++) {
-    draws.back().instanceCount++;
-    draws.back().indexCount += objects.mesh->indices.size();
-  }
-
-  return draws;
 }
 
 void Renderer::End3DRendering() {
@@ -522,8 +500,6 @@ void Renderer::WaitIdle() {
 }
 
 void Renderer::UpdateGlobalDescriptor(RenderIndirectObjects &objects) {
-  // TODO: Dont do it every frame
-
   Buffer gpuSceneDataBuffer(m_ctx->GetAllocator(), sizeof(GPUSceneData), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU);
   gpuSceneDataBuffer.MapMemoryFromScalar(m_gpuSceneData);
 

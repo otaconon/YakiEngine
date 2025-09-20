@@ -81,8 +81,8 @@ Scene::Scene(std::shared_ptr<VulkanContext> ctx, DeletionQueue& deletionQueue, c
     });
   }
 
-  std::vector<std::shared_ptr<Mesh>> meshes;
   std::vector<Hori::Entity> nodes;
+  std::vector<std::shared_ptr<Mesh>> meshes;
   std::vector<std::shared_ptr<Texture>> images;
   std::vector<std::shared_ptr<Material>> materials;
 
@@ -274,9 +274,7 @@ Scene::Scene(std::shared_ptr<VulkanContext> ctx, DeletionQueue& deletionQueue, c
 
     if (node.meshIndex.has_value()) {
       std::shared_ptr<Mesh> mesh = meshes[*node.meshIndex];
-      register_object(newNode, mesh);
-    } else {
-      register_object(newNode);
+      register_dynamic_object(newNode, DynamicObject{mesh, {}});
     }
 
     nodes.push_back(newNode);

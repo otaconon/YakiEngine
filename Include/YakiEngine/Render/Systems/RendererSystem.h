@@ -6,6 +6,7 @@
 #include <glm/glm.hpp>
 
 #include "Ecs.h"
+#include "Components/StaticObject.h"
 #include "Vulkan/Renderer.h"
 #include "Vulkan/VkTypes.h"
 
@@ -24,9 +25,13 @@ private:
   Renderer *m_renderer;
 
   std::bitset<8> m_showElements;
-  void renderDrawables(const glm::mat4 &viewproj);
-  void renderDrawablesIndirect(const glm::mat4 &viewProj);
+  std::vector<IndirectBatch> m_indirectBatches;
+
+  void renderDynamicObjects(const glm::mat4 &viewproj);
+  void renderObjectsIndirect(const glm::mat4 &viewProj);
   void renderGui(float dt);
 
-  bool isVisible(const RenderObject &obj, const glm::mat4 &viewproj);
+  static std::vector<IndirectBatch> packObjects(RenderIndirectObjects &objects);
+
+  static bool isVisible(const RenderObject &obj, const glm::mat4 &viewproj);
 };

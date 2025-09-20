@@ -31,7 +31,7 @@ HashCubes::HashCubes()
   for (int i = 0; i < cubesRes; i++) {
     for (int j = 0; j < cubesRes; j++) {
       auto e = ecs.CreateEntity();
-      register_object(e, m_cubeMesh, Translation{{i, j, 0.f}});
+      register_static_object(e, StaticObject{m_cubeMesh, {}}, Translation{{i, j, 0.f}});
     }
   }
 
@@ -49,7 +49,7 @@ HashCubes::HashCubes()
     e = ecs.CreateEntity();
     ecs.AddComponents(e, DirectionalLight{{0.5f, 0.5f, 0.5f, 1.f}, {0.5f, 0.5f, 0.0f, 1.f}});
     auto mesh = m_allMeshes->m_meshes.begin()->second;
-    register_object(e, mesh, Translation{{3.f, 10.f, 0.f}});
+    register_dynamic_object(e, DynamicObject{mesh, {}}, Translation{{3.f, 10.f, 0.f}});
   }
 
   auto &sceneData = m_renderer.GetGpuSceneData();

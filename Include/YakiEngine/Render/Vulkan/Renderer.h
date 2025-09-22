@@ -62,12 +62,11 @@ private:
 
   DeletionQueue m_deletionQueue;
 
-  std::array<FrameData, 2> m_frames;
+  std::array<FrameData, FRAME_OVERLAP> m_frames;
   uint32_t m_currentFrame;
   uint32_t m_currentImageIndex;
 
   DescriptorAllocator m_descriptorAllocator;
-  DescriptorAllocator m_indirectDescriptors; // TODO: Move scene data from this allocator
 
   std::unique_ptr<Buffer> m_objectIdsBuffer;
   std::unique_ptr<Buffer> m_transformsBuffer;

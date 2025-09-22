@@ -2,25 +2,24 @@
 #include "Components/Camera.h"
 
 #define GLM_ENABLE_EXPERIMENTAL
+#include <glm/ext/matrix_transform.hpp>
+#include <glm/glm.hpp>
+#include <glm/gtc/type_ptr.hpp>
+#include <glm/gtx/quaternion.hpp>
 #include <imgui.h>
 #include <imgui_impl_sdl3.h>
 #include <imgui_impl_vulkan.h>
 #include <numeric>
-#include <glm/glm.hpp>
-#include <glm/ext/matrix_transform.hpp>
-#include <glm/gtx/quaternion.hpp>
-#include <glm/gtc/type_ptr.hpp>
 
-#include "Components/RayTagged.h"
-#include "Components/DirectionalLight.h"
-#include "Gui/ItemList.h"
 #include "Components/CoreComponents.h"
+#include "Components/DirectionalLight.h"
 #include "Components/DynamicObject.h"
+#include "Components/RayTagged.h"
 #include "Components/RenderComponents.h"
-
+#include "Gui/ItemList.h"
 
 RenderSystem::RenderSystem(Renderer *renderer)
-  : m_renderer(renderer) {
+    : m_renderer(renderer) {
 }
 
 void RenderSystem::Update(float dt) {
@@ -36,7 +35,9 @@ void RenderSystem::Update(float dt) {
   sceneData.viewproj = camera.viewProjection;
 
   m_renderer->BeginRendering();
+  m_renderer->Begin3DRendering();
   renderObjectsIndirect(camera.viewProjection);
+  m_renderer->End3DRendering();
   renderGui(dt);
   m_renderer->EndRendering();
 
@@ -63,10 +64,9 @@ void RenderSystem::renderDynamicObjects(const glm::mat4 &viewproj) {
           .material = material.get(),
           .bounds = bounds,
           .transform = localToWorld.value,
-          .vertexBufferAddress = object.mesh->meshBuffers->vertexBufferAddress
-      };
+          .vertexBufferAddress = object.mesh->meshBuffers->vertexBufferAddress};
 
-      //if (isVisible(obj, viewproj))
+      // if (isVisible(obj, viewproj))
       objects.push_back(obj);
     }
   });
@@ -95,8 +95,8 @@ void RenderSystem::renderObjectsIndirect(const glm::mat4 &viewProj) {
         objects.indexCounts.push_back(count);
         objects.objectIds.push_back(e.id);
         objects.transforms.push_back(localToWorld.value);
-        objects.mesh = drawable.mesh.get();
-        objects.material = material.get();
+        objects.meshes.push_back(drawable.mesh.get());
+        objects.materials.push_back(material.get());
       }
     });
     ecs.Each<DirtyStaticObject>([&](Hori::Entity e, DirtyStaticObject) {
@@ -106,9 +106,7 @@ void RenderSystem::renderObjectsIndirect(const glm::mat4 &viewProj) {
     m_indirectBatches = packObjects(objects);
   }
 
-  m_renderer->Begin3DRendering();
   m_renderer->RenderObjectsIndirect(m_indirectBatches);
-  m_renderer->End3DRendering();
 }
 
 void RenderSystem::renderGui(float dt) {
@@ -181,21 +179,20 @@ void RenderSystem::renderGui(float dt) {
 
   ImGui::Begin("Object info");
   std::vector<Hori::Entity> outOfDateTags;
-  ecs.Each<RayTagged, Translation, Rotation, Scale>
-      ([&ecs, &outOfDateTags](Hori::Entity e, RayTagged, Translation &translation, Rotation &rotation, Scale &scale) {
-        if (ecs.GetComponentArray<RayTagged>().Size() - outOfDateTags.size() > 1) {
-          outOfDateTags.push_back(e);
-          return;
-        }
+  ecs.Each<RayTagged, Translation, Rotation, Scale>([&ecs, &outOfDateTags](Hori::Entity e, RayTagged, Translation &translation, Rotation &rotation, Scale &scale) {
+    if (ecs.GetComponentArray<RayTagged>().Size() - outOfDateTags.size() > 1) {
+      outOfDateTags.push_back(e);
+      return;
+    }
 
-        ImGui::InputFloat3("translation", glm::value_ptr(translation.value));
-        ImGui::InputFloat("pitch", &rotation.pitch);
-        ImGui::SameLine();
-        ImGui::InputFloat("yaw", &rotation.yaw);
-        ImGui::SameLine();
-        ImGui::InputFloat("roll", &rotation.roll);
-        ImGui::InputFloat3("scale", glm::value_ptr(scale.value));
-      });
+    ImGui::InputFloat3("translation", glm::value_ptr(translation.value));
+    ImGui::InputFloat("pitch", &rotation.pitch);
+    ImGui::SameLine();
+    ImGui::InputFloat("yaw", &rotation.yaw);
+    ImGui::SameLine();
+    ImGui::InputFloat("roll", &rotation.roll);
+    ImGui::InputFloat3("scale", glm::value_ptr(scale.value));
+  });
   for (auto &e : outOfDateTags) {
     ecs.RemoveComponents<RayTagged>(e);
   }
@@ -206,23 +203,37 @@ void RenderSystem::renderGui(float dt) {
 }
 
 std::vector<IndirectBatch> RenderSystem::packObjects(RenderIndirectObjects &objects) {
+  auto Z = std::views::zip(objects.materials, objects.indexCounts, objects.objectIds, objects.transforms);
+  std::ranges::sort(Z, std::ranges::less{}, [](auto const &t) {
+    return std::pair{std::get<0>(t), std::get<1>(t)};
+  });
+
   std::vector<IndirectBatch> draws;
   draws.push_back({
       .indexCount = objects.indexCounts[0],
       .firstIndex = 0,
       .firstInstance = 0,
-      .instanceCount = 0,
-      .mesh = objects.mesh,
-      .material = objects.material
+      .instanceCount = 1,
+      .mesh = objects.meshes[0],
+      .material = objects.materials[0],
   });
 
-  for (uint32_t i = 0; i < objects.objectIds.size(); i++) {
+  for (uint32_t i = 1; i < objects.objectIds.size(); i++) {
+    if (objects.meshes[i - 1] != objects.meshes[i] || objects.materials[i - 1] != objects.materials[i]) {
+      draws.push_back({
+          .indexCount = objects.indexCounts[i],
+          .firstIndex = 0,
+          .firstInstance = i,
+          .instanceCount = 0,
+          .mesh = objects.meshes[i],
+          .material = objects.materials[i],
+      });
+    }
     draws.back().instanceCount++;
   }
 
   return draws;
 }
-
 
 bool RenderSystem::isVisible(const RenderObject &obj, const glm::mat4 &viewproj) {
   std::array<glm::vec3, 8> corners{

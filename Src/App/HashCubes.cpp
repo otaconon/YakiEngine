@@ -35,6 +35,12 @@ HashCubes::HashCubes()
     }
   }
 
+  for (int i = 0; i < 3; i++) {
+    auto e = ecs.CreateEntity();
+    auto mesh = m_allMeshes->m_meshes.begin()->second;
+    register_static_object(e, StaticObject{mesh, {}}, Translation{{3.f * i, 5.f, 0.f}});
+  }
+
   Hori::Entity camera = ecs.CreateEntity();
   ecs.AddComponents(camera, Camera{}, Controller{});
   ecs.AddComponents(camera, Translation{{0, -10.f, -10.f}}, Rotation{}, Scale{}, LocalToWorld{}, LocalToParent{}, ParentToLocal{}, Parent{}, Children{});

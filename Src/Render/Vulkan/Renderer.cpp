@@ -1,35 +1,35 @@
 #include "Vulkan/Renderer.h"
 
-#include <imgui.h>
-#include <stdexcept>
 #include <SDL3/SDL_vulkan.h>
+#include <imgui.h>
 #include <ranges>
+#include <stdexcept>
 
 #define IMGUI_IMPL_VULKAN_HAS_DYNAMIC_RENDERING
 #include <imgui_impl_sdl3.h>
 #include <imgui_impl_vulkan.h>
 
-#include <vulkan/vulkan.h>
-#include <vk_mem_alloc.h>
 #include <SDL3/SDL_mouse.h>
+#include <vk_mem_alloc.h>
+#include <vulkan/vulkan.h>
 
+#include "Components/DefaultData.h"
+#include "Components/RenderComponents.h"
+#include "Vulkan/Descriptors/DescriptorLayoutBuilder.h"
+#include "Vulkan/Descriptors/DescriptorWriter.h"
 #include "Vulkan/ImGuiStyles.h"
 #include "Vulkan/PipelineBuilder.h"
-#include "Vulkan/VkInit.h"
-#include "Vulkan/Descriptors/DescriptorLayoutBuilder.h"
-#include "Components/RenderComponents.h"
-#include "Components/DefaultData.h"
 #include "Vulkan/RenderObject.h"
-#include "Vulkan/Descriptors/DescriptorWriter.h"
+#include "Vulkan/VkInit.h"
 
 constexpr size_t MAX_COMMANDS = 100000;
 
 Renderer::Renderer(SDL_Window *window, std::shared_ptr<VulkanContext> ctx)
-  : m_window{window},
-    m_ctx{ctx},
-    m_swapchain{m_ctx, window},
-    m_currentFrame{0},
-    m_materialConstantsBuffer{m_ctx->GetAllocator(), sizeof(ShaderParameters), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU} {
+    : m_window{window},
+      m_ctx{ctx},
+      m_swapchain{m_ctx, window},
+      m_currentFrame{0},
+      m_materialConstantsBuffer{m_ctx->GetAllocator(), sizeof(ShaderParameters), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU} {
   initCommands();
   initSyncObjects();
   initImgui();
@@ -59,7 +59,6 @@ void Renderer::BeginRendering() {
   VK_CHECK(vkWaitForFences(m_ctx->GetDevice(), 1, &getCurrentFrame().renderFence, true, UINT64_MAX));
 
   getCurrentFrame().deletionQueue.Flush();
-  //getCurrentFrame().frameDescriptorAllocator.ClearPools(m_ctx->GetDevice());
   VK_CHECK(vkResetFences(m_ctx->GetDevice(), 1, &getCurrentFrame().renderFence));
   VK_CHECK(vkResetCommandBuffer(getCurrentFrame().commandBuffer, 0));
 
@@ -103,40 +102,41 @@ void Renderer::Begin3DRendering() {
   VkCommandBuffer cmd = getCurrentFrame().commandBuffer;
   std::array<VkRenderingAttachmentInfo, 2> colorAttachments{
       VkInit::color_attachment_info(m_swapchain.GetDrawTexture()->GetView(), nullptr, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL),
-      VkInit::color_attachment_info(m_pickingResources.texture->GetView(), nullptr, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL)
+      VkInit::color_attachment_info(m_pickingResources.texture->GetView(), nullptr, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL),
   };
   VkRenderingAttachmentInfo depthAttachment = VkInit::depth_attachment_info(m_swapchain.GetDepthTexture()->GetView(), VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL);
 
   VkExtent2D drawExtent = {m_swapchain.GetDrawTexture()->GetExtent().width, m_swapchain.GetDrawTexture()->GetExtent().height};
   VkRenderingInfo renderInfo = VkInit::rendering_info(drawExtent, colorAttachments, &depthAttachment);
 
-    VkMemoryBarrier2 mb{
+  VkMemoryBarrier2 mb{
       .sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER_2,
-      .srcStageMask = VK_PIPELINE_STAGE_2_HOST_BIT, 
+      .srcStageMask = VK_PIPELINE_STAGE_2_HOST_BIT,
       .srcAccessMask = VK_ACCESS_2_HOST_WRITE_BIT,
       .dstStageMask =
-      VK_PIPELINE_STAGE_2_DRAW_INDIRECT_BIT | // for indirect cmd buffer
-      VK_PIPELINE_STAGE_2_VERTEX_SHADER_BIT, // for VS SSBO/UBO
+          VK_PIPELINE_STAGE_2_DRAW_INDIRECT_BIT | // for indirect cmd buffer
+          VK_PIPELINE_STAGE_2_VERTEX_SHADER_BIT,  // for VS SSBO/UBO
       .dstAccessMask =
-      VK_ACCESS_2_INDIRECT_COMMAND_READ_BIT | // indirect commands
-      VK_ACCESS_2_SHADER_STORAGE_READ_BIT | // SSBO
-      VK_ACCESS_2_UNIFORM_READ_BIT // UBO
+          VK_ACCESS_2_INDIRECT_COMMAND_READ_BIT | // indirect commands
+          VK_ACCESS_2_SHADER_STORAGE_READ_BIT |   // SSBO
+          VK_ACCESS_2_UNIFORM_READ_BIT            // UBO
   };
 
-  VkDependencyInfo dep{VK_STRUCTURE_TYPE_DEPENDENCY_INFO};
-  dep.memoryBarrierCount = 1;
-  dep.pMemoryBarriers = &mb;
+  VkDependencyInfo dep{
+      .sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO,
+      .memoryBarrierCount = 1,
+      .pMemoryBarriers = &mb};
   vkCmdPipelineBarrier2(cmd, &dep);
 
   // Update scene data
-  auto& frame = getCurrentFrame();
+  auto &frame = getCurrentFrame();
   frame.gpuSceneDataBuffer->MapMemoryFromScalar(m_gpuSceneData);
   frame.lightBuffer->MapMemoryFromScalar(m_gpuLightData);
 
   vkCmdBeginRendering(cmd, &renderInfo);
 }
 
-void Renderer::RenderObjectsIndirect(std::vector<IndirectBatch>& batches) {
+void Renderer::RenderObjectsIndirect(std::vector<IndirectBatch> &batches) {
   VkCommandBuffer cmd = getCurrentFrame().commandBuffer;
 
   Buffer *indirectBuffer = getCurrentFrame().indirectDrawBuffer.get();
@@ -145,9 +145,9 @@ void Renderer::RenderObjectsIndirect(std::vector<IndirectBatch>& batches) {
   for (const auto &[idx, draw] : std::views::enumerate(batches)) {
     drawCommands[idx].indexCount = draw.indexCount;
     drawCommands[idx].instanceCount = draw.instanceCount;
-    drawCommands[idx].firstIndex = 0;
+    drawCommands[idx].firstIndex = draw.firstIndex;
     drawCommands[idx].vertexOffset = 0;
-    drawCommands[idx].firstInstance = 0;
+    drawCommands[idx].firstInstance = draw.firstInstance;
   }
   vmaUnmapMemory(indirectBuffer->allocator, indirectBuffer->allocation);
 
@@ -157,16 +157,15 @@ void Renderer::RenderObjectsIndirect(std::vector<IndirectBatch>& batches) {
       .width = static_cast<float>(m_swapchain.GetExtent().width),
       .height = static_cast<float>(m_swapchain.GetExtent().height),
       .minDepth = 0.0f,
-      .maxDepth = 1.0f
+      .maxDepth = 1.0f,
   };
   vkCmdSetViewport(cmd, 0, 1, &viewport);
 
   VkRect2D scissor{
       .offset = {0, 0},
-      .extent = m_swapchain.GetExtent()
+      .extent = m_swapchain.GetExtent(),
   };
   vkCmdSetScissor(cmd, 0, 1, &scissor);
-
 
   for (int cmdIndex = 0; cmdIndex < batches.size(); cmdIndex++) {
     auto &[indexCount, firstIndex, firstInstance, instanceCount, mesh, material] = batches[cmdIndex];
@@ -180,8 +179,7 @@ void Renderer::RenderObjectsIndirect(std::vector<IndirectBatch>& batches) {
     vkCmdBindIndexBuffer(cmd, mesh->meshBuffers->indexBuffer.buffer, 0, VK_INDEX_TYPE_UINT32);
 
     GPUIndirectPushConstants pushConstants{
-        .vertexBuffer = mesh->meshBuffers->vertexBufferAddress
-    };
+        .vertexBuffer = mesh->meshBuffers->vertexBufferAddress};
     vkCmdPushConstants(cmd, forwardPass->effect->pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(GPUIndirectPushConstants), &pushConstants);
 
     VkDeviceSize indirectOffset = cmdIndex * sizeof(VkDrawIndexedIndirectCommand);
@@ -204,13 +202,13 @@ void Renderer::RenderObjects(std::span<RenderObject> objects, std::span<size_t> 
       .width = static_cast<float>(m_swapchain.GetExtent().width),
       .height = static_cast<float>(m_swapchain.GetExtent().height),
       .minDepth = 0.0f,
-      .maxDepth = 1.0f
+      .maxDepth = 1.0f,
   };
   vkCmdSetViewport(cmd, 0, 1, &viewport);
 
   VkRect2D scissor{
       .offset = {0, 0},
-      .extent = m_swapchain.GetExtent()
+      .extent = m_swapchain.GetExtent(),
   };
   vkCmdSetScissor(cmd, 0, 1, &scissor);
 
@@ -228,8 +226,7 @@ void Renderer::RenderObjects(std::span<RenderObject> objects, std::span<size_t> 
     GPUDrawPushConstants pushConstants{
         .worldMatrix = transform,
         .vertexBuffer = vertexBufferAddress,
-        .objectId = objectId
-    };
+        .objectId = objectId};
 
     vkCmdPushConstants(cmd, forwardPass->effect->pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(GPUDrawPushConstants), &pushConstants);
 
@@ -263,7 +260,7 @@ void Renderer::RenderImGui() {
   VkCommandBuffer cmd = getCurrentFrame().commandBuffer;
   VkExtent2D drawExtent = {
       .width = static_cast<uint32_t>(std::min(m_swapchain.GetExtent().width, m_swapchain.GetDrawTexture()->GetExtent().width) * m_swapchain.GetRenderScale()),
-      .height = static_cast<uint32_t>(std::min(m_swapchain.GetExtent().height, m_swapchain.GetDrawTexture()->GetExtent().height) * m_swapchain.GetRenderScale())
+      .height = static_cast<uint32_t>(std::min(m_swapchain.GetExtent().height, m_swapchain.GetDrawTexture()->GetExtent().height) * m_swapchain.GetRenderScale()),
   };
 
   VkUtil::copy_image_to_image(cmd, m_swapchain.GetDrawTexture()->GetImage(), m_swapchain.GetImage(m_currentImageIndex), drawExtent, m_swapchain.GetExtent());
@@ -297,7 +294,7 @@ void Renderer::EndRendering() {
       .pWaitSemaphores = &getCurrentFrame().renderSemaphore,
       .swapchainCount = 1,
       .pSwapchains = &m_swapchain.GetSwapchain(),
-      .pImageIndices = &m_currentImageIndex
+      .pImageIndices = &m_currentImageIndex,
   };
 
   VkResult result = vkQueuePresentKHR(m_ctx->GetPresentQueue(), &presentInfo);
@@ -328,17 +325,18 @@ void Renderer::initCommands() {
 }
 
 void Renderer::initImgui() {
-  VkDescriptorPoolSize pool_sizes[] = {{VK_DESCRIPTOR_TYPE_SAMPLER, 1000},
-                                       {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1000},
-                                       {VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, 1000},
-                                       {VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 1000},
-                                       {VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, 1000},
-                                       {VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER, 1000},
-                                       {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1000},
-                                       {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1000},
-                                       {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 1000},
-                                       {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, 1000},
-                                       {VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, 1000}
+  VkDescriptorPoolSize pool_sizes[] = {
+      {VK_DESCRIPTOR_TYPE_SAMPLER, 1000},
+      {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1000},
+      {VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, 1000},
+      {VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 1000},
+      {VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, 1000},
+      {VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER, 1000},
+      {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1000},
+      {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1000},
+      {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 1000},
+      {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, 1000},
+      {VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, 1000},
   };
 
   VkDescriptorPoolCreateInfo pool_info{
@@ -396,8 +394,7 @@ void Renderer::initSyncObjects() {
 
 void Renderer::initDescriptorAllocator() {
   std::vector<DescriptorAllocator::PoolSizeRatio> sizes{
-      {VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 1}
-  };
+      {VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 1}};
 
   m_descriptorAllocator.Init(m_ctx->GetDevice(), 10, sizes);
 
@@ -457,7 +454,7 @@ void Renderer::initDescriptors() {
   }
 
   for (int i = 0; i < FRAME_OVERLAP; i++) {
-    auto& frame = m_frames[i];
+    auto &frame = m_frames[i];
 
     frame.gpuSceneDataBuffer = std::make_unique<Buffer>(m_ctx->GetAllocator(), sizeof(GPUSceneData), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU);
     frame.gpuSceneDataBuffer->MapMemoryFromScalar(m_gpuSceneData);
@@ -492,7 +489,7 @@ VkCommandBuffer Renderer::beginSingleTimeCommands(VkCommandPool &commandPool) co
 
   VkCommandBufferBeginInfo beginInfo{
       .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
-      .flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT
+      .flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT,
   };
 
   vkBeginCommandBuffer(commandBuffer, &beginInfo);
@@ -506,7 +503,7 @@ void Renderer::endSingleTimeCommands(VkCommandPool &commandPool, VkCommandBuffer
   VkSubmitInfo submitInfo{
       .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
       .commandBufferCount = 1,
-      .pCommandBuffers = &commandBuffer
+      .pCommandBuffers = &commandBuffer,
   };
 
   vkQueueSubmit(m_ctx->GetGraphicsQueue(), 1, &submitInfo, VK_NULL_HANDLE);

@@ -92,6 +92,7 @@ void RenderSystem::renderObjectsIndirect(const glm::mat4 &viewProj) {
     RenderIndirectObjects objects;
     ecs.Each<DirtyStaticObject, StaticObject, LocalToWorld>([&](Hori::Entity e, DirtyStaticObject, StaticObject &drawable, LocalToWorld &localToWorld) {
       for (auto &[startIndex, count, bounds, material] : drawable.mesh->surfaces) {
+        objects.indexCounts.push_back(count);
         objects.objectIds.push_back(e.id);
         objects.transforms.push_back(localToWorld.value);
         objects.mesh = drawable.mesh.get();
@@ -99,7 +100,7 @@ void RenderSystem::renderObjectsIndirect(const glm::mat4 &viewProj) {
       }
     });
     ecs.Each<DirtyStaticObject>([&](Hori::Entity e, DirtyStaticObject) {
-      //ecs.RemoveComponents<DirtyStaticObject>(e);
+      ecs.RemoveComponents<DirtyStaticObject>(e);
     });
     m_renderer->UpdateGlobalDescriptor(objects);
     m_indirectBatches = packObjects(objects);
@@ -207,7 +208,7 @@ void RenderSystem::renderGui(float dt) {
 std::vector<IndirectBatch> RenderSystem::packObjects(RenderIndirectObjects &objects) {
   std::vector<IndirectBatch> draws;
   draws.push_back({
-      .indexCount = 0,
+      .indexCount = objects.indexCounts[0],
       .firstIndex = 0,
       .firstInstance = 0,
       .instanceCount = 0,
@@ -217,7 +218,6 @@ std::vector<IndirectBatch> RenderSystem::packObjects(RenderIndirectObjects &obje
 
   for (uint32_t i = 0; i < objects.objectIds.size(); i++) {
     draws.back().instanceCount++;
-    draws.back().indexCount += objects.mesh->indices.size();
   }
 
   return draws;

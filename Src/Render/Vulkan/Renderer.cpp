@@ -59,7 +59,7 @@ void Renderer::BeginRendering() {
   VK_CHECK(vkWaitForFences(m_ctx->GetDevice(), 1, &getCurrentFrame().renderFence, true, UINT64_MAX));
 
   getCurrentFrame().deletionQueue.Flush();
-  getCurrentFrame().frameDescriptors.ClearPools(m_ctx->GetDevice());
+  //getCurrentFrame().frameDescriptorAllocator.ClearPools(m_ctx->GetDevice());
   VK_CHECK(vkResetFences(m_ctx->GetDevice(), 1, &getCurrentFrame().renderFence));
   VK_CHECK(vkResetCommandBuffer(getCurrentFrame().commandBuffer, 0));
 
@@ -128,6 +128,11 @@ void Renderer::Begin3DRendering() {
   dep.pMemoryBarriers = &mb;
   vkCmdPipelineBarrier2(cmd, &dep);
 
+  // Update scene data
+  auto& frame = getCurrentFrame();
+  frame.gpuSceneDataBuffer->MapMemoryFromScalar(m_gpuSceneData);
+  frame.lightBuffer->MapMemoryFromScalar(m_gpuLightData);
+
   vkCmdBeginRendering(cmd, &renderInfo);
 }
 
@@ -169,7 +174,7 @@ void Renderer::RenderObjectsIndirect(std::vector<IndirectBatch>& batches) {
     ShaderPass *forwardPass = material->original->passShaders[MeshPassType::Forward].get();
     VkDescriptorSet forwardDescriptorSet = material->passSets[MeshPassType::Forward];
     vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, forwardPass->pipeline);
-    vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, forwardPass->effect->pipelineLayout, 0, 1, &m_globalDescriptor, 0, nullptr);
+    vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, forwardPass->effect->pipelineLayout, 0, 1, &getCurrentFrame().descriptorSet, 0, nullptr);
     vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, forwardPass->effect->pipelineLayout, 1, 1, &forwardDescriptorSet, 0, nullptr);
 
     vkCmdBindIndexBuffer(cmd, mesh->meshBuffers->indexBuffer.buffer, 0, VK_INDEX_TYPE_UINT32);
@@ -215,7 +220,7 @@ void Renderer::RenderObjects(std::span<RenderObject> objects, std::span<size_t> 
     VkDescriptorSet forwardDescriptorSet = material->passSets[MeshPassType::Forward];
 
     vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, forwardPass->pipeline);
-    vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, forwardPass->effect->pipelineLayout, 0, 1, &m_globalDescriptor, 0, nullptr);
+    vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, forwardPass->effect->pipelineLayout, 0, 1, &m_frameDescriptor, 0, nullptr);
     vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, forwardPass->effect->pipelineLayout, 1, 1, &forwardDescriptorSet, 0, nullptr);
 
     vkCmdBindIndexBuffer(cmd, indexBuffer, 0, VK_INDEX_TYPE_UINT32);
@@ -432,10 +437,10 @@ void Renderer::initDescriptors() {
         {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 4},
     };
 
-    m_frames[i].frameDescriptors.Init(m_ctx->GetDevice(), 1000, frame_sizes);
+    m_frames[i].frameDescriptorAllocator.Init(m_ctx->GetDevice(), 1000, frame_sizes);
 
     m_deletionQueue.PushFunction([&, i]() {
-      m_frames[i].frameDescriptors.DestroyPools(m_ctx->GetDevice());
+      m_frames[i].frameDescriptorAllocator.DestroyPools(m_ctx->GetDevice());
     });
   }
 
@@ -449,6 +454,23 @@ void Renderer::initDescriptors() {
     m_deletionQueue.PushFunction([&] {
       vkDestroyDescriptorSetLayout(m_ctx->GetDevice(), m_gpuSceneDataDescriptorLayout, nullptr);
     });
+  }
+
+  for (int i = 0; i < FRAME_OVERLAP; i++) {
+    auto& frame = m_frames[i];
+
+    frame.gpuSceneDataBuffer = std::make_unique<Buffer>(m_ctx->GetAllocator(), sizeof(GPUSceneData), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU);
+    frame.gpuSceneDataBuffer->MapMemoryFromScalar(m_gpuSceneData);
+
+    frame.lightBuffer = std::make_unique<Buffer>(m_ctx->GetAllocator(), sizeof(GPULightData), VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU);
+    frame.lightBuffer->MapMemoryFromScalar(m_gpuLightData);
+
+    DescriptorWriter writer;
+    writer.WriteBuffer(0, frame.gpuSceneDataBuffer->buffer, sizeof(GPUSceneData), 0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER);
+    writer.WriteBuffer(1, frame.lightBuffer->buffer, sizeof(GPULightData), 0, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER);
+
+    frame.descriptorSet = frame.frameDescriptorAllocator.Allocate(m_ctx->GetDevice(), m_gpuSceneDataDescriptorLayout);
+    writer.UpdateSet(m_ctx->GetDevice(), frame.descriptorSet);
   }
 }
 
@@ -500,31 +522,24 @@ void Renderer::WaitIdle() {
 }
 
 void Renderer::UpdateGlobalDescriptor(RenderIndirectObjects &objects) {
-  Buffer gpuSceneDataBuffer(m_ctx->GetAllocator(), sizeof(GPUSceneData), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU);
-  gpuSceneDataBuffer.MapMemoryFromScalar(m_gpuSceneData);
+  if (m_objectIdsBuffer == nullptr && m_transformsBuffer == nullptr) {
+    m_objectIdsBuffer = std::make_unique<Buffer>(m_ctx->GetAllocator(), objects.objectIds.size() * sizeof(uint32_t), VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU);
+    m_objectIdsBuffer->MapMemoryFromVector(objects.objectIds);
 
-  Buffer lightBuffer(m_ctx->GetAllocator(), sizeof(GPULightData), VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU);
-  lightBuffer.MapMemoryFromScalar(m_gpuLightData);
+    m_transformsBuffer = std::make_unique<Buffer>(m_ctx->GetAllocator(), objects.transforms.size() * sizeof(glm::mat4), VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU);
+    m_transformsBuffer->MapMemoryFromVector(objects.transforms);
 
-  Buffer objectIdsBuffer(m_ctx->GetAllocator(), objects.objectIds.size() * sizeof(uint32_t), VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU);
-  objectIdsBuffer.MapMemoryFromVector(objects.objectIds);
+    DescriptorWriter writer;
+    writer.WriteBuffer(2, m_objectIdsBuffer->buffer, objects.objectIds.size() * sizeof(uint32_t), 0, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER);
+    writer.WriteBuffer(3, m_transformsBuffer->buffer, objects.transforms.size() * sizeof(glm::mat4), 0, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER);
 
-  Buffer modelsBuffer(m_ctx->GetAllocator(), objects.transforms.size() * sizeof(glm::mat4), VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU);
-  modelsBuffer.MapMemoryFromVector(objects.transforms);
-
-  DescriptorWriter writer;
-  writer.WriteBuffer(0, gpuSceneDataBuffer.buffer, sizeof(GPUSceneData), 0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER);
-  writer.WriteBuffer(1, lightBuffer.buffer, sizeof(GPULightData), 0, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER);
-  writer.WriteBuffer(2, objectIdsBuffer.buffer, objects.objectIds.size() * sizeof(uint32_t), 0, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER);
-  writer.WriteBuffer(3, modelsBuffer.buffer, objects.transforms.size() * sizeof(glm::mat4), 0, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER);
-
-  m_globalDescriptor = getCurrentFrame().frameDescriptors.Allocate(m_ctx->GetDevice(), m_gpuSceneDataDescriptorLayout);
-  writer.UpdateSet(m_ctx->GetDevice(), m_globalDescriptor);
-
-  getCurrentFrame().deletionQueue.PushBuffer(std::move(gpuSceneDataBuffer));
-  getCurrentFrame().deletionQueue.PushBuffer(std::move(lightBuffer));
-  getCurrentFrame().deletionQueue.PushBuffer(std::move(objectIdsBuffer));
-  getCurrentFrame().deletionQueue.PushBuffer(std::move(modelsBuffer));
+    for (int i = 0; i < FRAME_OVERLAP; i++) {
+      writer.UpdateSet(m_ctx->GetDevice(), m_frames[i].descriptorSet);
+    }
+  } else {
+    m_objectIdsBuffer->MapMemoryFromVector(objects.objectIds);
+    m_transformsBuffer->MapMemoryFromVector(objects.transforms);
+  }
 }
 
 VkBuffer Renderer::GetMaterialConstantsBuffer() {

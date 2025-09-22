@@ -14,12 +14,15 @@ struct FrameData {
   VkCommandPool commandPool{};
   VkCommandBuffer commandBuffer{};
   std::unique_ptr<Buffer> indirectDrawBuffer;
+  std::unique_ptr<Buffer> gpuSceneDataBuffer;
+  std::unique_ptr<Buffer> lightBuffer;
 
   VkSemaphore swapchainSemaphore{}, renderSemaphore{};
   VkFence renderFence{};
 
   DeletionQueue deletionQueue;
-  DescriptorAllocator frameDescriptors{};
+  DescriptorAllocator frameDescriptorAllocator{};
+  VkDescriptorSet descriptorSet = VK_NULL_HANDLE;
 };
 
 struct Vertex {

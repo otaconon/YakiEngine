@@ -61,7 +61,6 @@ private:
   Swapchain m_swapchain;
 
   DeletionQueue m_deletionQueue;
-  DeletionQueue m_indirectDeletionQueue;
 
   std::array<FrameData, 2> m_frames;
   uint32_t m_currentFrame;
@@ -70,11 +69,14 @@ private:
   DescriptorAllocator m_descriptorAllocator;
   DescriptorAllocator m_indirectDescriptors; // TODO: Move scene data from this allocator
 
+  std::unique_ptr<Buffer> m_objectIdsBuffer;
+  std::unique_ptr<Buffer> m_transformsBuffer;
+
   VkDescriptorSetLayout m_drawImageDescriptorLayout{};
   VkDescriptorSetLayout m_singleImageDescriptorLayout{};
   VkDescriptorSetLayout m_gpuSceneDataDescriptorLayout{};
 
-  VkDescriptorSet m_globalDescriptor;
+  VkDescriptorSet m_frameDescriptor;
   VkDescriptorSet m_drawImageDescriptors{};
 
   GPUSceneData m_gpuSceneData;

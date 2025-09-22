@@ -27,7 +27,7 @@ HashCubes::HashCubes()
   m_allMeshes = std::make_shared<Scene>(m_ctx, m_deletionQueue, "Assets/meshes/basicmesh.glb");
   m_cubeMesh = std::next(m_allMeshes->m_meshes.begin(), 1)->second;
 
-  constexpr uint32_t cubesRes = 30;
+  constexpr uint32_t cubesRes = 100;
   for (int i = 0; i < cubesRes; i++) {
     for (int j = 0; j < cubesRes; j++) {
       auto e = ecs.CreateEntity();

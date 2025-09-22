@@ -19,7 +19,7 @@ struct Vertex {
 };
 
 layout(buffer_reference, std430) readonly buffer VertexBuffer { 
-  Vertex vertices[]; 
+  Vertex vertices[];
 };
 
 layout(std430, set = 0, binding = 2) readonly buffer CompactedInstances {

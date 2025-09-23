@@ -24,6 +24,7 @@ struct PickingResources {
 
 struct IndirectBatch {
   uint32_t indexCount, firstIndex;
+  uint32_t vertexOffset;
   uint32_t firstInstance;
   uint32_t instanceCount;
   Mesh *mesh;

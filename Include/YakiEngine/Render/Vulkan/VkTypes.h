@@ -95,6 +95,7 @@ struct Bounds {
 struct Material;
 struct GeoSurface {
   uint32_t startIndex;
+  uint32_t vertexOffset;
   uint32_t count;
   Bounds bounds;
   std::shared_ptr<Material> material;

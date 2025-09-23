@@ -146,7 +146,7 @@ void Renderer::RenderStaticObjects(std::vector<IndirectBatch> &batches) {
     drawCommands[idx].indexCount = draw.indexCount;
     drawCommands[idx].instanceCount = draw.instanceCount;
     drawCommands[idx].firstIndex = draw.firstIndex;
-    drawCommands[idx].vertexOffset = 0;
+    drawCommands[idx].vertexOffset = draw.vertexOffset;
     drawCommands[idx].firstInstance = draw.firstInstance;
   }
   vmaUnmapMemory(indirectBuffer->allocator, indirectBuffer->allocation);
@@ -168,7 +168,7 @@ void Renderer::RenderStaticObjects(std::vector<IndirectBatch> &batches) {
   vkCmdSetScissor(cmd, 0, 1, &scissor);
 
   for (int cmdIndex = 0; cmdIndex < batches.size(); cmdIndex++) {
-    auto &[indexCount, firstIndex, firstInstance, instanceCount, mesh, material] = batches[cmdIndex];
+    auto &[indexCount, firstIndex, vertexOffset, firstInstance, instanceCount, mesh, material] = batches[cmdIndex];
 
     ShaderPass *forwardPass = material->original->passShaders[MeshPassType::Forward].get();
     VkDescriptorSet forwardDescriptorSet = material->passSets[MeshPassType::Forward];

@@ -52,8 +52,10 @@ void RenderSystem::renderStaticObjects(const glm::mat4 &viewProj) {
   if (ecs.GetComponentArray<DirtyStaticObject>().Size() != 0) {
     RenderIndirectObjects objects;
     ecs.Each<DirtyStaticObject, StaticObject, LocalToWorld>([&](Hori::Entity e, DirtyStaticObject, StaticObject &drawable, LocalToWorld &localToWorld) {
-      for (auto &[startIndex, count, bounds, material] : drawable.mesh->surfaces) {
+      for (auto &[startIndex, vertexOffset, count, bounds, material] : drawable.mesh->surfaces) {
+        objects.firstIndices.push_back(startIndex);
         objects.indexCounts.push_back(count);
+        objects.vertexOffsets.push_back(vertexOffset);
         objects.objectIds.push_back(e.id);
         objects.transforms.push_back(localToWorld.value);
         objects.meshes.push_back(drawable.mesh.get());
@@ -164,33 +166,60 @@ void RenderSystem::renderGui(float dt) {
 }
 
 std::vector<IndirectBatch> RenderSystem::packObjects(RenderIndirectObjects &objects) {
-  auto Z = std::views::zip(objects.materials, objects.indexCounts, objects.objectIds, objects.transforms);
-  std::ranges::sort(Z, std::ranges::less{}, [](auto const &t) {
-    return std::pair{std::get<0>(t), std::get<1>(t)};
+  std::vector<uint32_t> order(objects.objectIds.size());
+  std::iota(order.begin(), order.end(), 0);
+
+  std::ranges::sort(order, {}, [&](uint32_t i) {
+    return std::pair{objects.materials[i], objects.meshes[i]};
   });
+
+  RenderIndirectObjects newObjects;
+  const auto n = static_cast<size_t>(order.size());
+
+  newObjects.firstIndices.resize(n);
+  newObjects.indexCounts.resize(n);
+  newObjects.vertexOffsets.resize(n);
+  newObjects.objectIds.resize(n);
+  newObjects.transforms.resize(n);
+  newObjects.meshes.resize(n);
+  newObjects.materials.resize(n);
+
+  for (size_t pos = 0; pos < n; ++pos) {
+    const auto idx = order[pos];
+    newObjects.firstIndices[pos] = objects.firstIndices[idx];
+    newObjects.indexCounts[pos] = objects.indexCounts[idx];
+    newObjects.vertexOffsets[pos] = objects.vertexOffsets[idx];
+    newObjects.objectIds[pos] = objects.objectIds[idx];
+    newObjects.transforms[pos] = objects.transforms[idx];
+    newObjects.meshes[pos] = objects.meshes[idx];
+    newObjects.materials[pos] = objects.materials[idx];
+  }
 
   std::vector<IndirectBatch> draws;
   draws.push_back({
-      .indexCount = objects.indexCounts[0],
-      .firstIndex = 0,
+      .indexCount = newObjects.indexCounts[0],
+      .firstIndex = newObjects.firstIndices[0],
+      .vertexOffset = newObjects.vertexOffsets[0],
       .firstInstance = 0,
       .instanceCount = 1,
-      .mesh = objects.meshes[0],
-      .material = objects.materials[0],
+      .mesh = newObjects.meshes[0],
+      .material = newObjects.materials[0],
   });
 
-  for (uint32_t i = 1; i < objects.objectIds.size(); i++) {
-    if (objects.meshes[i - 1] != objects.meshes[i] || objects.materials[i - 1] != objects.materials[i]) {
+  for (uint32_t i = 1; i < newObjects.objectIds.size(); i++) {
+    if (newObjects.meshes[i - 1] != newObjects.meshes[i] || newObjects.materials[i - 1] != newObjects.materials[i]) {
       draws.push_back({
-          .indexCount = objects.indexCounts[i],
-          .firstIndex = 0,
+          .indexCount = 0,
+          .firstIndex = newObjects.firstIndices[i],
+          .vertexOffset = newObjects.vertexOffsets[i],
           .firstInstance = i,
           .instanceCount = 0,
-          .mesh = objects.meshes[i],
-          .material = objects.materials[i],
+          .mesh = newObjects.meshes[i],
+          .material = newObjects.materials[i],
       });
     }
     draws.back().instanceCount++;
+    draws.back().indexCount += newObjects.indexCounts[i];
   }
 
   return draws;

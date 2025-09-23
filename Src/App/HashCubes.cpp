@@ -27,18 +27,12 @@ HashCubes::HashCubes()
   m_allMeshes = std::make_shared<Scene>(m_ctx, m_deletionQueue, "Assets/meshes/basicmesh.glb");
   m_cubeMesh = std::next(m_allMeshes->m_meshes.begin(), 1)->second;
 
-  constexpr uint32_t cubesRes = 100;
+  constexpr uint32_t cubesRes = 4;
   for (int i = 0; i < cubesRes; i++) {
     for (int j = 0; j < cubesRes; j++) {
       auto e = ecs.CreateEntity();
-      register_static_object(e, StaticObject{m_cubeMesh, {}}, Translation{{i, j, 0.f}});
+      register_static_object(e, StaticObject{m_cubeMesh, {}}, Translation{{i*3, j*3, 0.f}});
     }
-  }
-
-  for (int i = 0; i < 3; i++) {
-    auto e = ecs.CreateEntity();
-    auto mesh = m_allMeshes->m_meshes.begin()->second;
-    register_static_object(e, StaticObject{mesh, {}}, Translation{{3.f * i, 5.f, 0.f}});
   }
 
   Hori::Entity camera = ecs.CreateEntity();

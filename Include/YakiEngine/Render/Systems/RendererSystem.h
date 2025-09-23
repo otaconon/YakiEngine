@@ -27,8 +27,7 @@ private:
   std::bitset<8> m_showElements;
   std::vector<IndirectBatch> m_indirectBatches;
 
-  void renderDynamicObjects(const glm::mat4 &viewproj);
-  void renderObjectsIndirect(const glm::mat4 &viewProj);
+  void renderStaticObjects(const glm::mat4 &viewProj);
   void renderGui(float dt);
 
   static std::vector<IndirectBatch> packObjects(RenderIndirectObjects &objects);

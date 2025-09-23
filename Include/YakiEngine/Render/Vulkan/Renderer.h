@@ -37,14 +37,13 @@ public:
 
   void BeginRendering();
   void Begin3DRendering();
-  void RenderObjectsIndirect(std::vector<IndirectBatch>& batches);
-  void RenderObjects(std::span<RenderObject> objects, std::span<size_t> order);
+  void RenderStaticObjects(std::vector<IndirectBatch>& batches);
   void End3DRendering();
   void RenderImGui();
   void EndRendering();
   void WaitIdle();
 
-  void UpdateGlobalDescriptor(RenderIndirectObjects& objects);
+  void UpdateStaticObjects(RenderIndirectObjects& objects);
 
   [[nodiscard]] Swapchain &GetSwapchain();
   [[nodiscard]] VkBuffer GetMaterialConstantsBuffer();

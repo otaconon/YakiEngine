@@ -274,7 +274,7 @@ Scene::Scene(std::shared_ptr<VulkanContext> ctx, DeletionQueue& deletionQueue, c
 
     if (node.meshIndex.has_value()) {
       std::shared_ptr<Mesh> mesh = meshes[*node.meshIndex];
-      register_dynamic_object(newNode, DynamicObject{mesh, {}});
+      register_static_object(newNode, StaticObject{mesh, {}});
     }
 
     nodes.push_back(newNode);

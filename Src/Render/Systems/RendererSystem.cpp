@@ -36,7 +36,7 @@ void RenderSystem::Update(float dt) {
 
   m_renderer->BeginRendering();
   m_renderer->Begin3DRendering();
-  renderObjectsIndirect(camera.viewProjection);
+  renderStaticObjects(camera.viewProjection);
   m_renderer->End3DRendering();
   renderGui(dt);
   m_renderer->EndRendering();
@@ -46,46 +46,7 @@ void RenderSystem::Update(float dt) {
     ecs.AddComponents(selectedEntity, Hovered{});
 }
 
-void RenderSystem::renderDynamicObjects(const glm::mat4 &viewproj) {
-  auto &ecs = Ecs::GetInstance();
-
-  size_t drawableCount = ecs.GetComponentArray<DynamicObject>().Size();
-  std::vector<RenderObject> objects;
-  objects.reserve(drawableCount);
-
-  ecs.Each<DynamicObject, LocalToWorld>([&](Hori::Entity e, DynamicObject &object, LocalToWorld &localToWorld) {
-    for (auto &[startIndex, count, bounds, material] : object.mesh->surfaces) {
-      RenderObject obj{
-          .objectId = e.id,
-          .indexCount = count,
-          .firstIndex = startIndex,
-          .indexBuffer = object.mesh->meshBuffers->indexBuffer.buffer,
-          .mesh = object.mesh.get(),
-          .material = material.get(),
-          .bounds = bounds,
-          .transform = localToWorld.value,
-          .vertexBufferAddress = object.mesh->meshBuffers->vertexBufferAddress};
-
-      // if (isVisible(obj, viewproj))
-      objects.push_back(obj);
-    }
-  });
-
-  std::vector<size_t> order(objects.size());
-  std::ranges::iota(order, 0);
-
-  std::ranges::sort(order, [&objects](const auto &iA, const auto &iB) {
-    auto &A = objects[iA];
-    auto &B = objects[iB];
-    if (A.material == B.material)
-      return A.indexBuffer < B.indexBuffer;
-    return A.material < B.material;
-  });
-
-  m_renderer->RenderObjects(objects, order);
-}
-
-void RenderSystem::renderObjectsIndirect(const glm::mat4 &viewProj) {
+void RenderSystem::renderStaticObjects(const glm::mat4 &viewProj) {
   auto &ecs = Ecs::GetInstance();
 
   if (ecs.GetComponentArray<DirtyStaticObject>().Size() != 0) {
@@ -102,11 +63,11 @@ void RenderSystem::renderObjectsIndirect(const glm::mat4 &viewProj) {
     ecs.Each<DirtyStaticObject>([&](Hori::Entity e, DirtyStaticObject) {
       ecs.RemoveComponents<DirtyStaticObject>(e);
     });
-    m_renderer->UpdateGlobalDescriptor(objects);
+    m_renderer->UpdateStaticObjects(objects);
     m_indirectBatches = packObjects(objects);
   }
 
-  m_renderer->RenderObjectsIndirect(m_indirectBatches);
+  m_renderer->RenderStaticObjects(m_indirectBatches);
 }
 
 void RenderSystem::renderGui(float dt) {

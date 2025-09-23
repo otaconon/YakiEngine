@@ -136,7 +136,7 @@ void Renderer::Begin3DRendering() {
   vkCmdBeginRendering(cmd, &renderInfo);
 }
 
-void Renderer::RenderObjectsIndirect(std::vector<IndirectBatch> &batches) {
+void Renderer::RenderStaticObjects(std::vector<IndirectBatch> &batches) {
   VkCommandBuffer cmd = getCurrentFrame().commandBuffer;
 
   Buffer *indirectBuffer = getCurrentFrame().indirectDrawBuffer.get();
@@ -190,49 +190,6 @@ void Renderer::RenderObjectsIndirect(std::vector<IndirectBatch> &batches) {
 
     m_stats.drawcallCount++;
     m_stats.triangleCount += mesh->indices.size() / 3;
-  }
-}
-
-void Renderer::RenderObjects(std::span<RenderObject> objects, std::span<size_t> order) {
-  VkCommandBuffer cmd = getCurrentFrame().commandBuffer;
-
-  VkViewport viewport{
-      .x = 0.0f,
-      .y = 0.0f,
-      .width = static_cast<float>(m_swapchain.GetExtent().width),
-      .height = static_cast<float>(m_swapchain.GetExtent().height),
-      .minDepth = 0.0f,
-      .maxDepth = 1.0f,
-  };
-  vkCmdSetViewport(cmd, 0, 1, &viewport);
-
-  VkRect2D scissor{
-      .offset = {0, 0},
-      .extent = m_swapchain.GetExtent(),
-  };
-  vkCmdSetScissor(cmd, 0, 1, &scissor);
-
-  for (auto &idx : order) {
-    auto &[objectId, indexCount, firstIndex, indexBuffer, mesh, material, bounds, transform, vertexBufferAddress] = objects[idx];
-    ShaderPass *forwardPass = material->original->passShaders[MeshPassType::Forward].get();
-    VkDescriptorSet forwardDescriptorSet = material->passSets[MeshPassType::Forward];
-
-    vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, forwardPass->pipeline);
-    vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, forwardPass->effect->pipelineLayout, 0, 1, &m_frameDescriptor, 0, nullptr);
-    vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, forwardPass->effect->pipelineLayout, 1, 1, &forwardDescriptorSet, 0, nullptr);
-
-    vkCmdBindIndexBuffer(cmd, indexBuffer, 0, VK_INDEX_TYPE_UINT32);
-
-    GPUDrawPushConstants pushConstants{
-        .worldMatrix = transform,
-        .vertexBuffer = vertexBufferAddress,
-        .objectId = objectId};
-
-    vkCmdPushConstants(cmd, forwardPass->effect->pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(GPUDrawPushConstants), &pushConstants);
-
-    vkCmdDrawIndexed(cmd, indexCount, 1, firstIndex, 0, 0);
-    m_stats.drawcallCount++;
-    m_stats.triangleCount += indexCount / 3;
   }
 }
 
@@ -518,7 +475,7 @@ void Renderer::WaitIdle() {
   vkDeviceWaitIdle(m_ctx->GetDevice());
 }
 
-void Renderer::UpdateGlobalDescriptor(RenderIndirectObjects &objects) {
+void Renderer::UpdateStaticObjects(RenderIndirectObjects &objects) {
   if (m_objectIdsBuffer == nullptr && m_transformsBuffer == nullptr) {
     m_objectIdsBuffer = std::make_unique<Buffer>(m_ctx->GetAllocator(), objects.objectIds.size() * sizeof(uint32_t), VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU);
     m_objectIdsBuffer->MapMemoryFromVector(objects.objectIds);

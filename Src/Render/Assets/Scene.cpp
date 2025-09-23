@@ -180,7 +180,7 @@ Scene::Scene(std::shared_ptr<VulkanContext> ctx, DeletionQueue& deletionQueue, c
       GeoSurface newSurface;
       newSurface.startIndex = static_cast<uint32_t>(indices.size());
       newSurface.count = static_cast<uint32_t>(gltf.accessors[p.indicesAccessor.value()].count);
-      newSurface.vertexOffset = static_cast<uint32_t>(vertices.size());
+      size_t initial_vtx = vertices.size();
 
       // load indexes
       {
@@ -188,7 +188,7 @@ Scene::Scene(std::shared_ptr<VulkanContext> ctx, DeletionQueue& deletionQueue, c
         indices.reserve(indices.size() + indexaccessor.count);
 
         fastgltf::iterateAccessor<std::uint32_t>(gltf, indexaccessor, [&](std::uint32_t idx) {
-          indices.push_back(idx + newSurface.vertexOffset);
+          indices.push_back(idx + initial_vtx);
         });
       }
 
@@ -204,7 +204,7 @@ Scene::Scene(std::shared_ptr<VulkanContext> ctx, DeletionQueue& deletionQueue, c
           newvtx.color = glm::vec4{1.f};
           newvtx.uv_x = 0;
           newvtx.uv_y = 0;
-          vertices[newSurface.vertexOffset + index] = newvtx;
+          vertices[initial_vtx + index] = newvtx;
         });
       }
 
@@ -214,7 +214,7 @@ Scene::Scene(std::shared_ptr<VulkanContext> ctx, DeletionQueue& deletionQueue, c
 
         fastgltf::iterateAccessorWithIndex<glm::vec3>(gltf, gltf.accessors[normals->accessorIndex],
             [&](glm::vec3 v, size_t index) {
-              vertices[newSurface.vertexOffset + index].normal = v;
+              vertices[initial_vtx + index].normal = v;
             });
       }
 
@@ -224,8 +224,8 @@ Scene::Scene(std::shared_ptr<VulkanContext> ctx, DeletionQueue& deletionQueue, c
 
         fastgltf::iterateAccessorWithIndex<glm::vec2>(gltf, gltf.accessors[uv->accessorIndex],
             [&](glm::vec2 v, size_t index) {
-              vertices[newSurface.vertexOffset + index].uv_x = v.x;
-              vertices[newSurface.vertexOffset + index].uv_y = v.y;
+              vertices[initial_vtx + index].uv_x = v.x;
+              vertices[initial_vtx + index].uv_y = v.y;
             });
       }
 
@@ -235,7 +235,7 @@ Scene::Scene(std::shared_ptr<VulkanContext> ctx, DeletionQueue& deletionQueue, c
 
         fastgltf::iterateAccessorWithIndex<glm::vec4>(gltf, gltf.accessors[colors->accessorIndex],
             [&](glm::vec4 v, size_t index) {
-              vertices[newSurface.vertexOffset + index].color = v;
+              vertices[initial_vtx + index].color = v;
             });
       }
 
@@ -246,9 +246,9 @@ Scene::Scene(std::shared_ptr<VulkanContext> ctx, DeletionQueue& deletionQueue, c
       }
 
       // calculate surface bounds
-      glm::vec3 minpos = vertices[newSurface.vertexOffset].position;
-      glm::vec3 maxpos = vertices[newSurface.vertexOffset].position;
-      for (int i = newSurface.vertexOffset; i < vertices.size(); i++) {
+      glm::vec3 minpos = vertices[initial_vtx].position;
+      glm::vec3 maxpos = vertices[initial_vtx].position;
+      for (int i = initial_vtx; i < vertices.size(); i++) {
         minpos = glm::min(minpos, vertices[i].position);
         maxpos = glm::max(maxpos, vertices[i].position);
       }

@@ -52,10 +52,9 @@ void RenderSystem::renderStaticObjects(const glm::mat4 &viewProj) {
   if (ecs.GetComponentArray<DirtyStaticObject>().Size() != 0) {
     RenderIndirectObjects objects;
     ecs.Each<DirtyStaticObject, StaticObject, LocalToWorld>([&](Hori::Entity e, DirtyStaticObject, StaticObject &drawable, LocalToWorld &localToWorld) {
-      for (auto &[startIndex, vertexOffset, count, bounds, material] : drawable.mesh->surfaces) {
+      for (auto &[startIndex, count, bounds, material] : drawable.mesh->surfaces) {
         objects.firstIndices.push_back(startIndex);
         objects.indexCounts.push_back(count);
-        objects.vertexOffsets.push_back(vertexOffset);
         objects.objectIds.push_back(e.id);
         objects.transforms.push_back(localToWorld.value);
         objects.meshes.push_back(drawable.mesh.get());
@@ -65,6 +64,7 @@ void RenderSystem::renderStaticObjects(const glm::mat4 &viewProj) {
     ecs.Each<DirtyStaticObject>([&](Hori::Entity e, DirtyStaticObject) {
       ecs.RemoveComponents<DirtyStaticObject>(e);
     });
+    objects = sortObjects(objects);
     m_renderer->UpdateStaticObjects(objects);
     m_indirectBatches = packObjects(objects);
   }
@@ -165,7 +165,7 @@ void RenderSystem::renderGui(float dt) {
   m_renderer->RenderImGui();
 }
 
-std::vector<IndirectBatch> RenderSystem::packObjects(RenderIndirectObjects &objects) {
+RenderIndirectObjects RenderSystem::sortObjects(RenderIndirectObjects &objects) {
   std::vector<uint32_t> order(objects.objectIds.size());
   std::iota(order.begin(), order.end(), 0);
 
@@ -178,7 +178,6 @@ std::vector<IndirectBatch> RenderSystem::packObjects(RenderIndirectObjects &obje
 
   newObjects.firstIndices.resize(n);
   newObjects.indexCounts.resize(n);
-  newObjects.vertexOffsets.resize(n);
   newObjects.objectIds.resize(n);
   newObjects.transforms.resize(n);
   newObjects.meshes.resize(n);
@@ -188,76 +187,46 @@ std::vector<IndirectBatch> RenderSystem::packObjects(RenderIndirectObjects &obje
     const auto idx = order[pos];
     newObjects.firstIndices[pos] = objects.firstIndices[idx];
     newObjects.indexCounts[pos] = objects.indexCounts[idx];
-    newObjects.vertexOffsets[pos] = objects.vertexOffsets[idx];
     newObjects.objectIds[pos] = objects.objectIds[idx];
     newObjects.transforms[pos] = objects.transforms[idx];
     newObjects.meshes[pos] = objects.meshes[idx];
     newObjects.materials[pos] = objects.materials[idx];
   }
 
+  return newObjects;
+}
+
+std::vector<IndirectBatch> RenderSystem::packObjects(RenderIndirectObjects &objects) {
+  auto sameKey = [&](size_t a, size_t b) {
+    return objects.meshes[a] == objects.meshes[b] &&
+           objects.materials[a] == objects.materials[b] &&
+           objects.firstIndices[a] == objects.firstIndices[b] &&
+           objects.indexCounts[a] == objects.indexCounts[b];
+  };
+
   std::vector<IndirectBatch> draws;
   draws.push_back({
-      .indexCount = newObjects.indexCounts[0],
-      .firstIndex = newObjects.firstIndices[0],
-      .vertexOffset = newObjects.vertexOffsets[0],
+      .indexCount = objects.indexCounts[0],
+      .firstIndex = objects.firstIndices[0],
       .firstInstance = 0,
       .instanceCount = 1,
-      .mesh = newObjects.meshes[0],
-      .material = newObjects.materials[0],
+      .mesh = objects.meshes[0],
+      .material = objects.materials[0],
   });
 
-  for (uint32_t i = 1; i < newObjects.objectIds.size(); i++) {
-    if (newObjects.meshes[i - 1] != newObjects.meshes[i] || newObjects.materials[i - 1] != newObjects.materials[i]) {
+  for (uint32_t i = 1; i < objects.objectIds.size(); i++) {
+    if (!sameKey(i - 1, i)) {
       draws.push_back({
-          .indexCount = 0,
-          .firstIndex = newObjects.firstIndices[i],
-          .vertexOffset = newObjects.vertexOffsets[i],
+          .indexCount = objects.indexCounts[i],
+          .firstIndex = objects.firstIndices[i],
           .firstInstance = i,
           .instanceCount = 0,
-          .mesh = newObjects.meshes[i],
-          .material = newObjects.materials[i],
+          .mesh = objects.meshes[i],
+          .material = objects.materials[i],
       });
     }
     draws.back().instanceCount++;
-    draws.back().indexCount += newObjects.indexCounts[i];
   }
 
   return draws;
-}
-
-bool RenderSystem::isVisible(const RenderObject &obj, const glm::mat4 &viewproj) {
-  std::array<glm::vec3, 8> corners{
-      glm::vec3{1, 1, 1},
-      glm::vec3{1, 1, -1},
-      glm::vec3{1, -1, 1},
-      glm::vec3{1, -1, -1},
-      glm::vec3{-1, 1, 1},
-      glm::vec3{-1, 1, -1},
-      glm::vec3{-1, -1, 1},
-      glm::vec3{-1, -1, -1},
-  };
-
-  glm::mat4 matrix = viewproj * obj.transform;
-
-  glm::vec3 min = {1.5, 1.5, 1.5};
-  glm::vec3 max = {-1.5, -1.5, -1.5};
-
-  for (int c = 0; c < 8; c++) {
-    glm::vec4 v = matrix * glm::vec4(obj.bounds.origin + (corners[c] * obj.bounds.extents), 1.f);
-
-    // perspective correction
-    v.x = v.x / v.w;
-    v.y = v.y / v.w;
-    v.z = v.z / v.w;
-
-    // Add or subtract 0.1f because of imprecision
-    min = glm::min(glm::vec3{v.x, v.y, v.z}, min) - 0.1f;
-    max = glm::max(glm::vec3{v.x, v.y, v.z}, max) + 0.1f;
-  }
-
-  // check the clip space box is within the view
-  if (min.z > 1.f || max.z < 0.f || min.x > 1.f || max.x < -1.f || min.y > 1.f || max.y < -1.f) {
-    return false;
-  }
-  return true;
 }

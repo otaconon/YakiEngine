@@ -30,7 +30,6 @@ private:
   void renderStaticObjects(const glm::mat4 &viewProj);
   void renderGui(float dt);
 
+  static RenderIndirectObjects sortObjects(RenderIndirectObjects &objects);
   static std::vector<IndirectBatch> packObjects(RenderIndirectObjects &objects);
-
-  static bool isVisible(const RenderObject &obj, const glm::mat4 &viewproj);
 };

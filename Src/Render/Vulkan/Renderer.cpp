@@ -168,18 +168,18 @@ void Renderer::RenderStaticObjects(std::vector<IndirectBatch> &batches) {
   vkCmdSetScissor(cmd, 0, 1, &scissor);
 
   for (int cmdIndex = 0; cmdIndex < batches.size(); cmdIndex++) {
-    auto &[indexCount, firstIndex, firstInstance, instanceCount, mesh, material] = batches[cmdIndex];
+    auto &[indexCount, firstIndex, firstInstance, instanceCount, mesh, materialInstance] = batches[cmdIndex];
 
-    ShaderPass *forwardPass = material->original->passShaders[MeshPassType::Forward].get();
-    VkDescriptorSet forwardDescriptorSet = material->passSets[MeshPassType::Forward];
+    ShaderPass *forwardPass = m_opaqueEffectTemplate->passShaders[MeshPassType::Forward].get();
     vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, forwardPass->pipeline);
     vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, forwardPass->effect->pipelineLayout, 0, 1, &getCurrentFrame().descriptorSet, 0, nullptr);
-    vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, forwardPass->effect->pipelineLayout, 1, 1, &forwardDescriptorSet, 0, nullptr);
+    vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, forwardPass->effect->pipelineLayout, 1, 1, &m_materialDataDescriptorSet, 0, nullptr);
 
     vkCmdBindIndexBuffer(cmd, mesh->meshBuffers->indexBuffer.buffer, 0, VK_INDEX_TYPE_UINT32);
 
-    GPUIndirectPushConstants pushConstants{
-        .vertexBuffer = mesh->meshBuffers->vertexBufferAddress};
+    GPUIndirectPushConstants pushConstants {
+        .vertexBuffer = mesh->meshBuffers->vertexBufferAddress
+    };
     vkCmdPushConstants(cmd, forwardPass->effect->pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(GPUIndirectPushConstants), &pushConstants);
 
     VkDeviceSize indirectOffset = cmdIndex * sizeof(VkDrawIndexedIndirectCommand);
@@ -351,13 +351,14 @@ void Renderer::initSyncObjects() {
 
 void Renderer::initDescriptorAllocator() {
   std::vector<DescriptorAllocator::PoolSizeRatio> sizes{
-      {VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 1}};
+      {VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 1}
+  };
 
   m_descriptorAllocator.Init(m_ctx->GetDevice(), 10, sizes);
 
   {
     DescriptorLayoutBuilder builder;
-    builder.AddBinding(0, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE);
+    builder.AddBinding(0, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 1);
     m_drawImageDescriptorLayout = builder.Build(m_ctx->GetDevice(), VK_SHADER_STAGE_COMPUTE_BIT);
   }
 
@@ -376,7 +377,7 @@ void Renderer::initDescriptorAllocator() {
 void Renderer::initDescriptors() {
   {
     DescriptorLayoutBuilder builder;
-    builder.AddBinding(0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER);
+    builder.AddBinding(0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1);
     m_singleImageDescriptorLayout = builder.Build(m_ctx->GetDevice(), VK_SHADER_STAGE_FRAGMENT_BIT);
     m_deletionQueue.PushFunction([this] {
       vkDestroyDescriptorSetLayout(m_ctx->GetDevice(), m_singleImageDescriptorLayout, nullptr);
@@ -400,14 +401,26 @@ void Renderer::initDescriptors() {
 
   {
     DescriptorLayoutBuilder builder;
-    builder.AddBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER);
-    builder.AddBinding(1, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER);
-    builder.AddBinding(2, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER);
-    builder.AddBinding(3, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER);
+    builder.AddBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1);
+    builder.AddBinding(1, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1);
+    builder.AddBinding(2, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1);
+    builder.AddBinding(3, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1);
     m_gpuSceneDataDescriptorLayout = builder.Build(m_ctx->GetDevice(), VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT);
     m_deletionQueue.PushFunction([&] {
       vkDestroyDescriptorSetLayout(m_ctx->GetDevice(), m_gpuSceneDataDescriptorLayout, nullptr);
     });
+
+    auto vertShader = std::make_shared<Shader>(m_ctx, "../Shaders/Vertex/instanced.vert.spv");
+    auto fragShader = std::make_shared<Shader>(m_ctx, "../Shaders/Fragment/instanced.frag.spv");
+    auto effect = std::make_shared<ShaderEffect>(m_ctx, vertShader, fragShader);
+    auto forwardPass = std::make_shared<ShaderPass>(m_ctx, m_swapchain, effect);
+    auto shaderParams = std::make_shared<ShaderParameters>(glm::vec4{0.1f}, glm::vec4{0.1f}, glm::vec4{0.1f});
+    m_opaqueEffectTemplate = std::make_shared<EffectTemplate>();
+    m_opaqueEffectTemplate->passShaders[MeshPassType::Forward] = forwardPass;
+    m_opaqueEffectTemplate->defaultParameters = shaderParams;
+    m_opaqueEffectTemplate->transparency = TransparencyMode::Opaque;
+
+    m_materialDataDescriptorSet = m_descriptorAllocator.Allocate(m_ctx->GetDevice(), m_opaqueEffectTemplate->passShaders[MeshPassType::Forward]->effect->descriptorSetLayouts[1]);
   }
 
   for (int i = 0; i < FRAME_OVERLAP; i++) {
@@ -476,6 +489,12 @@ void Renderer::WaitIdle() {
 }
 
 void Renderer::UpdateStaticObjects(RenderIndirectObjects &objects) {
+  std::vector<ShaderParameters> params;
+  params.reserve(objects.materialInstances.size());
+  for (auto &[material, param, sampler, texture] : objects.materialInstances) {
+    params.push_back(param);
+  }
+
   if (m_objectIdsBuffer == nullptr && m_transformsBuffer == nullptr) {
     m_objectIdsBuffer = std::make_unique<Buffer>(m_ctx->GetAllocator(), objects.objectIds.size() * sizeof(uint32_t), VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU);
     m_objectIdsBuffer->MapMemoryFromVector(objects.objectIds);
@@ -483,16 +502,40 @@ void Renderer::UpdateStaticObjects(RenderIndirectObjects &objects) {
     m_transformsBuffer = std::make_unique<Buffer>(m_ctx->GetAllocator(), objects.transforms.size() * sizeof(glm::mat4), VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU);
     m_transformsBuffer->MapMemoryFromVector(objects.transforms);
 
-    DescriptorWriter writer;
-    writer.WriteBuffer(2, m_objectIdsBuffer->buffer, objects.objectIds.size() * sizeof(uint32_t), 0, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER);
-    writer.WriteBuffer(3, m_transformsBuffer->buffer, objects.transforms.size() * sizeof(glm::mat4), 0, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER);
+    m_paramsBuffer = std::make_unique<Buffer>(m_ctx->GetAllocator(), params.size() * sizeof(ShaderParameters), VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU);
+    m_paramsBuffer->MapMemoryFromVector(params);
 
-    for (int i = 0; i < FRAME_OVERLAP; i++) {
-      writer.UpdateSet(m_ctx->GetDevice(), m_frames[i].descriptorSet);
+    std::vector<VkDescriptorImageInfo> imageInfos;
+    for (auto &materialInstance : objects.materialInstances) {
+      imageInfos.push_back(VkDescriptorImageInfo{
+        .sampler = materialInstance.colorSampler,
+        .imageView = materialInstance.colorTexture->GetView(),
+        .imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
+      });
     }
+
+    {
+      DescriptorWriter writer;
+      writer.WriteBuffer(2, m_objectIdsBuffer->buffer, objects.objectIds.size() * sizeof(uint32_t), 0, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER);
+      writer.WriteBuffer(3, m_transformsBuffer->buffer, objects.transforms.size() * sizeof(glm::mat4), 0, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER);
+
+      for (int i = 0; i < FRAME_OVERLAP; i++) {
+        writer.UpdateSet(m_ctx->GetDevice(), m_frames[i].descriptorSet);
+      }  
+    }    
+
+    {
+      DescriptorWriter writer;
+      writer.WriteBuffer(0, m_paramsBuffer->buffer, params.size() * sizeof(ShaderParameters), 0, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER);
+      writer.WriteImages(1, imageInfos.data(), imageInfos.size(), VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER);
+      writer.UpdateSet(m_ctx->GetDevice(), m_materialDataDescriptorSet);
+    }
+    
   } else {
     m_objectIdsBuffer->MapMemoryFromVector(objects.objectIds);
     m_transformsBuffer->MapMemoryFromVector(objects.transforms);
+    m_paramsBuffer->MapMemoryFromVector(params);
+    //m_samplersBuffer->MapMemoryFromVector(samplers);
   }
 }
 

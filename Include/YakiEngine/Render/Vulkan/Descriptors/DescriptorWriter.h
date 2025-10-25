@@ -15,6 +15,7 @@ public:
     DescriptorWriter();
 
     void WriteImage(uint32_t binding, VkImageView image, VkSampler sampler, VkImageLayout layout, VkDescriptorType type);
+    void WriteImages(uint32_t binding, VkDescriptorImageInfo *imageInfo, uint32_t count, VkDescriptorType type);
     void WriteBuffer(uint32_t binding, VkBuffer buffer, size_t size, size_t offset, VkDescriptorType type);
 
     void Clear();

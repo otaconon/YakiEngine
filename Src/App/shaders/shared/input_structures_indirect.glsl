@@ -11,6 +11,12 @@ struct PointLight {
     vec4 position;
 };
 
+struct MaterialParams {
+    vec4 colorFactors;
+    vec4 metalRoughFactors;
+    vec4 specularColorFactors;
+};
+
 layout(set = 0, binding = 0) uniform  SceneData {
     mat4 view;
     mat4 proj;
@@ -27,11 +33,8 @@ layout (set = 0, binding = 1, std430) readonly buffer LightBuffer {
     PointLight pointLights[MAX_POINT];
 } lightBuffer;
 
-layout(set = 1, binding = 0) uniform GLTFMaterialData{
-    vec4 colorFactors;
-    vec4 metal_rough_factors;
-    vec4 specular_color_factors;
-} materialData;
+layout(std430, set = 1, binding = 0) readonly buffer MaterialData {
+    MaterialParams params[];
+};
 
-layout(set = 1, binding = 1) uniform sampler2D colorTex;
-layout(set = 1, binding = 2) uniform sampler2D metalRoughTex;
+layout(set = 1, binding = 1) uniform sampler2D colorTextures[64];

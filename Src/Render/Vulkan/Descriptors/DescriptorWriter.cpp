@@ -22,6 +22,19 @@ void DescriptorWriter::WriteImage(uint32_t binding, VkImageView image, VkSampler
     writes.push_back(write);
 }
 
+void DescriptorWriter::WriteImages(uint32_t binding, VkDescriptorImageInfo* imageInfo, uint32_t count, VkDescriptorType type) {
+  VkWriteDescriptorSet write{
+    .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+    .dstBinding = binding,
+    .dstArrayElement = 0,
+    .descriptorCount = count,
+    .descriptorType = type,
+    .pImageInfo = imageInfo
+  };
+
+  writes.push_back(write);
+}
+
 void DescriptorWriter::WriteBuffer(uint32_t binding, VkBuffer buffer, size_t size, size_t offset, VkDescriptorType type)
 {
     VkDescriptorBufferInfo& info = bufferInfos.emplace_back(VkDescriptorBufferInfo{

@@ -25,9 +25,9 @@ HashCubes::HashCubes()
 
   init_default_data(m_ctx, m_renderer.GetSwapchain(), m_deletionQueue);
   m_allMeshes = std::make_shared<Scene>(m_ctx, m_deletionQueue, "Assets/meshes/basicmesh.glb");
-  m_cubeMesh = std::next(m_allMeshes->m_meshes.begin(), 1)->second;
+  m_cubeMesh = m_allMeshes->meshes[1];
 
-  constexpr uint32_t cubesRes = 4;
+  constexpr uint32_t cubesRes = 8;
   for (int i = 0; i < cubesRes; i++) {
     for (int j = 0; j < cubesRes; j++) {
       auto e = ecs.CreateEntity();
@@ -48,7 +48,7 @@ HashCubes::HashCubes()
   for (auto &e : directionalLights) {
     e = ecs.CreateEntity();
     ecs.AddComponents(e, DirectionalLight{{0.5f, 0.5f, 0.5f, 1.f}, {0.5f, 0.5f, 0.0f, 1.f}});
-    auto mesh = m_allMeshes->m_meshes.begin()->second;
+    auto mesh = m_allMeshes->meshes[0];
     register_dynamic_object(e, DynamicObject{mesh, {}}, Translation{{3.f, 10.f, 0.f}});
   }
 

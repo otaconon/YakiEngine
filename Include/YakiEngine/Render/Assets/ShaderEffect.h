@@ -43,16 +43,25 @@ struct ShaderEffect {
     stages[ShaderStageType::Vertex] = {vertShader, VK_SHADER_STAGE_VERTEX_BIT};
     stages[ShaderStageType::Fragment] = {fragShader, VK_SHADER_STAGE_FRAGMENT_BIT};
 
-    // TODO: Dont assume whats below
-    // Assume that descriptor sets are shared for vertex and fragment shader
-    for (const auto &[set, binding] : vertShader->ubos | std::views::keys) {
-      builders[set].AddBinding(binding, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER);
+    for (const auto &[set, binding, count] : vertShader->ubos | std::views::keys) {
+      builders[set].AddBinding(binding, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, count);
     }
-    for (const auto &[set, binding] : vertShader->ssbos | std::views::keys) {
-      builders[set].AddBinding(binding, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER);
+    for (const auto &[set, binding, count] : fragShader->ubos | std::views::keys) {
+      builders[set].AddBinding(binding, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, count);
     }
-    for (const auto &[set, binding] : vertShader->sampledImages | std::views::keys) {
-      builders[set].AddBinding(binding, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER);
+
+    for (const auto &[set, binding, count] : vertShader->ssbos | std::views::keys) {
+      builders[set].AddBinding(binding, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, count);
+    }
+    for (const auto &[set, binding, count] : fragShader->ssbos | std::views::keys) {
+      builders[set].AddBinding(binding, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, count);
+    }
+
+    for (const auto &[set, binding, count] : vertShader->sampledImages | std::views::keys) {
+      builders[set].AddBinding(binding, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, count);
+    }
+    for (const auto &[set, binding, count] : fragShader->sampledImages | std::views::keys) {
+      builders[set].AddBinding(binding, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, count);
     }
 
     for (const auto& [descSetLayouts, builder] : std::views::zip(descriptorSetLayouts, builders)) {

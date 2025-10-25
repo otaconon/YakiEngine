@@ -17,6 +17,12 @@ enum class MeshPassType : uint8_t {
   Count
 };
 
+enum class TextureType : uint8_t {
+  Color,
+  MetalRough,
+  Count
+};
+
 struct EffectTemplate {
   EnumAccessArray<std::shared_ptr<ShaderPass>, MeshPassType, static_cast<size_t>(MeshPassType::Count)> passShaders;
   std::shared_ptr<ShaderParameters> defaultParameters;
@@ -27,18 +33,16 @@ struct Material {
   std::shared_ptr<EffectTemplate> original;
   EnumAccessArray<VkDescriptorSet, MeshPassType, static_cast<size_t>(MeshPassType::Count)> passSets;
 
-  std::vector<Texture> textures;
+  EnumAccessArray<std::shared_ptr<Texture>, TextureType, static_cast<size_t>(TextureType::Count)> textures;
+  EnumAccessArray<VkSampler, TextureType, static_cast<size_t>(TextureType::Count)> samplers;
 
   ShaderParameters parameters;
 };
 
-struct MaterialInfo {
-  VkDescriptorSet materialSet;
-  TransparencyMode transparency;
+struct MaterialInstance {
+  std::shared_ptr<Material> material;
+  ShaderParameters parameters;
+  std::shared_ptr<Texture> colorTexture;
+  VkSampler colorSampler;
 };
 
-struct MaterialInstance {
-  std::vector<Texture> textures;
-  ShaderParameters *parameters;
-  std::string baseTemplate;
-};

@@ -23,8 +23,9 @@ struct RenderObject {
 struct RenderIndirectObjects {
   std::vector<uint32_t> firstIndices;
   std::vector<uint32_t> indexCounts;
-  std::vector<uint32_t> objectIds;
-  std::vector<glm::mat4> transforms;
   std::vector<Mesh *> meshes;
-  std::vector<Material *> materials;
+
+  std::vector<uint32_t> objectIds;
+  std::vector<MaterialInstance> materialInstances;
+  std::vector<glm::mat4> transforms;
 };

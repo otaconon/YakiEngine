@@ -133,10 +133,11 @@ void VulkanContext::createLogicalDevice() {
     queueCreateInfos.push_back(queueCreateInfo);
   }
 
-  VkPhysicalDeviceFeatures deviceFeatures{
+  VkPhysicalDeviceFeatures deviceFeatures {
     .independentBlend = VK_TRUE,
     .multiDrawIndirect = VK_TRUE,
-    .fillModeNonSolid = VK_TRUE
+    .fillModeNonSolid = VK_TRUE,
+    .shaderSampledImageArrayDynamicIndexing = VK_TRUE,
   };
 
   VkPhysicalDeviceVulkan11Features deviceFeatures11 {
@@ -144,9 +145,17 @@ void VulkanContext::createLogicalDevice() {
     .shaderDrawParameters = VK_TRUE
   };
 
+  VkPhysicalDeviceVulkan12Features deviceFeatures12{
+    .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES,
+    .pNext = &deviceFeatures11,
+    .shaderSampledImageArrayNonUniformIndexing = VK_TRUE,
+    .runtimeDescriptorArray = VK_TRUE,
+    .bufferDeviceAddress = VK_TRUE,
+  };
+
   VkPhysicalDeviceFeatures2 deviceFeatures2 {
     .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2,
-    .pNext = &deviceFeatures11,
+    .pNext = &deviceFeatures12,
     .features = deviceFeatures
   };
 
@@ -160,15 +169,10 @@ void VulkanContext::createLogicalDevice() {
       .pNext = &sync2Features,
       .dynamicRendering = VK_TRUE
   };
-  VkPhysicalDeviceBufferDeviceAddressFeatures bufferDeviceAddressFeatures{
-      .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_BUFFER_DEVICE_ADDRESS_FEATURES,
-      .pNext = &dynamicRenderingFeatures,
-      .bufferDeviceAddress = VK_TRUE,
-  };
 
   VkPhysicalDeviceFragmentShaderBarycentricFeaturesNV fragmentShaderBarycentricFeatures{
       .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_SHADER_BARYCENTRIC_FEATURES_NV,
-      .pNext = &bufferDeviceAddressFeatures,
+      .pNext = &dynamicRenderingFeatures,
       .fragmentShaderBarycentric = VK_TRUE
   };
 

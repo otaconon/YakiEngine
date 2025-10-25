@@ -50,18 +50,5 @@ inline void init_default_data(std::shared_ptr<VulkanContext> ctx, Swapchain& swa
     vkDestroySampler(ctx->GetDevice(), data->samplerLinear, nullptr);
   });
 
-  // Initialize default shader passes
-  auto vertShader = std::make_shared<Shader>(ctx, "../Shaders/Vertex/instanced.vert.spv");
-  auto fragShader = std::make_shared<Shader>(ctx, "../Shaders/Fragment/instanced.frag.spv");
-  auto effect = std::make_shared<ShaderEffect>(ctx, vertShader, fragShader);
-  auto forwardPass = std::make_shared<ShaderPass>(ctx, swapchain, effect);
-  auto shaderParams = std::make_shared<ShaderParameters>(glm::vec4{0.1f}, glm::vec4{0.1f}, glm::vec4{0.1f});
-  auto effectTemplate = std::make_shared<EffectTemplate>();
-  effectTemplate->passShaders[MeshPassType::Forward] = forwardPass;
-  effectTemplate->defaultParameters = shaderParams;
-  effectTemplate->transparency = TransparencyMode::Opaque;
-
-  data.opaqueEffectTemplate = std::move(effectTemplate);
-
   ecs.AddSingletonComponent(std::move(data));
 }

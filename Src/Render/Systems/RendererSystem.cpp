@@ -58,7 +58,7 @@ void RenderSystem::renderStaticObjects(const glm::mat4 &viewProj) {
         objects.objectIds.push_back(e.id);
         objects.transforms.push_back(localToWorld.value);
         objects.meshes.push_back(drawable.mesh.get());
-        objects.materials.push_back(material.get());
+        objects.materialInstances.push_back(MaterialInstance{material, material->parameters,material->textures[TextureType::Color], material->samplers[TextureType::Color]});
       }
     });
     ecs.Each<DirtyStaticObject>([&](Hori::Entity e, DirtyStaticObject) {
@@ -170,7 +170,7 @@ RenderIndirectObjects RenderSystem::sortObjects(RenderIndirectObjects &objects) 
   std::iota(order.begin(), order.end(), 0);
 
   std::ranges::sort(order, {}, [&](uint32_t i) {
-    return std::pair{objects.materials[i], objects.meshes[i]};
+    return objects.meshes[i];
   });
 
   RenderIndirectObjects newObjects;
@@ -181,7 +181,7 @@ RenderIndirectObjects RenderSystem::sortObjects(RenderIndirectObjects &objects) 
   newObjects.objectIds.resize(n);
   newObjects.transforms.resize(n);
   newObjects.meshes.resize(n);
-  newObjects.materials.resize(n);
+  newObjects.materialInstances.resize(n);
 
   for (size_t pos = 0; pos < n; ++pos) {
     const auto idx = order[pos];
@@ -190,7 +190,7 @@ RenderIndirectObjects RenderSystem::sortObjects(RenderIndirectObjects &objects) 
     newObjects.objectIds[pos] = objects.objectIds[idx];
     newObjects.transforms[pos] = objects.transforms[idx];
     newObjects.meshes[pos] = objects.meshes[idx];
-    newObjects.materials[pos] = objects.materials[idx];
+    newObjects.materialInstances[pos] = objects.materialInstances[idx];
   }
 
   return newObjects;
@@ -199,7 +199,6 @@ RenderIndirectObjects RenderSystem::sortObjects(RenderIndirectObjects &objects) 
 std::vector<IndirectBatch> RenderSystem::packObjects(RenderIndirectObjects &objects) {
   auto sameKey = [&](size_t a, size_t b) {
     return objects.meshes[a] == objects.meshes[b] &&
-           objects.materials[a] == objects.materials[b] &&
            objects.firstIndices[a] == objects.firstIndices[b] &&
            objects.indexCounts[a] == objects.indexCounts[b];
   };
@@ -211,7 +210,7 @@ std::vector<IndirectBatch> RenderSystem::packObjects(RenderIndirectObjects &obje
       .firstInstance = 0,
       .instanceCount = 1,
       .mesh = objects.meshes[0],
-      .material = objects.materials[0],
+      .materialInstance = objects.materialInstances[0]
   });
 
   for (uint32_t i = 1; i < objects.objectIds.size(); i++) {
@@ -222,7 +221,7 @@ std::vector<IndirectBatch> RenderSystem::packObjects(RenderIndirectObjects &obje
           .firstInstance = i,
           .instanceCount = 0,
           .mesh = objects.meshes[i],
-          .material = objects.materials[i],
+          .materialInstance = objects.materialInstances[i]
       });
     }
     draws.back().instanceCount++;

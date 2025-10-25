@@ -18,15 +18,18 @@ public:
   Scene(std::shared_ptr<VulkanContext> ctx, DeletionQueue& deletionQueue, const std::filesystem::path& path);
   ~Scene();
 
-  std::unordered_map<std::string, std::shared_ptr<Mesh>> m_meshes;
+  void Instantiate();
+
+  std::vector<std::shared_ptr<Mesh>> meshes;
 private:
   friend HashCubes; // TODO: Remove this line
 
+  fastgltf::Asset m_gltf;
   std::shared_ptr<VulkanContext> m_ctx;
 
-  std::unordered_map<std::string, Hori::Entity> m_nodes;
-  std::unordered_map<std::string, std::shared_ptr<Texture>> m_images;
-  std::unordered_map<std::string, std::shared_ptr<Material>> m_materials;
+  std::vector<Hori::Entity> m_nodes;
+  std::vector<std::shared_ptr<Texture>> m_textures;
+  std::vector<std::shared_ptr<Material>> m_materials;
 
   std::vector<VkSampler> m_samplers;
 

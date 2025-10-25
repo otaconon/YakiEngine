@@ -27,7 +27,7 @@ struct IndirectBatch {
   uint32_t firstInstance;
   uint32_t instanceCount;
   Mesh *mesh;
-  Material *material;
+  MaterialInstance materialInstance;
 };
 
 class Renderer {
@@ -67,8 +67,11 @@ private:
 
   DescriptorAllocator m_descriptorAllocator;
 
+  // TODO: Move those from here
   std::unique_ptr<Buffer> m_objectIdsBuffer;
   std::unique_ptr<Buffer> m_transformsBuffer;
+  std::unique_ptr<Buffer> m_paramsBuffer;
+  std::unique_ptr<Buffer> m_samplersBuffer;
 
   VkDescriptorSetLayout m_drawImageDescriptorLayout{};
   VkDescriptorSetLayout m_singleImageDescriptorLayout{};
@@ -76,6 +79,8 @@ private:
 
   VkDescriptorSet m_frameDescriptor;
   VkDescriptorSet m_drawImageDescriptors{};
+  VkDescriptorSet m_materialDataDescriptorSet{};
+  std::shared_ptr<EffectTemplate> m_opaqueEffectTemplate{};
 
   GPUSceneData m_gpuSceneData;
   GPULightData m_gpuLightData;

@@ -8,18 +8,26 @@
 #include <fstream>
 #include <map>
 
+struct ShaderResourceInfo {
+  uint32_t set, binding, count;
+
+  bool operator<(const ShaderResourceInfo& other) const {
+    if (set != other.set) return set < other.set;
+    if (binding != other.binding) return binding < other.binding;
+    return count < other.count;
+  }
+};
+
 struct Shader {
   VkShaderModule module;
 
-  // Use std::map not std::unordered_map because it's better to have these collections sorted
-  std::map<std::pair<uint32_t, uint32_t>, spirv_cross::Resource> ubos;
-  std::map<std::pair<uint32_t, uint32_t>, spirv_cross::Resource> ssbos;
-  std::map<std::pair<uint32_t, uint32_t>, spirv_cross::Resource> sampledImages;
+  std::map<ShaderResourceInfo, spirv_cross::Resource> ubos;
+  std::map<ShaderResourceInfo, spirv_cross::Resource> ssbos;
+  std::map<ShaderResourceInfo, spirv_cross::Resource> sampledImages;
   std::vector<VkPushConstantRange> pushConstantRanges;
 
   Shader(std::shared_ptr<VulkanContext> ctx, const std::filesystem::path &path)
     : m_ctx{ctx} {
-    // Load shader
     if (!std::filesystem::exists(path)) {
       std::print("Failed to read file, path doesn't exist: {}", std::filesystem::absolute(path).string());
       return;
@@ -58,22 +66,29 @@ struct Shader {
     for (const auto &ubo : resources.uniform_buffers) {
       uint32_t set = compiler.get_decoration(ubo.id, spv::DecorationDescriptorSet);
       uint32_t binding = compiler.get_decoration(ubo.id, spv::DecorationBinding);
-      ubos[{set, binding}] = ubo;
+      ubos[{set, binding, 1}] = ubo;
       std::println("UBO: {} (set={}, binding={})", ubo.name, set, binding);
     }
 
     for (const auto &ssbo : resources.storage_buffers) {
       uint32_t set = compiler.get_decoration(ssbo.id, spv::DecorationDescriptorSet);
       uint32_t binding = compiler.get_decoration(ssbo.id, spv::DecorationBinding);
-      ssbos[{set, binding}] = ssbo;
+      ssbos[{set, binding, 1}] = ssbo;
       std::println("SSBO: {} (set={}, binding={})", ssbo.name, set, binding);
     }
 
     for (const auto &sampledImage : resources.sampled_images) {
       uint32_t set = compiler.get_decoration(sampledImage.id, spv::DecorationDescriptorSet);
       uint32_t binding = compiler.get_decoration(sampledImage.id, spv::DecorationBinding);
-      sampledImages[{set, binding}] = sampledImage;
-      std::println("Texture2D: {} (set={}, binding={})", sampledImage.name, set, binding);
+      const auto &type = compiler.get_type(sampledImage.type_id);
+      uint32_t arraySize = 1;
+      
+      if (!type.array.empty()) {
+        arraySize = type.array[0];
+      }
+      
+      sampledImages[{set, binding, arraySize}] = sampledImage;
+      std::println("Texture2D: {} (set={}, binding={}, count={})", sampledImage.name, set, binding, arraySize);
     }
 
     for (const auto &pc : resources.push_constant_buffers) {

@@ -29,14 +29,13 @@ Scene::Scene(std::shared_ptr<VulkanContext> ctx, DeletionQueue& deletionQueue, c
 
   constexpr auto gltfOptions = fastgltf::Options::DontRequireValidAssetMember | fastgltf::Options::AllowDouble | fastgltf::Options::LoadExternalBuffers;
 
-  fastgltf::Asset gltf;
   fastgltf::Parser parser{};
   auto data = fastgltf::MappedGltfFile::FromPath(path);
   auto type = fastgltf::determineGltfFileType(data.get());
   if (type == fastgltf::GltfType::glTF) {
     auto load = parser.loadGltfJson(data.get(), path.parent_path(), gltfOptions);
     if (load) {
-      gltf = std::move(load.get());
+      m_gltf = std::move(load.get());
     } else {
       std::cerr << "Failed to load glTF: " << fastgltf::to_underlying(load.error()) << std::endl;
       return;
@@ -44,7 +43,7 @@ Scene::Scene(std::shared_ptr<VulkanContext> ctx, DeletionQueue& deletionQueue, c
   } else if (type == fastgltf::GltfType::GLB) {
     auto load = parser.loadGltfBinary(data.get(), path.parent_path(), gltfOptions);
     if (load) {
-      gltf = std::move(load.get());
+      m_gltf = std::move(load.get());
     } else {
       std::cerr << "Failed to load glTF: " << fastgltf::to_underlying(load.error()) << std::endl;
       return;
@@ -60,9 +59,9 @@ Scene::Scene(std::shared_ptr<VulkanContext> ctx, DeletionQueue& deletionQueue, c
       {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1}
   };
 
-  m_descriptorAllocator.Init(m_ctx->GetDevice(), gltf.materials.size(), sizes);
+  m_descriptorAllocator.Init(m_ctx->GetDevice(), m_gltf.materials.size(), sizes);
 
-  for (fastgltf::Sampler &sampler : gltf.samplers) {
+  for (fastgltf::Sampler &sampler : m_gltf.samplers) {
     VkSamplerCreateInfo samplerCreateInfo = {
       .sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
       .pNext = nullptr,
@@ -81,31 +80,24 @@ Scene::Scene(std::shared_ptr<VulkanContext> ctx, DeletionQueue& deletionQueue, c
     });
   }
 
-  std::vector<Hori::Entity> nodes;
-  std::vector<std::shared_ptr<Mesh>> meshes;
-  std::vector<std::shared_ptr<Texture>> images;
-  std::vector<std::shared_ptr<Material>> materials;
-
   DefaultData* defaultData = Ecs::GetInstance().GetSingletonComponent<DefaultData>();
-  for (fastgltf::Image &image : gltf.images) {
-    std::shared_ptr<Texture> texture = std::make_shared<Texture>(m_ctx, gltf, image);
+  for (fastgltf::Image &image : m_gltf.images) {
+    std::shared_ptr<Texture> texture = std::make_shared<Texture>(m_ctx, m_gltf, image);
     if (texture->GetImage()) {
       AssetMngr::RegisterAsset<Texture>(texture);
-      images.push_back(texture);
-      m_images[image.name.c_str()] = texture;
+      m_textures.push_back(texture);
     } else {
-      images.push_back(defaultData->errorTexture);
+      m_textures.push_back(defaultData->errorTexture);
       std::cout << "gltf failed to load texture " << image.name << std::endl;
     }
   }
 
-  m_materialDataBuffer = std::make_shared<Buffer>(m_ctx->GetAllocator(), sizeof(ShaderParameters) * gltf.materials.size(), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU);
+  m_materialDataBuffer = std::make_shared<Buffer>(m_ctx->GetAllocator(), sizeof(ShaderParameters) * m_gltf.materials.size(), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU);
   int data_index = 0;
   ShaderParameters *shaderParams = static_cast<ShaderParameters *>(m_materialDataBuffer->info.pMappedData);
-  for (fastgltf::Material &mat : gltf.materials) {
+  for (fastgltf::Material &mat : m_gltf.materials) {
     auto newMat = std::make_shared<Material>();
-    materials.push_back(newMat);
-    m_materials[mat.name.c_str()] = newMat;
+    m_materials.push_back(newMat);
 
     newMat->parameters = {
       .colorFactors{mat.pbrData.baseColorFactor[0], mat.pbrData.baseColorFactor[1], mat.pbrData.baseColorFactor[2], mat.pbrData.baseColorFactor[3]},
@@ -123,43 +115,22 @@ Scene::Scene(std::shared_ptr<VulkanContext> ctx, DeletionQueue& deletionQueue, c
       passType = TransparencyMode::Transparent;
     }
 
-    struct MaterialResources {
-      std::shared_ptr<Texture> colorImage;
-      VkSampler colorSampler;
-      std::shared_ptr<Texture> metalRoughImage;
-      VkSampler metalRoughSampler;
-      VkBuffer dataBuffer;
-      uint32_t dataBufferOffset;
-    };
-
-    MaterialResources materialResources {
-        .colorImage = defaultData->errorTexture,
-        .colorSampler = defaultData->samplerLinear,
-        .metalRoughImage = defaultData->errorTexture,
-        .metalRoughSampler = defaultData->samplerLinear,
-        .dataBuffer = m_materialDataBuffer->buffer,
-        .dataBufferOffset = static_cast<uint32_t>(data_index * sizeof(ShaderParameters))
-    };
+    std::shared_ptr<Texture> colorImage = defaultData->errorTexture;
+    VkSampler colorSampler = defaultData->samplerLinear;
 
     if (mat.pbrData.baseColorTexture.has_value()) {
-      size_t img = gltf.textures[mat.pbrData.baseColorTexture.value().textureIndex].imageIndex.value();
-      size_t sampler = gltf.textures[mat.pbrData.baseColorTexture.value().textureIndex].samplerIndex.value();
+      size_t img = m_gltf.textures[mat.pbrData.baseColorTexture.value().textureIndex].imageIndex.value();
+      size_t sampler = m_gltf.textures[mat.pbrData.baseColorTexture.value().textureIndex].samplerIndex.value();
 
-      materialResources.colorImage = images[img];
-      if (images[img]->GetView() == VK_NULL_HANDLE)
+      colorImage = m_textures[img];
+      if (m_textures[img]->GetView() == VK_NULL_HANDLE)
         std::print(std::cerr, "View is null");
-      materialResources.colorSampler = m_samplers[sampler];
+      colorSampler = m_samplers[sampler];
+
     }
 
-    newMat->original = defaultData->opaqueEffectTemplate;
-    newMat->passSets[MeshPassType::Forward] = m_descriptorAllocator.Allocate(m_ctx->GetDevice(), newMat->original->passShaders[MeshPassType::Forward]->effect->descriptorSetLayouts[1]); // Possibly needs a fix here
-
-    DescriptorWriter writer{};
-    writer.Clear();
-    writer.WriteBuffer(0, materialResources.dataBuffer, sizeof(ShaderParameters), materialResources.dataBufferOffset, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER);
-    writer.WriteImage(1, materialResources.colorImage->GetView(), materialResources.colorSampler, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER);
-    writer.WriteImage(2, materialResources.metalRoughImage->GetView(), materialResources.metalRoughSampler, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER);
-    writer.UpdateSet(m_ctx->GetDevice(), newMat->passSets[MeshPassType::Forward]);
+    newMat->textures[TextureType::Color] = colorImage;
+    newMat->samplers[TextureType::Color] = colorSampler;
 
     data_index++;
   }
@@ -167,10 +138,9 @@ Scene::Scene(std::shared_ptr<VulkanContext> ctx, DeletionQueue& deletionQueue, c
   std::vector<uint32_t> indices;
   std::vector<Vertex> vertices;
 
-  for (fastgltf::Mesh &mesh : gltf.meshes) {
+  for (fastgltf::Mesh &mesh : m_gltf.meshes) {
     auto newmesh = std::make_shared<Mesh>();
     meshes.push_back(newmesh);
-    m_meshes[mesh.name.c_str()] = newmesh;
     newmesh->name = mesh.name;
 
     indices = {};
@@ -179,25 +149,25 @@ Scene::Scene(std::shared_ptr<VulkanContext> ctx, DeletionQueue& deletionQueue, c
     for (auto &&p : mesh.primitives) {
       GeoSurface newSurface;
       newSurface.startIndex = static_cast<uint32_t>(indices.size());
-      newSurface.count = static_cast<uint32_t>(gltf.accessors[p.indicesAccessor.value()].count);
+      newSurface.count = static_cast<uint32_t>(m_gltf.accessors[p.indicesAccessor.value()].count);
       size_t initial_vtx = vertices.size();
 
       // load indexes
       {
-        fastgltf::Accessor &indexaccessor = gltf.accessors[p.indicesAccessor.value()];
+        fastgltf::Accessor &indexaccessor = m_gltf.accessors[p.indicesAccessor.value()];
         indices.reserve(indices.size() + indexaccessor.count);
 
-        fastgltf::iterateAccessor<std::uint32_t>(gltf, indexaccessor, [&](std::uint32_t idx) {
+        fastgltf::iterateAccessor<std::uint32_t>(m_gltf, indexaccessor, [&](std::uint32_t idx) {
           indices.push_back(idx + initial_vtx);
         });
       }
 
       // load vertex positions
       {
-        fastgltf::Accessor &posAccessor = gltf.accessors[p.findAttribute("POSITION")->accessorIndex];
+        fastgltf::Accessor &posAccessor = m_gltf.accessors[p.findAttribute("POSITION")->accessorIndex];
         vertices.resize(vertices.size() + posAccessor.count);
 
-        fastgltf::iterateAccessorWithIndex<glm::vec3>(gltf, posAccessor, [&](glm::vec3 v, size_t index) {
+        fastgltf::iterateAccessorWithIndex<glm::vec3>(m_gltf, posAccessor, [&](glm::vec3 v, size_t index) {
           Vertex newvtx;
           newvtx.position = v;
           newvtx.normal = {1, 0, 0};
@@ -212,7 +182,7 @@ Scene::Scene(std::shared_ptr<VulkanContext> ctx, DeletionQueue& deletionQueue, c
       auto normals = p.findAttribute("NORMAL");
       if (normals != p.attributes.end()) {
 
-        fastgltf::iterateAccessorWithIndex<glm::vec3>(gltf, gltf.accessors[normals->accessorIndex],
+        fastgltf::iterateAccessorWithIndex<glm::vec3>(m_gltf, m_gltf.accessors[normals->accessorIndex],
             [&](glm::vec3 v, size_t index) {
               vertices[initial_vtx + index].normal = v;
             });
@@ -222,7 +192,7 @@ Scene::Scene(std::shared_ptr<VulkanContext> ctx, DeletionQueue& deletionQueue, c
       auto uv = p.findAttribute("TEXCOORD_0");
       if (uv != p.attributes.end()) {
 
-        fastgltf::iterateAccessorWithIndex<glm::vec2>(gltf, gltf.accessors[uv->accessorIndex],
+        fastgltf::iterateAccessorWithIndex<glm::vec2>(m_gltf, m_gltf.accessors[uv->accessorIndex],
             [&](glm::vec2 v, size_t index) {
               vertices[initial_vtx + index].uv_x = v.x;
               vertices[initial_vtx + index].uv_y = v.y;
@@ -233,16 +203,16 @@ Scene::Scene(std::shared_ptr<VulkanContext> ctx, DeletionQueue& deletionQueue, c
       auto colors = p.findAttribute("COLOR_0");
       if (colors != p.attributes.end()) {
 
-        fastgltf::iterateAccessorWithIndex<glm::vec4>(gltf, gltf.accessors[colors->accessorIndex],
+        fastgltf::iterateAccessorWithIndex<glm::vec4>(m_gltf, m_gltf.accessors[colors->accessorIndex],
             [&](glm::vec4 v, size_t index) {
               vertices[initial_vtx + index].color = v;
             });
       }
 
       if (p.materialIndex.has_value()) {
-        newSurface.material = materials[p.materialIndex.value()];
+        newSurface.material = m_materials[p.materialIndex.value()];
       } else {
-        newSurface.material = materials[0];
+        newSurface.material = m_materials[0];
       }
 
       // calculate surface bounds
@@ -265,10 +235,16 @@ Scene::Scene(std::shared_ptr<VulkanContext> ctx, DeletionQueue& deletionQueue, c
     newmesh->indices = std::move(indices);
     newmesh->vertices = std::move(vertices);
   }
+}
 
+Scene::~Scene() {
+  m_descriptorAllocator.DestroyPools(m_ctx->GetDevice());
+}
+
+void Scene::Instantiate() {
   // load all nodes and their meshes
   auto &ecs = Ecs::GetInstance();
-  for (fastgltf::Node &node : gltf.nodes) {
+  for (fastgltf::Node &node : m_gltf.nodes) {
     Hori::Entity newNode = ecs.CreateEntity();
 
     if (node.meshIndex.has_value()) {
@@ -276,8 +252,7 @@ Scene::Scene(std::shared_ptr<VulkanContext> ctx, DeletionQueue& deletionQueue, c
       register_static_object(newNode, StaticObject{mesh, {}});
     }
 
-    nodes.push_back(newNode);
-    m_nodes[node.name.c_str()] = newNode;
+    m_nodes.push_back(newNode);
 
     auto localTransform = ecs.GetComponent<LocalToWorld>(newNode);
     std::visit(fastgltf::visitor{
@@ -305,19 +280,15 @@ Scene::Scene(std::shared_ptr<VulkanContext> ctx, DeletionQueue& deletionQueue, c
         );
   }
 
-  for (int i = 0; i < gltf.nodes.size(); i++) {
-    fastgltf::Node &node = gltf.nodes[i];
-    Hori::Entity sceneNode = nodes[i];
+  for (int i = 0; i < m_gltf.nodes.size(); i++) {
+    fastgltf::Node &node = m_gltf.nodes[i];
+    Hori::Entity sceneNode = m_nodes[i];
 
     auto children = ecs.GetComponent<Children>(sceneNode);
     for (auto &c : node.children) {
-      children->value.push_back(nodes[c]);
-      auto parent = ecs.GetComponent<Parent>(nodes[c]);
+      children->value.push_back(m_nodes[c]);
+      auto parent = ecs.GetComponent<Parent>(m_nodes[c]);
       parent->value = sceneNode;
     }
   }
-}
-
-Scene::~Scene() {
-  m_descriptorAllocator.DestroyPools(m_ctx->GetDevice());
 }

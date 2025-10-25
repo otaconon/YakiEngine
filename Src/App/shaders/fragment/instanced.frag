@@ -1,6 +1,7 @@
 #version 460
 
 #extension GL_GOOGLE_include_directive : require
+#extension GL_EXT_nonuniform_qualifier : require
 
 #include "../shared/input_structures_indirect.glsl"
 
@@ -16,7 +17,8 @@ layout (location = 1) out uint outObjectId;
 vec3 highlight(vec3 l, vec3 n, vec3 v) {
     vec3 r_l = reflect(-l, n);
     float s = clamp(100.0 * dot(r_l, v) - 97.0, 0.0, 1.0);
-    vec3 highlightColor = (materialData.specular_color_factors.xyz * materialData.specular_color_factors.w);
+    MaterialParams materialData = params[inObjectId];
+    vec3 highlightColor = (materialData.specularColorFactors.xyz * materialData.specularColorFactors.w);
     return highlightColor * s;
 }
 
@@ -25,7 +27,7 @@ void main()
     vec3 n = normalize(inNormal);
     vec3 v = normalize(sceneData.eyePosition.xyz - vPosition);
 
-    vec3 color = inColor * texture(colorTex, inUV).xyz;
+    vec3 color = inColor * texture(colorTextures[nonuniformEXT(inObjectId)], inUV).xyz;
     vec3 ambient = color * (sceneData.ambientColor.xyz  * sceneData.ambientColor.w);
 
     outFragColor = vec4(0.f, 0.f, 0.f, 1.0f);

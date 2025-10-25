@@ -66,7 +66,7 @@ inline void RunSponza() {
   for (auto &e : pointLights) {
     e = ecs.CreateEntity();
     ecs.AddComponents(e, PointLight{{0.5f, 0.5f, 0.5f, 1.f}, {1.0f, 0.0f, 0.0f, 1.f}});
-    auto mesh = allMeshes->m_meshes.begin()->second;
+    auto mesh = allMeshes->meshes[0];
     register_dynamic_object(e, DynamicObject{mesh, {}}, Translation{{3.f, 3.f, 0.f}});
   }
 
@@ -75,7 +75,7 @@ inline void RunSponza() {
   for (auto &e : directionalLights) {
     e = ecs.CreateEntity();
     ecs.AddComponents(e, DirectionalLight{{0.5f, 0.5f, 0.5f, 1.f}, {0.5f, 0.5f, 0.0f, 1.f}});
-    auto mesh = allMeshes->m_meshes.begin()->second;
+    auto mesh = allMeshes->meshes[0];
     register_dynamic_object(e, DynamicObject{mesh, {}}, Translation{{3.f, 10.f, 0.f}});
   }
 

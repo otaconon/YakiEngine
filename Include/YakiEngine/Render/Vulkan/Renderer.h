@@ -43,6 +43,7 @@ public:
   void EndRendering();
   void WaitIdle();
 
+  void UploadTextures(std::vector<std::shared_ptr<Texture>> &textures);
   void UpdateStaticObjects(RenderIndirectObjects& objects);
 
   [[nodiscard]] Swapchain &GetSwapchain();

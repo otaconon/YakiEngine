@@ -8,7 +8,6 @@ struct ShaderParameters {
   glm::vec4 colorFactors;
   glm::vec4 metalRoughFactors;
   glm::vec4 specularColorFactors;
-  glm::vec4 pad[1];
 };
 
 enum class MeshPassType : uint8_t {
@@ -40,9 +39,7 @@ struct Material {
 };
 
 struct MaterialInstance {
-  std::shared_ptr<Material> material;
   ShaderParameters parameters;
-  std::shared_ptr<Texture> colorTexture;
-  VkSampler colorSampler;
+  uint32_t samplerId;
 };
 

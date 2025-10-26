@@ -3,6 +3,7 @@
 #include "Mesh.h"
 #include "ShaderEffect.h"
 #include "Texture.h"
+#include "TextureManager.h"
 
 #include <iostream>
 #include <memory>
@@ -32,6 +33,8 @@ private:
   std::vector<std::shared_ptr<Material>> m_materials;
 
   std::vector<VkSampler> m_samplers;
+
+  TextureManager m_textureManager;
 
   DescriptorAllocator m_descriptorAllocator;
   std::shared_ptr<Buffer> m_materialDataBuffer;

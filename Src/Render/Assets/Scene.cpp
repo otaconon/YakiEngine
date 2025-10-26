@@ -126,10 +126,11 @@ Scene::Scene(std::shared_ptr<VulkanContext> ctx, DeletionQueue& deletionQueue, c
       if (m_textures[img]->GetView() == VK_NULL_HANDLE)
         std::print(std::cerr, "View is null");
       colorSampler = m_samplers[sampler];
-
     }
 
     newMat->textures[TextureType::Color] = colorImage;
+    newMat->textures[TextureType::Color]->sampler = colorSampler;
+    m_textureManager.RegisterTexture(newMat->textures[TextureType::Color]);
     newMat->samplers[TextureType::Color] = colorSampler;
 
     data_index++;

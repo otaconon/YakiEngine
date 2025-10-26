@@ -488,11 +488,32 @@ void Renderer::WaitIdle() {
   vkDeviceWaitIdle(m_ctx->GetDevice());
 }
 
+void Renderer::UploadTextures(std::vector<std::shared_ptr<Texture>> &textures) {
+  std::vector<VkDescriptorImageInfo> imageInfos;
+  for (auto &texture: textures) {
+    if (!texture->sampler) {
+      continue;
+    }
+
+    imageInfos.push_back(VkDescriptorImageInfo{
+      .sampler = texture->sampler,
+      .imageView = texture->GetView(),
+      .imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
+    });
+  }
+
+  DescriptorWriter writer;
+  writer.WriteImages(1, imageInfos.data(), imageInfos.size(), VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER);
+}
+
 void Renderer::UpdateStaticObjects(RenderIndirectObjects &objects) {
   std::vector<ShaderParameters> params;
+  std::vector<uint32_t> textures;
   params.reserve(objects.materialInstances.size());
-  for (auto &[material, param, sampler, texture] : objects.materialInstances) {
+  textures.reserve(objects.materialInstances.size());
+  for (auto &[param, textureId] : objects.materialInstances) {
     params.push_back(param);
+    textures.push_back(textureId);
   }
 
   if (m_objectIdsBuffer == nullptr && m_transformsBuffer == nullptr) {
@@ -505,15 +526,6 @@ void Renderer::UpdateStaticObjects(RenderIndirectObjects &objects) {
     m_paramsBuffer = std::make_unique<Buffer>(m_ctx->GetAllocator(), params.size() * sizeof(ShaderParameters), VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU);
     m_paramsBuffer->MapMemoryFromVector(params);
 
-    std::vector<VkDescriptorImageInfo> imageInfos;
-    for (auto &materialInstance : objects.materialInstances) {
-      imageInfos.push_back(VkDescriptorImageInfo{
-        .sampler = materialInstance.colorSampler,
-        .imageView = materialInstance.colorTexture->GetView(),
-        .imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
-      });
-    }
-
     {
       DescriptorWriter writer;
       writer.WriteBuffer(2, m_objectIdsBuffer->buffer, objects.objectIds.size() * sizeof(uint32_t), 0, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER);
@@ -521,13 +533,12 @@ void Renderer::UpdateStaticObjects(RenderIndirectObjects &objects) {
 
       for (int i = 0; i < FRAME_OVERLAP; i++) {
         writer.UpdateSet(m_ctx->GetDevice(), m_frames[i].descriptorSet);
-      }  
-    }    
+      } 
+    }
 
     {
       DescriptorWriter writer;
       writer.WriteBuffer(0, m_paramsBuffer->buffer, params.size() * sizeof(ShaderParameters), 0, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER);
-      writer.WriteImages(1, imageInfos.data(), imageInfos.size(), VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER);
       writer.UpdateSet(m_ctx->GetDevice(), m_materialDataDescriptorSet);
     }
     
@@ -535,7 +546,6 @@ void Renderer::UpdateStaticObjects(RenderIndirectObjects &objects) {
     m_objectIdsBuffer->MapMemoryFromVector(objects.objectIds);
     m_transformsBuffer->MapMemoryFromVector(objects.transforms);
     m_paramsBuffer->MapMemoryFromVector(params);
-    //m_samplersBuffer->MapMemoryFromVector(samplers);
   }
 }
 

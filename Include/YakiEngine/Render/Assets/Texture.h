@@ -11,6 +11,9 @@
 
 class Texture final : public Asset {
 public:
+  VkSampler sampler = VK_NULL_HANDLE;
+
+public:
   Texture(std::shared_ptr<VulkanContext> ctx, fastgltf::Asset &gltfAsset, fastgltf::Image &gltfImage);
   Texture(std::shared_ptr<VulkanContext> ctx, void *data, VkExtent3D size, VkFormat format, VkImageUsageFlags usage, bool mipmapped);
   Texture(std::shared_ptr<VulkanContext> ctx, VkExtent3D size, VkFormat format, VkImageUsageFlags usage, bool mipmapped);

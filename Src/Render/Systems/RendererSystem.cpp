@@ -58,7 +58,7 @@ void RenderSystem::renderStaticObjects(const glm::mat4 &viewProj) {
         objects.objectIds.push_back(e.id);
         objects.transforms.push_back(localToWorld.value);
         objects.meshes.push_back(drawable.mesh.get());
-        objects.materialInstances.push_back(MaterialInstance{material, material->parameters,material->textures[TextureType::Color], material->samplers[TextureType::Color]});
+        objects.materialInstances.push_back(MaterialInstance{material->parameters, 0/*TODO*/});
       }
     });
     ecs.Each<DirtyStaticObject>([&](Hori::Entity e, DirtyStaticObject) {

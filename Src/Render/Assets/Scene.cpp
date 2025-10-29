@@ -81,6 +81,7 @@ Scene::Scene(std::shared_ptr<VulkanContext> ctx, DeletionQueue& deletionQueue, c
   DefaultData* defaultData = Ecs::GetInstance().GetSingletonComponent<DefaultData>();
   for (fastgltf::Image &image : m_gltf.images) {
     std::shared_ptr<Texture> texture = std::make_shared<Texture>(m_ctx, m_gltf, image);
+    texture->sampler = defaultData->samplerNearest;
     if (texture->GetImage()) {
       auto texHandle = textureManager.RegisterTexture(texture);
       m_textures.push_back(texHandle);

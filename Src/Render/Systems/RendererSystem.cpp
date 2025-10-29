@@ -69,12 +69,6 @@ void RenderSystem::renderStaticObjects(const glm::mat4 &viewProj) {
       ecs.RemoveComponents<DirtyStaticObject>(e);
     });
     objects = sortObjects(objects);
-    std::vector<std::shared_ptr<Texture>> textures;
-    textures.reserve(objects.materialInstances.size());
-    for (auto &[param, textureHandle] : objects.materialInstances) {
-      textures.push_back(m_textureManager->GetTexture(textureHandle));
-    }
-    m_renderer->UploadTextures(textures);
     m_renderer->UpdateStaticObjects(objects);
     m_indirectBatches = packObjects(objects);
   }

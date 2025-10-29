@@ -491,10 +491,6 @@ void Renderer::WaitIdle() {
 void Renderer::UploadTextures(std::vector<std::shared_ptr<Texture>> &textures) {
   std::vector<VkDescriptorImageInfo> imageInfos;
   for (auto &texture: textures) {
-    if (!texture->sampler) {
-      continue;
-    }
-
     imageInfos.push_back(VkDescriptorImageInfo{
       .sampler = texture->sampler,
       .imageView = texture->GetView(),

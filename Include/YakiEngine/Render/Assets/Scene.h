@@ -19,6 +19,8 @@ public:
   void Instantiate();
 
   std::vector<std::shared_ptr<Mesh>> meshes;
+  std::vector<AssetHandle<Texture>> m_textures;
+
 private:
   friend HashCubes; // TODO: Remove this line
 
@@ -26,7 +28,6 @@ private:
   std::shared_ptr<VulkanContext> m_ctx;
 
   std::vector<Hori::Entity> m_nodes;
-  std::vector<AssetHandle<Texture>> m_textures;
   std::vector<std::shared_ptr<Material>> m_materials;
 
   std::vector<VkSampler> m_samplers;

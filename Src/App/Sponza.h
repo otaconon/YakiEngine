@@ -45,12 +45,21 @@ inline void RunSponza() {
   ecs.AddSingletonComponent(MouseMode{});
   init_default_data(ctx, renderer.GetSwapchain(), textureManager, deletionQueue);
 
+
   // Create object entities
   auto allMeshes = std::make_shared<Scene>(ctx, deletionQueue, "Assets/meshes/basicmesh.glb", textureManager);
 
   // Load scene
   auto scene = std::make_shared<Scene>(ctx, deletionQueue, "Assets/scenes/Sponza.glb", textureManager);
   scene->Instantiate();
+
+  auto &textureHandles = scene->m_textures;
+  std::vector<std::shared_ptr<Texture>> textures;
+  textures.reserve(textureHandles.size());
+  for (auto &handle : textureHandles) {
+    textures.push_back(textureManager.GetTexture(handle));
+  }
+  renderer.UploadTextures(textures);
 
   // Create camera entity
   Hori::Entity camera = ecs.CreateEntity();

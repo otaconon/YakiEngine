@@ -17,7 +17,7 @@ inline void register_static_object(Hori::Entity e, StaticObject object, Translat
   ecs.AddComponents(e, Rotation{}, Scale{{1.f, 1.f, 1.f}}, LocalToWorld{}, LocalToParent{}, ParentToLocal{}, Children{}, Parent{}, DirtyTransform{});
 }
 
-inline void init_default_data(std::shared_ptr<VulkanContext> ctx, Swapchain& swapchain, DeletionQueue& deletionQueue) {
+inline void init_default_data(std::shared_ptr<VulkanContext> ctx, Swapchain& swapchain, TextureManager& textureManager, DeletionQueue& deletionQueue) {
   auto& ecs = Ecs::GetInstance();
 
   DefaultData data {};
@@ -28,7 +28,8 @@ inline void init_default_data(std::shared_ptr<VulkanContext> ctx, Swapchain& swa
   for (int x = 0; x < 16; x++)
     for (int y = 0; y < 16; y++)
       pixels[y * 16 + x] = ((x % 2) ^ (y % 2)) ? magenta : black;
-  data.errorTexture = std::make_shared<Texture>(ctx, pixels.data(), VkExtent3D{16, 16, 1}, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_USAGE_SAMPLED_BIT, false);
+  auto errorTexture = std::make_shared<Texture>(ctx, pixels.data(), VkExtent3D{16, 16, 1}, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_USAGE_SAMPLED_BIT, false);
+  data.errorTexture = textureManager.RegisterTexture(errorTexture);
 
   VkSamplerCreateInfo sampler = {
     .sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,

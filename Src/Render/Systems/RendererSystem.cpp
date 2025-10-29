@@ -18,8 +18,12 @@
 #include "Components/RenderComponents.h"
 #include "Gui/ItemList.h"
 
-RenderSystem::RenderSystem(Renderer *renderer)
-    : m_renderer(renderer) {
+#include <set>
+
+RenderSystem::RenderSystem(Renderer* renderer, TextureManager* textureManager)
+    : m_renderer(renderer),
+    m_textureManager(textureManager)
+{
 }
 
 void RenderSystem::Update(float dt) {
@@ -58,13 +62,19 @@ void RenderSystem::renderStaticObjects(const glm::mat4 &viewProj) {
         objects.objectIds.push_back(e.id);
         objects.transforms.push_back(localToWorld.value);
         objects.meshes.push_back(drawable.mesh.get());
-        objects.materialInstances.push_back(MaterialInstance{material->parameters, 0/*TODO*/});
+        objects.materialInstances.push_back(MaterialInstance{material->parameters, material->textures[TextureType::Color]});
       }
     });
     ecs.Each<DirtyStaticObject>([&](Hori::Entity e, DirtyStaticObject) {
       ecs.RemoveComponents<DirtyStaticObject>(e);
     });
     objects = sortObjects(objects);
+    std::vector<std::shared_ptr<Texture>> textures;
+    textures.reserve(objects.materialInstances.size());
+    for (auto &[param, textureHandle] : objects.materialInstances) {
+      textures.push_back(m_textureManager->GetTexture(textureHandle));
+    }
+    m_renderer->UploadTextures(textures);
     m_renderer->UpdateStaticObjects(objects);
     m_indirectBatches = packObjects(objects);
   }
@@ -170,11 +180,11 @@ RenderIndirectObjects RenderSystem::sortObjects(RenderIndirectObjects &objects) 
   std::iota(order.begin(), order.end(), 0);
 
   std::ranges::sort(order, {}, [&](uint32_t i) {
-    return objects.meshes[i];
+    return std::pair{objects.meshes[i], objects.firstIndices[i]};
   });
 
   RenderIndirectObjects newObjects;
-  const auto n = static_cast<size_t>(order.size());
+  const auto n = order.size();
 
   newObjects.firstIndices.resize(n);
   newObjects.indexCounts.resize(n);

@@ -4,7 +4,7 @@
 #include "Assets/Texture.h"
 
 struct DefaultData {
-  std::shared_ptr<Texture> errorTexture;
+  AssetHandle<Texture> errorTexture;
   VkSampler samplerNearest;
   VkSampler samplerLinear;
 };

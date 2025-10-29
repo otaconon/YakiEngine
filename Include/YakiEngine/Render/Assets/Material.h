@@ -1,5 +1,7 @@
 #pragma once
 
+#include <Assets/AssetHandle.h>
+
 #include "ShaderEffect.h"
 #include "ShaderPass.h"
 #include "EnumAccessArray.h"
@@ -32,7 +34,7 @@ struct Material {
   std::shared_ptr<EffectTemplate> original;
   EnumAccessArray<VkDescriptorSet, MeshPassType, static_cast<size_t>(MeshPassType::Count)> passSets;
 
-  EnumAccessArray<std::shared_ptr<Texture>, TextureType, static_cast<size_t>(TextureType::Count)> textures;
+  EnumAccessArray<AssetHandle<Texture>, TextureType, static_cast<size_t>(TextureType::Count)> textures;
   EnumAccessArray<VkSampler, TextureType, static_cast<size_t>(TextureType::Count)> samplers;
 
   ShaderParameters parameters;
@@ -40,6 +42,6 @@ struct Material {
 
 struct MaterialInstance {
   ShaderParameters parameters;
-  uint32_t samplerId;
+  AssetHandle<Texture> textureHandle;
 };
 

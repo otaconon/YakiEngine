@@ -6,6 +6,7 @@
 #include <glm/glm.hpp>
 
 #include "Ecs.h"
+#include "Assets/TextureManager.h"
 #include "Components/StaticObject.h"
 #include "Vulkan/Renderer.h"
 #include "Vulkan/VkTypes.h"
@@ -17,12 +18,13 @@ enum class ShowImGui : std::uint8_t {
 
 class RenderSystem : public Hori::System {
 public:
-  explicit RenderSystem(Renderer *renderer);
+  explicit RenderSystem(Renderer* renderer, TextureManager* textureManager);
 
   void Update(float dt) override;
 
 private:
-  Renderer *m_renderer;
+  Renderer* m_renderer;
+  TextureManager* m_textureManager;
 
   std::bitset<8> m_showElements;
   std::vector<IndirectBatch> m_indirectBatches;

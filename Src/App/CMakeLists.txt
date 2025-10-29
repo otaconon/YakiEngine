@@ -30,14 +30,13 @@ file(GLOB_RECURSE SHADER_SOURCES
 )
 
 set(SPIRV_FILES "")
-
 foreach(SHADER_FILE ${SHADER_SOURCES})
   file(RELATIVE_PATH REL_PATH ${CMAKE_CURRENT_SOURCE_DIR} ${SHADER_FILE})
-  set(SPIRV_FILE "${CMAKE_CURRENT_BINARY_DIR}/${REL_PATH}.spv")
-  list(APPEND SPIRV_FILES ${SPIRV_FILE})
-
+  set(SPIRV_FILE "$<TARGET_FILE_DIR:YakiEngine>/${REL_PATH}.spv")
+  get_filename_component(SPIRV_DIR "${SPIRV_FILE}" DIRECTORY)
+  
   add_custom_command(TARGET YakiEngine POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:YakiEngine>/Shaders"
+    COMMAND ${CMAKE_COMMAND} -E make_directory "${SPIRV_DIR}"
     COMMAND ${GLSLC} ${SHADER_FILE} -o ${SPIRV_FILE} -O0
     DEPENDS ${SHADER_FILE}
     COMMENT "Compiling shader: ${REL_PATH}"

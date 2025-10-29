@@ -23,8 +23,8 @@ HashCubes::HashCubes()
 
   auto &ecs = Ecs::GetInstance();
 
-  init_default_data(m_ctx, m_renderer.GetSwapchain(), m_deletionQueue);
-  m_allMeshes = std::make_shared<Scene>(m_ctx, m_deletionQueue, "Assets/meshes/basicmesh.glb");
+  init_default_data(m_ctx, m_renderer.GetSwapchain(), m_textureManager, m_deletionQueue);
+  m_allMeshes = std::make_shared<Scene>(m_ctx, m_deletionQueue, "Assets/meshes/basicmesh.glb", m_textureManager);
   m_cubeMesh = m_allMeshes->meshes[1];
 
   constexpr uint32_t cubesRes = 8;
@@ -113,7 +113,7 @@ void HashCubes::initEcs() {
   ecs.AddSystem<MovementSystem>(MovementSystem());
   ecs.AddSystem<TransformSystem>(TransformSystem());
   ecs.AddSystem<LightingSystem>(&m_renderer);
-  ecs.AddSystem<RenderSystem>(&m_renderer);
+  ecs.AddSystem<RenderSystem>(&m_renderer, &m_textureManager);
   ecs.AddSystem<PerformanceMeasureSystem>(PerformanceMeasureSystem());
 
   ecs.AddSingletonComponent(FramesPerSecond{});

@@ -27,7 +27,7 @@ void main()
     vec3 n = normalize(inNormal);
     vec3 v = normalize(sceneData.eyePosition.xyz - vPosition);
 
-    vec3 color = inColor * texture(colorTextures[nonuniformEXT(inObjectId)], inUV).xyz;
+    vec3 color = inColor * texture(colorTextures[nonuniformEXT(colorTextureIds[inObjectId])], inUV).xyz;
     vec3 ambient = color * (sceneData.ambientColor.xyz  * sceneData.ambientColor.w);
 
     outFragColor = vec4(0.f, 0.f, 0.f, 1.0f);

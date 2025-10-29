@@ -3,10 +3,9 @@
 #include <string>
 #include <vector>
 
-#include "../../Core/Assets/Asset.h"
 #include "Vulkan/VkTypes.h"
 
-struct Mesh : Asset {
+struct Mesh {
   std::string name;
   std::vector<Vertex> vertices;
   std::vector<uint32_t> indices;

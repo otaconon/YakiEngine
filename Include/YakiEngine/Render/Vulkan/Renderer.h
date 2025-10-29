@@ -72,6 +72,7 @@ private:
   std::unique_ptr<Buffer> m_objectIdsBuffer;
   std::unique_ptr<Buffer> m_transformsBuffer;
   std::unique_ptr<Buffer> m_paramsBuffer;
+  std::unique_ptr<Buffer> m_textureIdsBuffer;
   std::unique_ptr<Buffer> m_samplersBuffer;
 
   VkDescriptorSetLayout m_drawImageDescriptorLayout{};

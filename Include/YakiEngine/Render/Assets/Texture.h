@@ -7,9 +7,8 @@
 #include "Vulkan/Buffer.h"
 #include "Vulkan/VkInit.h"
 #include "Vulkan/VulkanContext.h"
-#include "../../Core/Assets/Asset.h"
 
-class Texture final : public Asset {
+class Texture {
 public:
   VkSampler sampler = VK_NULL_HANDLE;
 
@@ -18,7 +17,7 @@ public:
   Texture(std::shared_ptr<VulkanContext> ctx, void *data, VkExtent3D size, VkFormat format, VkImageUsageFlags usage, bool mipmapped);
   Texture(std::shared_ptr<VulkanContext> ctx, VkExtent3D size, VkFormat format, VkImageUsageFlags usage, bool mipmapped);
 
-  ~Texture() override;
+  ~Texture();
   void Cleanup();
 
   Texture(Texture &&other) noexcept;

@@ -9,8 +9,6 @@
 
 #include "Ecs.h"
 #include "Components/CoreComponents.h"
-#include "Assets/AssetHandle.h"
-#include "Assets/AssetMngr.h"
 #include "Assets/GltfUtils.h"
 #include "Assets/Material.h"
 #include "Assets/ShaderEffect.h"
@@ -19,7 +17,7 @@
 #include "Vulkan/VkTypes.h"
 #include "Vulkan/Descriptors/DescriptorWriter.h"
 
-Scene::Scene(std::shared_ptr<VulkanContext> ctx, DeletionQueue& deletionQueue, const std::filesystem::path &path)
+Scene::Scene(std::shared_ptr<VulkanContext> ctx, DeletionQueue& deletionQueue, const std::filesystem::path &path, TextureManager& textureManager)
   : m_ctx{ctx} {
   std::println("Loading GLTF file: {}", path.string());
   if (!std::filesystem::exists(path)) {
@@ -84,8 +82,8 @@ Scene::Scene(std::shared_ptr<VulkanContext> ctx, DeletionQueue& deletionQueue, c
   for (fastgltf::Image &image : m_gltf.images) {
     std::shared_ptr<Texture> texture = std::make_shared<Texture>(m_ctx, m_gltf, image);
     if (texture->GetImage()) {
-      AssetMngr::RegisterAsset<Texture>(texture);
-      m_textures.push_back(texture);
+      auto texHandle = textureManager.RegisterTexture(texture);
+      m_textures.push_back(texHandle);
     } else {
       m_textures.push_back(defaultData->errorTexture);
       std::cout << "gltf failed to load texture " << image.name << std::endl;
@@ -115,7 +113,7 @@ Scene::Scene(std::shared_ptr<VulkanContext> ctx, DeletionQueue& deletionQueue, c
       passType = TransparencyMode::Transparent;
     }
 
-    std::shared_ptr<Texture> colorImage = defaultData->errorTexture;
+    AssetHandle<Texture> colorImage = defaultData->errorTexture;
     VkSampler colorSampler = defaultData->samplerLinear;
 
     if (mat.pbrData.baseColorTexture.has_value()) {
@@ -123,14 +121,14 @@ Scene::Scene(std::shared_ptr<VulkanContext> ctx, DeletionQueue& deletionQueue, c
       size_t sampler = m_gltf.textures[mat.pbrData.baseColorTexture.value().textureIndex].samplerIndex.value();
 
       colorImage = m_textures[img];
-      if (m_textures[img]->GetView() == VK_NULL_HANDLE)
+      if (textureManager.GetTexture(m_textures[img])->GetView() == VK_NULL_HANDLE)
         std::print(std::cerr, "View is null");
       colorSampler = m_samplers[sampler];
     }
 
+    auto tex = textureManager.GetTexture(colorImage);
     newMat->textures[TextureType::Color] = colorImage;
-    newMat->textures[TextureType::Color]->sampler = colorSampler;
-    m_textureManager.RegisterTexture(newMat->textures[TextureType::Color]);
+    tex->sampler = colorSampler;
     newMat->samplers[TextureType::Color] = colorSampler;
 
     data_index++;

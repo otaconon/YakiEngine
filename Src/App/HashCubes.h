@@ -4,7 +4,6 @@
 #include "Vulkan/Renderer.h"
 #include "SDL/Window.h"
 
-#include "Assets/AssetMngr.h"
 #include "Assets/GltfUtils.h"
 #include "Assets/Scene.h"
 
@@ -21,6 +20,7 @@ private:
   Window m_window{};
   std::shared_ptr<VulkanContext> m_ctx;
   Renderer m_renderer;
+  TextureManager m_textureManager{};
 
   DeletionQueue m_deletionQueue;
 

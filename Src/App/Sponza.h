@@ -13,7 +13,6 @@
 #include "Systems/CameraSystem.h"
 #include "Systems/InputSystem.h"
 #include "Systems/LightingSystem.h"
-#include "Assets/AssetMngr.h"
 #include "Components/RenderComponents.h"
 #include "Components/CoreComponents.h"
 #include "HECS/Core/Entity.h"
@@ -29,6 +28,7 @@ inline void RunSponza() {
   auto &ecs = Ecs::GetInstance();
 
   Window mainWindow;
+  TextureManager textureManager;
   std::shared_ptr<VulkanContext> ctx = std::make_shared<VulkanContext>(mainWindow.window());
   Renderer renderer(mainWindow.window(), ctx);
   DeletionQueue deletionQueue;
@@ -38,18 +38,19 @@ inline void RunSponza() {
   ecs.AddSystem<MovementSystem>(MovementSystem());
   ecs.AddSystem<TransformSystem>(TransformSystem());
   ecs.AddSystem<LightingSystem>(&renderer);
-  ecs.AddSystem<RenderSystem>(&renderer);
+  ecs.AddSystem<RenderSystem>(&renderer, &textureManager);
   ecs.AddSystem<PerformanceMeasureSystem>(PerformanceMeasureSystem());
 
   ecs.AddSingletonComponent(FramesPerSecond{});
   ecs.AddSingletonComponent(MouseMode{});
-  init_default_data(ctx, renderer.GetSwapchain(), deletionQueue);
+  init_default_data(ctx, renderer.GetSwapchain(), textureManager, deletionQueue);
 
   // Create object entities
-  auto allMeshes = std::make_shared<Scene>(ctx, deletionQueue, "Assets/meshes/basicmesh.glb");
+  auto allMeshes = std::make_shared<Scene>(ctx, deletionQueue, "Assets/meshes/basicmesh.glb", textureManager);
 
   // Load scene
-  auto scene = std::make_shared<Scene>(ctx, deletionQueue, "Assets/scenes/Sponza.glb");
+  auto scene = std::make_shared<Scene>(ctx, deletionQueue, "Assets/scenes/Sponza.glb", textureManager);
+  scene->Instantiate();
 
   // Create camera entity
   Hori::Entity camera = ecs.CreateEntity();

@@ -10,6 +10,7 @@ public:
   TextureManager() = default;
 
   AssetHandle<Texture> RegisterTexture(std::shared_ptr<Texture> texture) {
+    // TODO: use free list
     for (uint32_t i = 0; i < id2tex.size(); i++) {
       if (id2tex[i] == nullptr) {
         id2tex[i] = texture;

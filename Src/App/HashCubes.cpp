@@ -27,6 +27,15 @@ HashCubes::HashCubes()
   m_allMeshes = std::make_shared<Scene>(m_ctx, m_deletionQueue, "Assets/meshes/basicmesh.glb", m_textureManager);
   m_cubeMesh = m_allMeshes->meshes[1];
 
+  auto &textureHandles = m_allMeshes->m_textures;
+  std::vector<std::shared_ptr<Texture>> textures;
+  textures.reserve(textureHandles.size());
+  for (auto &handle : textureHandles) {
+    textures.push_back(m_textureManager.GetTexture(handle));
+  }
+  m_renderer.UploadTextures(textures);
+
+
   constexpr uint32_t cubesRes = 8;
   for (int i = 0; i < cubesRes; i++) {
     for (int j = 0; j < cubesRes; j++) {
@@ -34,6 +43,14 @@ HashCubes::HashCubes()
       register_static_object(e, StaticObject{m_cubeMesh, {}}, Translation{{i*3, j*3, 0.f}});
     }
   }
+
+  for (int i = 0; i < cubesRes; i++) {
+    for (int j = 0; j < cubesRes; j++) {
+      auto e = ecs.CreateEntity();
+      register_static_object(e, StaticObject{m_allMeshes->meshes[0], {}}, Translation{{-i*3, j*3, 0.f}});
+    }
+  }
+
 
   Hori::Entity camera = ecs.CreateEntity();
   ecs.AddComponents(camera, Camera{}, Controller{});

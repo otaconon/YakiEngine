@@ -55,8 +55,8 @@ void RenderSystem::renderStaticObjects(const glm::mat4 &viewProj) {
 
   if (ecs.GetComponentArray<DirtyStaticObject>().Size() != 0) {
     RenderIndirectObjects objects;
+    int idx = 0;
     ecs.Each<DirtyStaticObject, StaticObject, LocalToWorld>([&](Hori::Entity e, DirtyStaticObject, StaticObject &drawable, LocalToWorld &localToWorld) {
-      int idx = 0;
       for (auto &[startIndex, count, bounds, material] : drawable.mesh->surfaces) {
         objects.firstIndices.push_back(startIndex);
         objects.indexCounts.push_back(count);
@@ -202,6 +202,8 @@ RenderIndirectObjects RenderSystem::sortObjects(RenderIndirectObjects &objects) 
 }
 
 std::vector<IndirectBatch> RenderSystem::packObjects(RenderIndirectObjects &objects) {
+  if (objects.objectIds.empty()) return {};
+  
   auto sameKey = [&](size_t a, size_t b) {
     return objects.meshes[a] == objects.meshes[b] &&
            objects.firstIndices[a] == objects.firstIndices[b] &&
@@ -209,20 +211,23 @@ std::vector<IndirectBatch> RenderSystem::packObjects(RenderIndirectObjects &obje
   };
 
   std::vector<IndirectBatch> draws;
+  uint32_t totalInstances = 0;
+  
   draws.push_back({
       .indexCount = objects.indexCounts[0],
       .firstIndex = objects.firstIndices[0],
-      .firstInstance = 0,
+      .firstInstance = totalInstances,
       .instanceCount = 1,
       .mesh = objects.meshes[0],
   });
 
   for (uint32_t i = 1; i < objects.objectIds.size(); i++) {
     if (!sameKey(i - 1, i)) {
+      totalInstances += draws.back().instanceCount;
       draws.push_back({
           .indexCount = objects.indexCounts[i],
           .firstIndex = objects.firstIndices[i],
-          .firstInstance = i,
+          .firstInstance = totalInstances,
           .instanceCount = 0,
           .mesh = objects.meshes[i],
       });

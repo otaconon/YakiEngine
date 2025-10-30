@@ -42,4 +42,4 @@ layout(std430, set = 1, binding = 1) readonly buffer TextureData {
     uint colorTextureIds[];
 };
 
-layout(set = 1, binding = 2) uniform sampler2D colorTextures[64];
+layout(set = 1, binding = 2) uniform sampler2D colorTextures[37];

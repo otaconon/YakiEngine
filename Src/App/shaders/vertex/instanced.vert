@@ -36,7 +36,7 @@ layout(push_constant) uniform PC {
 
 void main()
 {
-  uint globalInstance = gl_BaseInstance + gl_InstanceIndex;
+  uint globalInstance = gl_InstanceIndex;
   uint obj = objectId[globalInstance];
   mat4 M = model[obj];
   MaterialParams materialData = params[obj];

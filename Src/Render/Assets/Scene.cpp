@@ -79,6 +79,7 @@ Scene::Scene(std::shared_ptr<VulkanContext> ctx, DeletionQueue& deletionQueue, c
   }
 
   DefaultData* defaultData = Ecs::GetInstance().GetSingletonComponent<DefaultData>();
+  m_textures.push_back(defaultData->errorTexture);
   for (fastgltf::Image &image : m_gltf.images) {
     std::shared_ptr<Texture> texture = std::make_shared<Texture>(m_ctx, m_gltf, image);
     texture->sampler = defaultData->samplerNearest;
@@ -91,9 +92,6 @@ Scene::Scene(std::shared_ptr<VulkanContext> ctx, DeletionQueue& deletionQueue, c
     }
   }
 
-  m_materialDataBuffer = std::make_shared<Buffer>(m_ctx->GetAllocator(), sizeof(ShaderParameters) * m_gltf.materials.size(), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU);
-  int data_index = 0;
-  ShaderParameters *shaderParams = static_cast<ShaderParameters *>(m_materialDataBuffer->info.pMappedData);
   for (fastgltf::Material &mat : m_gltf.materials) {
     auto newMat = std::make_shared<Material>();
     m_materials.push_back(newMat);
@@ -105,9 +103,6 @@ Scene::Scene(std::shared_ptr<VulkanContext> ctx, DeletionQueue& deletionQueue, c
 
     if (mat.specular)
       newMat->parameters.specularColorFactors = {mat.specular->specularColorFactor.x(), mat.specular->specularColorFactor.y(), mat.specular->specularColorFactor.z(), mat.specular->specularFactor};
-
-    // write material parameters to buffer
-    shaderParams[data_index] = newMat->parameters;
 
     TransparencyMode passType = TransparencyMode::Opaque;
     if (mat.alphaMode == fastgltf::AlphaMode::Blend) {
@@ -121,9 +116,7 @@ Scene::Scene(std::shared_ptr<VulkanContext> ctx, DeletionQueue& deletionQueue, c
       size_t img = m_gltf.textures[mat.pbrData.baseColorTexture.value().textureIndex].imageIndex.value();
       size_t sampler = m_gltf.textures[mat.pbrData.baseColorTexture.value().textureIndex].samplerIndex.value();
 
-      colorImage = m_textures[img];
-      if (textureManager.GetTexture(m_textures[img])->GetView() == VK_NULL_HANDLE)
-        std::print(std::cerr, "View is null");
+      colorImage = m_textures[img+1];
       colorSampler = m_samplers[sampler];
     }
 
@@ -132,7 +125,6 @@ Scene::Scene(std::shared_ptr<VulkanContext> ctx, DeletionQueue& deletionQueue, c
     tex->sampler = colorSampler;
     newMat->samplers[TextureType::Color] = colorSampler;
 
-    data_index++;
   }
 
   std::vector<uint32_t> indices;

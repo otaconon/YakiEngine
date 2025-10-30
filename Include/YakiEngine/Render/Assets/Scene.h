@@ -35,5 +35,4 @@ private:
   TextureManager m_textureManager;
 
   DescriptorAllocator m_descriptorAllocator;
-  std::shared_ptr<Buffer> m_materialDataBuffer;
 };

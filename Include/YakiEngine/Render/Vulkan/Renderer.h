@@ -27,7 +27,6 @@ struct IndirectBatch {
   uint32_t firstInstance;
   uint32_t instanceCount;
   Mesh *mesh;
-  MaterialInstance materialInstance;
 };
 
 class Renderer {

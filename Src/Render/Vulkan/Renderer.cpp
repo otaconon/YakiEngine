@@ -168,7 +168,7 @@ void Renderer::RenderStaticObjects(std::vector<IndirectBatch> &batches) {
   vkCmdSetScissor(cmd, 0, 1, &scissor);
 
   for (int cmdIndex = 0; cmdIndex < batches.size(); cmdIndex++) {
-    auto &[indexCount, firstIndex, firstInstance, instanceCount, mesh, materialInstance] = batches[cmdIndex];
+    auto &[indexCount, firstIndex, firstInstance, instanceCount, mesh] = batches[cmdIndex];
 
     ShaderPass *forwardPass = m_opaqueEffectTemplate->passShaders[MeshPassType::Forward].get();
     vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, forwardPass->pipeline);
@@ -547,7 +547,7 @@ void Renderer::UpdateStaticObjects(RenderIndirectObjects &objects) {
     m_objectIdsBuffer->MapMemoryFromVector(objects.objectIds);
     m_transformsBuffer->MapMemoryFromVector(objects.transforms);
     m_paramsBuffer->MapMemoryFromVector(params);
-    m_paramsBuffer->MapMemoryFromVector(textureIds);
+    m_textureIdsBuffer->MapMemoryFromVector(textureIds);
   }
 }
 

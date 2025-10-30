@@ -56,10 +56,11 @@ void RenderSystem::renderStaticObjects(const glm::mat4 &viewProj) {
   if (ecs.GetComponentArray<DirtyStaticObject>().Size() != 0) {
     RenderIndirectObjects objects;
     ecs.Each<DirtyStaticObject, StaticObject, LocalToWorld>([&](Hori::Entity e, DirtyStaticObject, StaticObject &drawable, LocalToWorld &localToWorld) {
+      int idx = 0;
       for (auto &[startIndex, count, bounds, material] : drawable.mesh->surfaces) {
         objects.firstIndices.push_back(startIndex);
         objects.indexCounts.push_back(count);
-        objects.objectIds.push_back(e.id);
+        objects.objectIds.push_back(idx++);
         objects.transforms.push_back(localToWorld.value);
         objects.meshes.push_back(drawable.mesh.get());
         objects.materialInstances.push_back(MaterialInstance{material->parameters, material->textures[TextureType::Color]});
@@ -68,7 +69,7 @@ void RenderSystem::renderStaticObjects(const glm::mat4 &viewProj) {
     ecs.Each<DirtyStaticObject>([&](Hori::Entity e, DirtyStaticObject) {
       ecs.RemoveComponents<DirtyStaticObject>(e);
     });
-    objects = sortObjects(objects);
+    //objects = sortObjects(objects);
     m_renderer->UpdateStaticObjects(objects);
     m_indirectBatches = packObjects(objects);
   }
@@ -214,7 +215,6 @@ std::vector<IndirectBatch> RenderSystem::packObjects(RenderIndirectObjects &obje
       .firstInstance = 0,
       .instanceCount = 1,
       .mesh = objects.meshes[0],
-      .materialInstance = objects.materialInstances[0]
   });
 
   for (uint32_t i = 1; i < objects.objectIds.size(); i++) {
@@ -225,7 +225,6 @@ std::vector<IndirectBatch> RenderSystem::packObjects(RenderIndirectObjects &obje
           .firstInstance = i,
           .instanceCount = 0,
           .mesh = objects.meshes[i],
-          .materialInstance = objects.materialInstances[i]
       });
     }
     draws.back().instanceCount++;

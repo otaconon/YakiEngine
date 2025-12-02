@@ -14,10 +14,18 @@ layout (location = 4) in flat uint inObjectId;
 layout (location = 0) out vec4 outFragColor;
 layout (location = 1) out uint outObjectId;
 
+layout(set = 1, binding = 0) uniform MaterialData {
+    vec4 colorFactors;
+    vec4 metalRoughFactors;
+    vec4 specularColorFactors;
+} materialData;
+
+layout(set = 1, binding = 1) uniform sampler2D colorTex;
+
+
 vec3 highlight(vec3 l, vec3 n, vec3 v) {
     vec3 r_l = reflect(-l, n);
     float s = clamp(100.0 * dot(r_l, v) - 97.0, 0.0, 1.0);
-    MaterialParams materialData = params[inObjectId];
     vec3 highlightColor = (materialData.specularColorFactors.xyz * materialData.specularColorFactors.w);
     return highlightColor * s;
 }
@@ -27,7 +35,7 @@ void main()
     vec3 n = normalize(inNormal);
     vec3 v = normalize(sceneData.eyePosition.xyz - vPosition);
 
-    vec3 color = inColor * texture(colorTextures[nonuniformEXT(colorTextureIds[inObjectId])], inUV).xyz;
+    vec3 color = inColor * texture(colorTex, inUV).xyz;
     vec3 ambient = color * (sceneData.ambientColor.xyz  * sceneData.ambientColor.w);
 
     outFragColor = vec4(0.f, 0.f, 0.f, 1.0f);

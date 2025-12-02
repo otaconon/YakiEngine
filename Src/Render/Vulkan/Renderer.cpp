@@ -168,12 +168,20 @@ void Renderer::RenderStaticObjects(std::vector<IndirectBatch> &batches) {
   vkCmdSetScissor(cmd, 0, 1, &scissor);
 
   for (int cmdIndex = 0; cmdIndex < batches.size(); cmdIndex++) {
-    auto &[indexCount, firstIndex, firstInstance, instanceCount, mesh] = batches[cmdIndex];
+    auto &[indexCount, firstIndex, firstInstance, instanceCount, mesh, material] = batches[cmdIndex];
+
+
+    DescriptorWriter writer{};
+    writer.Clear();
+    writer.WriteBuffer(0, m_materialConstantsBuffer.buffer, sizeof(ShaderParameters), m_materialConstantsBuffer.info.offset, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER);
+    writer.WriteImage(1, material->textures[TextureType::Color]->GetView(), material->samplers[TextureType::Color], VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER);
+    writer.UpdateSet(m_ctx->GetDevice(), material->passSets[MeshPassType::Forward]);
 
     ShaderPass *forwardPass = m_opaqueEffectTemplate->passShaders[MeshPassType::Forward].get();
+    VkDescriptorSet forwardDescriptorSet = m_materialDataDescriptorSet;
     vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, forwardPass->pipeline);
     vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, forwardPass->effect->pipelineLayout, 0, 1, &getCurrentFrame().descriptorSet, 0, nullptr);
-    vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, forwardPass->effect->pipelineLayout, 1, 1, &m_materialDataDescriptorSet, 0, nullptr);
+    vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, forwardPass->effect->pipelineLayout, 1, 1, &forwardDescriptorSet, 0, nullptr);
 
     vkCmdBindIndexBuffer(cmd, mesh->meshBuffers->indexBuffer.buffer, 0, VK_INDEX_TYPE_UINT32);
 
@@ -488,6 +496,7 @@ void Renderer::WaitIdle() {
   vkDeviceWaitIdle(m_ctx->GetDevice());
 }
 
+// Dead code
 void Renderer::UploadTextures(std::vector<std::shared_ptr<Texture>> &textures) {
   std::vector<VkDescriptorImageInfo> imageInfos;
   for (auto &texture: textures) {
@@ -497,34 +506,15 @@ void Renderer::UploadTextures(std::vector<std::shared_ptr<Texture>> &textures) {
       .imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
     });
   }
-
-  DescriptorWriter writer;
-  writer.WriteImages(2, imageInfos.data(), imageInfos.size(), VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER);
-  writer.UpdateSet(m_ctx->GetDevice(), m_materialDataDescriptorSet);
 }
 
 void Renderer::UpdateStaticObjects(RenderIndirectObjects &objects) {
-  std::vector<ShaderParameters> params;
-  std::vector<uint32_t> textureIds;
-  params.reserve(objects.materialInstances.size());
-  textureIds.reserve(objects.materialInstances.size());
-  for (auto &[param, textureHandle] : objects.materialInstances) {
-    params.push_back(param);
-    textureIds.push_back(textureHandle.id);
-  }
-
   if (m_objectIdsBuffer == nullptr && m_transformsBuffer == nullptr) {
     m_objectIdsBuffer = std::make_unique<Buffer>(m_ctx->GetAllocator(), objects.objectIds.size() * sizeof(uint32_t), VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU);
     m_objectIdsBuffer->MapMemoryFromVector(objects.objectIds);
 
     m_transformsBuffer = std::make_unique<Buffer>(m_ctx->GetAllocator(), objects.transforms.size() * sizeof(glm::mat4), VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU);
     m_transformsBuffer->MapMemoryFromVector(objects.transforms);
-
-    m_paramsBuffer = std::make_unique<Buffer>(m_ctx->GetAllocator(), params.size() * sizeof(ShaderParameters), VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU);
-    m_paramsBuffer->MapMemoryFromVector(params);
-
-    m_textureIdsBuffer = std::make_unique<Buffer>(m_ctx->GetAllocator(), textureIds.size() * sizeof(uint32_t), VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU);
-    m_textureIdsBuffer->MapMemoryFromVector(textureIds);
 
     {
       DescriptorWriter writer;
@@ -535,19 +525,9 @@ void Renderer::UpdateStaticObjects(RenderIndirectObjects &objects) {
         writer.UpdateSet(m_ctx->GetDevice(), m_frames[i].descriptorSet);
       } 
     }
-
-    {
-      DescriptorWriter writer;
-      writer.WriteBuffer(0, m_paramsBuffer->buffer, params.size() * sizeof(ShaderParameters), 0, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER);
-      writer.WriteBuffer(1, m_textureIdsBuffer->buffer, textureIds.size() * sizeof(uint32_t), 0, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER);
-      writer.UpdateSet(m_ctx->GetDevice(), m_materialDataDescriptorSet);
-    }
-    
   } else {
     m_objectIdsBuffer->MapMemoryFromVector(objects.objectIds);
     m_transformsBuffer->MapMemoryFromVector(objects.transforms);
-    m_paramsBuffer->MapMemoryFromVector(params);
-    m_textureIdsBuffer->MapMemoryFromVector(textureIds);
   }
 }
 

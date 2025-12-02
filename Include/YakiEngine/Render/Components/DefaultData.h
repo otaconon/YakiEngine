@@ -5,6 +5,7 @@
 
 struct DefaultData {
   AssetHandle<Texture> errorTexture;
+  AssetHandle<Texture> whiteTexture;
   VkSampler samplerNearest;
   VkSampler samplerLinear;
 };

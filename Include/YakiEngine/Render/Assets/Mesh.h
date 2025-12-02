@@ -1,5 +1,7 @@
 #pragma once
 
+#include "GeoSurface.h"
+
 #include <string>
 #include <vector>
 

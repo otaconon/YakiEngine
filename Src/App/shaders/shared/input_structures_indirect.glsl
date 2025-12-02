@@ -32,14 +32,3 @@ layout (set = 0, binding = 1, std430) readonly buffer LightBuffer {
     DirectionalLight directionalLights[MAX_DIRECTIONAL];
     PointLight pointLights[MAX_POINT];
 } lightBuffer;
-
-layout(std430, set = 1, binding = 0) readonly buffer MaterialData {
-    MaterialParams params[];
-};
-
-
-layout(std430, set = 1, binding = 1) readonly buffer TextureData {
-    uint colorTextureIds[];
-};
-
-layout(set = 1, binding = 2) uniform sampler2D colorTextures[37];

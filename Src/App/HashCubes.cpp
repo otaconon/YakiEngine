@@ -12,9 +12,18 @@
 #include "Systems/TransformSystem.h"
 
 #include <imgui_impl_sdl3.h>
+#include <random>
 
 constexpr uint32_t numDirectionalLights = 1;
 constexpr uint32_t numPointLights = 0;
+
+glm::vec4 randomColor() {
+    static std::random_device rd;
+    static std::mt19937 gen(rd());
+    static std::uniform_real_distribution<float> dis(0.0f, 1.0f);
+    
+    return {dis(gen), dis(gen), dis(gen), 1.f};
+}
 
 HashCubes::HashCubes()
   : m_ctx{std::make_shared<VulkanContext>(m_window.window())},
@@ -35,22 +44,13 @@ HashCubes::HashCubes()
   }
   m_renderer.UploadTextures(textures);
 
-
   constexpr uint32_t cubesRes = 8;
   for (int i = 0; i < cubesRes; i++) {
     for (int j = 0; j < cubesRes; j++) {
       auto e = ecs.CreateEntity();
-      register_static_object(e, StaticObject{m_cubeMesh, {}}, Translation{{i*3, j*3, 0.f}});
+      register_static_object(e, StaticObject{m_allMeshes->meshes[0], {}}, Translation{{i*2, j*2, 0.f}});
     }
   }
-
-  for (int i = 0; i < cubesRes; i++) {
-    for (int j = 0; j < cubesRes; j++) {
-      auto e = ecs.CreateEntity();
-      register_static_object(e, StaticObject{m_allMeshes->meshes[0], {}}, Translation{{-i*3, j*3, 0.f}});
-    }
-  }
-
 
   Hori::Entity camera = ecs.CreateEntity();
   ecs.AddComponents(camera, Camera{}, Controller{});

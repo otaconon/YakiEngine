@@ -34,7 +34,7 @@ struct Material {
   std::shared_ptr<EffectTemplate> original;
   EnumAccessArray<VkDescriptorSet, MeshPassType, static_cast<size_t>(MeshPassType::Count)> passSets;
 
-  EnumAccessArray<AssetHandle<Texture>, TextureType, static_cast<size_t>(TextureType::Count)> textures;
+  EnumAccessArray<std::shared_ptr<Texture>, TextureType, static_cast<size_t>(TextureType::Count)> textures;
   EnumAccessArray<VkSampler, TextureType, static_cast<size_t>(TextureType::Count)> samplers;
 
   ShaderParameters parameters;

@@ -26,7 +26,8 @@ struct IndirectBatch {
   uint32_t indexCount, firstIndex;
   uint32_t firstInstance;
   uint32_t instanceCount;
-  Mesh *mesh;
+  std::shared_ptr<Mesh> mesh;
+  std::shared_ptr<Material> material;
 };
 
 class Renderer {

@@ -79,7 +79,9 @@ Scene::Scene(std::shared_ptr<VulkanContext> ctx, DeletionQueue& deletionQueue, c
   }
 
   DefaultData *defaultData = Ecs::GetInstance().GetSingletonComponent<DefaultData>();
+  m_textures.push_back(defaultData->whiteTexture);
   m_textures.push_back(defaultData->errorTexture);
+  size_t imageIndexOffset = m_textures.size(); // Later used to correctly index into texture using gltf image indices
   for (fastgltf::Image &image : m_gltf.images) {
     std::shared_ptr<Texture> texture = std::make_shared<Texture>(m_ctx, m_gltf, image);
     texture->sampler = defaultData->samplerNearest;
@@ -109,22 +111,24 @@ Scene::Scene(std::shared_ptr<VulkanContext> ctx, DeletionQueue& deletionQueue, c
       passType = TransparencyMode::Transparent;
     }
 
-    AssetHandle<Texture> colorImage = defaultData->errorTexture;
+    AssetHandle<Texture> colorImage = defaultData->whiteTexture;
     VkSampler colorSampler = defaultData->samplerLinear;
 
     if (mat.pbrData.baseColorTexture.has_value()) {
       size_t img = m_gltf.textures[mat.pbrData.baseColorTexture.value().textureIndex].imageIndex.value();
       size_t sampler = m_gltf.textures[mat.pbrData.baseColorTexture.value().textureIndex].samplerIndex.value();
 
-      colorImage = m_textures[img+1];
+      colorImage = m_textures[img + imageIndexOffset];
       colorSampler = m_samplers[sampler];
+
+
+      newMat->passSets[MeshPassType::Forward] = m_descriptorAllocator.Allocate(m_ctx->GetDevice(), newMat->original->passShaders[MeshPassType::Forward]->effect->descriptorSetLayouts[1]); // Possibly needs a fix here
     }
 
     auto tex = textureManager.GetTexture(colorImage);
-    newMat->textures[TextureType::Color] = colorImage;
+    newMat->textures[TextureType::Color] = tex;
     tex->sampler = colorSampler;
     newMat->samplers[TextureType::Color] = colorSampler;
-
   }
 
   std::vector<uint32_t> indices;
@@ -201,11 +205,11 @@ Scene::Scene(std::shared_ptr<VulkanContext> ctx, DeletionQueue& deletionQueue, c
             });
       }
 
+      std::shared_ptr<Material> mat = m_materials[0];
       if (p.materialIndex.has_value()) {
-        newSurface.material = m_materials[p.materialIndex.value()];
-      } else {
-        newSurface.material = m_materials[0];
+        mat = m_materials[p.materialIndex.value()];
       }
+      newSurface.material = mat;
 
       // calculate surface bounds
       glm::vec3 minpos = vertices[initial_vtx].position;

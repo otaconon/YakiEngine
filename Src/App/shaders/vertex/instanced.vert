@@ -39,7 +39,6 @@ void main()
   uint globalInstance = gl_InstanceIndex;
   uint obj = objectId[globalInstance];
   mat4 M = model[obj];
-  MaterialParams materialData = params[obj];
 
   Vertex v = pc.vertexBuffer.vertices[gl_VertexIndex];
 
@@ -47,8 +46,8 @@ void main()
 
   gl_Position = sceneData.viewproj * M * position;
 
+  outColor = vec3(1.0, 1.0, 1.0);
   outNormal = normalize((M * vec4(v.normal, 0.0)).xyz);
-  outColor = v.color.xyz * materialData.colorFactors.xyz;
   outUV = vec2(v.uv_x, v.uv_y);
   vPosition = (M * position).xyz;
   outObjectId = obj;

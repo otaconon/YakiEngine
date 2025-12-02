@@ -12,8 +12,8 @@ struct RenderObject {
   uint32_t firstIndex;
   VkBuffer indexBuffer;
 
-  Mesh *mesh;
-  Material *material;
+  std::shared_ptr<Mesh> mesh;
+  std::shared_ptr<Material> material;
   Bounds bounds;
 
   glm::mat4 transform;
@@ -23,9 +23,9 @@ struct RenderObject {
 struct RenderIndirectObjects {
   std::vector<uint32_t> firstIndices;
   std::vector<uint32_t> indexCounts;
-  std::vector<Mesh *> meshes;
+  std::vector<std::shared_ptr<Mesh>> meshes;
+  std::vector<std::shared_ptr<Material>> materials;
 
   std::vector<uint32_t> objectIds;
-  std::vector<MaterialInstance> materialInstances;
   std::vector<glm::mat4> transforms;
 };
